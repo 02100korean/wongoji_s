@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Printer, FileText, Search } from 'lucide-react';
+import { Printer, FileText, Search, Type } from 'lucide-react';
 
 const App = () => {
   const [content, setContent] = useState('');
@@ -7,6 +7,7 @@ const App = () => {
   const [gridType, setGridType] = useState('200'); 
   const [viewMode, setViewMode] = useState('traditional'); 
   const [lineColor, setLineColor] = useState('#607d8b');
+  const [fontFamily, setFontFamily] = useState('serif'); // 기본 폰트 설정
   
   // 줌 상태 관리 (0.3 ~ 1.0)
   const [zoom, setZoom] = useState(0.8);
@@ -55,7 +56,8 @@ const App = () => {
         borderBottom: `1.2px solid ${lineColor}`,
         borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center', 
-        fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box'
+        fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box',
+        fontFamily: fontFamily // 선택한 폰트 적용
     };
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
     if (cellData.type === 'pair') {
@@ -87,7 +89,7 @@ const App = () => {
           <div key={p} className="flex flex-col items-center">
             <div className="bg-white flex flex-col items-center p-12 md:p-16" style={{ width: 'max-content' }}>
               <div className="w-full flex justify-end mb-8 px-2">
-                {p === 0 && name && <div className="border-b-2 border-slate-900 px-8 text-lg font-bold pb-1">성명: {name}</div>}
+                {p === 0 && name && <div className="border-b-2 border-slate-900 px-8 text-lg font-bold pb-1" style={{ fontFamily }}>이름: {name}</div>}
               </div>
               <div className="manuscript-grid flex flex-col" style={{ gap: getRowGap() }}>
                 {Array.from({ length: rows }).map((_, r) => (
@@ -107,7 +109,6 @@ const App = () => {
 
   return (
     <div className={`app-container flex flex-col bg-slate-200 h-screen overflow-hidden ${gridType === '200' ? 'print-landscape' : 'print-portrait'}`}>
-      {/* 상단바 */}
       <nav className="bg-white border-b px-4 py-3 no-print flex justify-between items-center shrink-0 z-50 shadow-sm">
         <div className="flex items-center gap-2">
           <FileText className="text-red-600" size={20} />
@@ -121,7 +122,6 @@ const App = () => {
       </nav>
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-        {/* 입력창 (사이드바) */}
         <aside className="w-full md:w-[350px] bg-white border-b md:border-b-0 md:border-r no-print flex flex-col shrink-0 z-30 h-[30%] md:h-full">
           <div className="p-3 border-b bg-slate-50 flex flex-col gap-2">
             <div className="grid grid-cols-2 gap-2">
@@ -135,7 +135,31 @@ const App = () => {
                 <option value="grid">격자형</option>
               </select>
             </div>
-            <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="학생 성명" className="p-2 border rounded-xl font-bold text-xs outline-none" />
+            
+            {/* 폰트 선택 및 이름 입력란 (폰트 메뉴 추가) */}
+            <div className="flex gap-2">
+              <div className="flex items-center gap-1 bg-white border rounded-xl px-2 shrink-0">
+                <Type size={14} className="text-slate-400" />
+                <select 
+                  value={fontFamily} 
+                  onChange={e => setFontFamily(e.target.value)} 
+                  className="p-2 text-xs font-bold bg-transparent outline-none border-none cursor-pointer"
+                >
+                  <option value="serif">바탕체</option>
+                  <option value="sans-serif">고딕체</option>
+                  <option value="'Gungsuh', cursive">궁서체</option>
+                  <option value="'Courier New', monospace">명조(모노)</option>
+                </select>
+              </div>
+              <input 
+                type="text" 
+                value={studentName} 
+                onChange={e => setStudentName(e.target.value)} 
+                placeholder="이름" 
+                className="flex-1 p-2 border rounded-xl font-bold text-xs outline-none" 
+              />
+            </div>
+
             <button onClick={() => window.print()} className="bg-slate-900 text-white w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 hover:bg-blue-700 transition-colors">
               <Printer size={16}/> 인쇄 / PDF 저장
             </button>
@@ -144,15 +168,15 @@ const App = () => {
             <textarea 
               value={content} 
               onChange={e => setContent(e.target.value)} 
-              className="w-full h-full border-none outline-none resize-none bg-transparent text-base leading-relaxed font-serif" 
+              style={{ fontFamily }}
+              className="w-full h-full border-none outline-none resize-none bg-transparent text-base leading-relaxed overflow-y-auto" 
               placeholder="여기에 내용을 입력하세요..." 
             />
           </div>
         </aside>
 
-        {/* 원고지 영역: 상하좌우 스크롤 및 독립적 줌 적용 */}
         <main className="flex-1 overflow-auto bg-slate-300 relative scrollbar-visible p-0 md:p-4">
-          {/* 줌 드롭다운 버튼 (모든 환경에서 노출) */}
+          {/* 줌 컨트롤 */}
           <div className="sticky top-4 left-4 z-40 bg-white/95 backdrop-blur-md border px-3 py-2 flex items-center gap-2 rounded-xl shadow-lg w-fit no-print">
             <Search size={14} className="text-slate-500" />
             <span className="text-[10px] font-bold text-slate-400 uppercase">Zoom</span>
@@ -167,7 +191,6 @@ const App = () => {
             </select>
           </div>
 
-          {/* 원고지 컨테이너 (상하좌우 스크롤 보장) */}
           <div className="inline-block min-w-max min-h-max p-10">
             <div 
               className="origin-top-left transition-transform duration-150 ease-in-out"
@@ -180,53 +203,24 @@ const App = () => {
       </div>
 
       <style>{`
-        /* 스크롤바 디자인 */
         .scrollbar-visible::-webkit-scrollbar { width: 12px; height: 12px; }
         .scrollbar-visible::-webkit-scrollbar-track { background: #cbd5e1; }
         .scrollbar-visible::-webkit-scrollbar-thumb { background: #475569; border-radius: 6px; border: 3px solid #cbd5e1; }
         
-        /* 핀치줌 방지 및 터치 스크롤 허용 */
         main {
-          touch-action: pan-x pan-y; /* 핀치줌은 막고 상하좌우 스크롤만 허용 */
+          touch-action: pan-x pan-y;
           -webkit-overflow-scrolling: touch;
         }
 
         @media print {
           .no-print { display: none !important; }
           body, html { margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; }
-          
-          /* 인쇄 시 레이아웃 초기화 (줌 무시) */
-          .app-container, .flex-1, main { 
-            display: block !important; 
-            overflow: visible !important; 
-            height: auto !important; 
-            width: 100% !important; 
-            background: white !important; 
-          }
-          
-          .origin-top-left { 
-            transform: scale(1) !important; 
-            padding: 0 !important; 
-          }
-
-          /* 용지 설정 (디폴트값 유지하되 브라우저에서 수정 가능) */
+          .app-container, .flex-1, main { display: block !important; overflow: visible !important; height: auto !important; width: 100% !important; background: white !important; }
+          .origin-top-left { transform: scale(1) !important; padding: 0 !important; }
           .print-landscape { @page { size: auto; margin: 10mm; } }
           .print-portrait { @page { size: auto; margin: 10mm; } }
-          
-          .wongoji-page-unit { 
-            page-break-after: always !important; 
-            height: 100vh !important; 
-            display: flex !important; 
-            align-items: center !important; 
-            justify-content: center !important; 
-          }
-          
-          .wongoji-paper-dynamic { 
-            transform: scale(0.9); 
-            width: auto !important; 
-            padding: 0 !important; 
-            box-shadow: none !important;
-          }
+          .wongoji-page-unit { page-break-after: always !important; height: 100vh !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+          .wongoji-paper-dynamic { transform: scale(0.9); width: auto !important; padding: 0 !important; box-shadow: none !important; }
         }
       `}</style>
     </div>
