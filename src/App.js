@@ -6,7 +6,8 @@ const App = () => {
   const [gridType, setGridType] = useState('200'); 
   const [viewMode, setViewMode] = useState('traditional'); 
   const [lineColor, setLineColor] = useState('#607d8b');
-  const [fontFamily, setFontFamily] = useState('serif');
+  // 기본 폰트를 Noto Serif KR(바탕)로 설정
+  const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
   const [zoom, setZoom] = useState(0.8);
 
   const processToCells = useCallback((text, cols) => {
@@ -54,80 +55,26 @@ const App = () => {
         borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center', 
         fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box',
-        fontFamily: fontFamily
+        fontFamily: fontFamily // 선택된 Noto 폰트 적용
     };
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
     if (cellData.type === 'pair') {
         return (
-            <div key={key} style={cellStyle} style={{...cellStyle, display: 'flex', fontWeight: 'bold', fontSize: '20px'}}>
+            <div key={key} style={{...cellStyle, display: 'flex', fontWeight: 'bold', fontSize: '20px'}}>
                 <div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[0]}</div>
                 <div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[1]}</div>
             </div>
         );
     }
-    return <div key={key} style={cellStyle} style={{...cellStyle, fontWeight: '500', color: '#0f172a'}}>{cellData.content}</div>;
+    return <div key={key} style={{...cellStyle, fontWeight: '500', color: '#0f172a'}}>{cellData.content}</div>;
   };
 
   return (
     <div className={`app-root ${gridType === '200' ? 'p-landscape' : 'p-portrait'}`} style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-      {/* 상단바 */}
-      <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100 }}>
-        <div style={{ fontWeight: '900', color: '#1e293b' }}>원고지 연습기</div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {['#607d8b', '#ef4444', '#2d6a4f', '#000000'].map(c => (
-            <button key={c} onClick={() => setLineColor(c)} style={{ width: '24px', height: '24px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', cursor: 'pointer', backgroundColor: c }} />
-          ))}
-        </div>
-      </header>
-
-      <div style={{ flex: 1, display: 'flex', flexDirection: window.innerWidth < 768 ? 'column' : 'row', overflow: 'hidden' }}>
-        {/* 사이드바 */}
-        <aside className="no-print" style={{ width: window.innerWidth < 768 ? '100%' : '350px', backgroundColor: 'white', borderRight: '1px solid #ddd', display: 'flex', flexDirection: 'column', height: window.innerWidth < 768 ? '35%' : '100%' }}>
-          <div style={{ padding: '15px', backgroundColor: '#f8fafc', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <select value={gridType} onChange={e => setGridType(e.target.value)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #ccc', fontSize: '12px', fontWeight: 'bold' }}>
-                <option value="200">200자 (가로)</option>
-                <option value="400">400자 (세로)</option>
-              </select>
-              <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #ccc', fontSize: '12px', fontWeight: 'bold' }}>
-                <option value="traditional">일반형</option>
-                <option value="feedback">피드백용</option>
-                <option value="grid">격자형</option>
-              </select>
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #ccc', fontSize: '12px', fontWeight: 'bold', width: '40%' }}>
-                <option value="serif">바탕체</option>
-                <option value="sans-serif">고딕체</option>
-              </select>
-              <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름" style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #ccc', fontSize: '12px', fontWeight: 'bold' }} />
-            </div>
-            <button onClick={() => window.print()} style={{ backgroundColor: '#0f172a', color: 'white', padding: '10px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>인쇄 / PDF 저장</button>
-          </div>
-          <textarea value={content} onChange={e => setContent(e.target.value)} style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '16px', lineHeight: '1.6', fontFamily }} placeholder="내용을 입력하세요..." />
-        </aside>
-
-        {/* 원고지 영역 */}
-        <main className="manuscript-main" style={{ flex: 1, overflow: 'auto', position: 'relative', backgroundColor: '#cbd5e1' }}>
-          {/* 줌 드롭다운 */}
-          <div className="no-print" style={{ position: 'sticky', top: '15px', left: '15px', zIndex: 50, backgroundColor: 'rgba(255,255,255,0.9)', padding: '5px 12px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', gap: '8px', width: 'fit-content', border: '1px solid #ddd' }}>
-            <span style={{ fontSize: '10px', fontWeight: '800', color: '#64748b' }}>ZOOM</span>
-            <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900', cursor: 'pointer' }}>
-              {[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map(v => (
-                <option key={v} value={v}>{Math.round(v * 100)}%</option>
-              ))}
-            </select>
-          </div>
-
-          <div style={{ display: 'inline-block', minWidth: '100%', minHeight: '100%', padding: '40px' }}>
-            <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', transition: 'transform 0.15s ease' }}>
-                <ManuscriptContainer text={content} gridType={gridType} viewMode={viewMode} lineColor={lineColor} name={studentName} fontFamily={fontFamily} processToCells={processToCells} renderCell={renderCell} />
-            </div>
-          </div>
-        </main>
-      </div>
-
+      {/* Google Fonts 로드 */}
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Serif+KR:wght@400;700&display=swap');
+        
         .manuscript-main::-webkit-scrollbar { width: 12px; height: 12px; }
         .manuscript-main::-webkit-scrollbar-track { background: #cbd5e1; }
         .manuscript-main::-webkit-scrollbar-thumb { background: #475569; border-radius: 6px; border: 3px solid #cbd5e1; }
@@ -144,6 +91,71 @@ const App = () => {
           .page-unit { page-break-after: always !important; display: flex !important; align-items: center; justify-content: center; height: 100vh; }
         }
       `}</style>
+
+      {/* 상단바 */}
+      <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100 }}>
+        <div style={{ fontWeight: '900', color: '#1e293b', fontFamily: "'Noto Sans KR', sans-serif" }}>원고지 연습기</div>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {['#607d8b', '#ef4444', '#2d6a4f', '#000000'].map(c => (
+            <button key={c} onClick={() => setLineColor(c)} style={{ width: '24px', height: '24px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', cursor: 'pointer', backgroundColor: c }} />
+          ))}
+        </div>
+      </header>
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'row', overflow: 'hidden' }}>
+        {/* 사이드바 */}
+        <aside className="no-print" style={{ width: '350px', backgroundColor: 'white', borderRight: '1px solid #ddd', display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div style={{ padding: '15px', backgroundColor: '#f8fafc', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <select value={gridType} onChange={e => setGridType(e.target.value)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #ccc', fontSize: '12px', fontWeight: 'bold' }}>
+                <option value="200">200자 (가로)</option>
+                <option value="400">400자 (세로)</option>
+              </select>
+              <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #ccc', fontSize: '12px', fontWeight: 'bold' }}>
+                <option value="traditional">일반형</option>
+                <option value="feedback">피드백용</option>
+                <option value="grid">격자형</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <select 
+                value={fontFamily} 
+                onChange={e => setFontFamily(e.target.value)} 
+                style={{ padding: '8px', borderRadius: '8px', border: '1px solid #ccc', fontSize: '12px', fontWeight: 'bold', width: '45%' }}
+              >
+                <option value="'Noto Serif KR', serif">Noto 바탕</option>
+                <option value="'Noto Sans KR', sans-serif">Noto 고딕</option>
+              </select>
+              <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름" style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid #ccc', fontSize: '12px', fontWeight: 'bold' }} />
+            </div>
+            <button onClick={() => window.print()} style={{ backgroundColor: '#0f172a', color: 'white', padding: '10px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>인쇄 / PDF 저장</button>
+          </div>
+          <textarea 
+            value={content} 
+            onChange={e => setContent(e.target.value)} 
+            style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '16px', lineHeight: '1.6', fontFamily }} 
+            placeholder="내용을 입력하세요..." 
+          />
+        </aside>
+
+        {/* 원고지 영역 */}
+        <main className="manuscript-main" style={{ flex: 1, overflow: 'auto', position: 'relative', backgroundColor: '#cbd5e1' }}>
+          <div className="no-print" style={{ position: 'sticky', top: '15px', left: '15px', zIndex: 50, backgroundColor: 'rgba(255,255,255,0.9)', padding: '5px 12px', borderRadius: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', gap: '8px', width: 'fit-content', border: '1px solid #ddd' }}>
+            <span style={{ fontSize: '10px', fontWeight: '800', color: '#64748b' }}>ZOOM</span>
+            <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900', cursor: 'pointer' }}>
+              {[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map(v => (
+                <option key={v} value={v}>{Math.round(v * 100)}%</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ display: 'inline-block', minWidth: '100%', minHeight: '100%', padding: '40px' }}>
+            <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', transition: 'transform 0.15s ease' }}>
+                <ManuscriptContainer text={content} gridType={gridType} viewMode={viewMode} lineColor={lineColor} name={studentName} fontFamily={fontFamily} processToCells={processToCells} renderCell={renderCell} />
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
@@ -171,7 +183,7 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
                   </div>
                 ))}
               </div>
-              <div className="no-print" style={{ marginTop: '40px', fontSize: '11px', color: '#cbd5e1', fontWeight: 'bold', letterSpacing: '2px' }}>PAGE {p + 1}</div>
+              <div className="no-print" style={{ marginTop: '40px', fontSize: '11px', color: '#cbd5e1', fontWeight: 'bold', letterSpacing: '2px', fontFamily: "'Noto Sans KR', sans-serif" }}>PAGE {p + 1}</div>
               {p < pageCount - 1 && <div className="no-print" style={{ width: '100%', borderBottom: '2px dotted #eee', margin: '80px 0' }}></div>}
             </div>
           </div>
