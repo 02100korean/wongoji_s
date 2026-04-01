@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Printer, FileText, Search } from 'lucide-react';
 
 const App = () => {
@@ -10,32 +10,6 @@ const App = () => {
   
   // 줌 상태 관리 (0.3 ~ 1.0)
   const [zoom, setZoom] = useState(0.8);
-  const touchDistRef = useRef(0);
-
-  // 고속 핀치 줌 로직 (민감도 개선)
-  const handleTouchMove = (e) => {
-    if (e.touches.length === 2) {
-      e.preventDefault(); 
-      const dist = Math.hypot(
-        e.touches[0].pageX - e.touches[1].pageX,
-        e.touches[0].pageY - e.touches[1].pageY
-      );
-
-      if (touchDistRef.current > 0) {
-        // 민감도를 0.01로 상향하여 반응 속도 체감 증가
-        const delta = (dist - touchDistRef.current) * 0.01; 
-        setZoom((prev) => {
-          const nextZoom = prev + delta;
-          return Math.min(Math.max(nextZoom, 0.3), 1.0);
-        });
-      }
-      touchDistRef.current = dist;
-    }
-  };
-
-  const handleTouchEnd = () => {
-    touchDistRef.current = 0;
-  };
 
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
@@ -133,6 +107,7 @@ const App = () => {
 
   return (
     <div className={`app-container flex flex-col bg-slate-200 h-screen overflow-hidden ${gridType === '200' ? 'print-landscape' : 'print-portrait'}`}>
+      {/* 상단바 */}
       <nav className="bg-white border-b px-4 py-3 no-print flex justify-between items-center shrink-0 z-50 shadow-sm">
         <div className="flex items-center gap-2">
           <FileText className="text-red-600" size={20} />
@@ -146,6 +121,7 @@ const App = () => {
       </nav>
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        {/* 입력창 (사이드바) */}
         <aside className="w-full md:w-[350px] bg-white border-b md:border-b-0 md:border-r no-print flex flex-col shrink-0 z-30 h-[30%] md:h-full">
           <div className="p-3 border-b bg-slate-50 flex flex-col gap-2">
             <div className="grid grid-cols-2 gap-2">
@@ -160,8 +136,8 @@ const App = () => {
               </select>
             </div>
             <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="학생 성명" className="p-2 border rounded-xl font-bold text-xs outline-none" />
-            <button onClick={() => window.print()} className="bg-slate-900 text-white w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 hover:bg-red-600 transition-colors">
-              <Printer size={16}/> PDF 저장/인쇄
+            <button onClick={() => window.print()} className="bg-slate-900 text-white w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 hover:bg-blue-700 transition-colors">
+              <Printer size={16}/> 인쇄 / PDF 저장
             </button>
           </div>
           <div className="flex-1 p-3">
@@ -174,34 +150,27 @@ const App = () => {
           </div>
         </aside>
 
-        <main 
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          className="flex-1 overflow-auto bg-slate-300 relative touch-none scrollbar-visible p-4 md:p-8"
-        >
-          {/* 수정된 영역: md:flex 클래스로 PC(중간 화면 이상)에서만 노출되도록 설정 */}
-          <div className="sticky top-0 left-0 z-40 bg-white/95 backdrop-blur-md border px-3 py-2 hidden md:flex items-center gap-2 rounded-br-2xl shadow-md w-fit no-print">
+        {/* 원고지 영역: 상하좌우 스크롤 및 독립적 줌 적용 */}
+        <main className="flex-1 overflow-auto bg-slate-300 relative scrollbar-visible p-0 md:p-4">
+          {/* 줌 드롭다운 버튼 (모든 환경에서 노출) */}
+          <div className="sticky top-4 left-4 z-40 bg-white/95 backdrop-blur-md border px-3 py-2 flex items-center gap-2 rounded-xl shadow-lg w-fit no-print">
             <Search size={14} className="text-slate-500" />
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Scale</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase">Zoom</span>
             <select 
               value={zoom} 
               onChange={(e) => setZoom(parseFloat(e.target.value))}
               className="bg-transparent border-none text-xs font-black outline-none focus:ring-0 cursor-pointer text-slate-900"
             >
-              <option value="0.3">30%</option>
-              <option value="0.4">40%</option>
-              <option value="0.5">50%</option>
-              <option value="0.6">60%</option>
-              <option value="0.7">70%</option>
-              <option value="0.8">80%</option>
-              <option value="0.9">90%</option>
-              <option value="1.0">100%</option>
+              {[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map(val => (
+                <option key={val} value={val}>{Math.round(val * 100)}%</option>
+              ))}
             </select>
           </div>
 
-          <div className="inline-block min-w-full min-h-full">
+          {/* 원고지 컨테이너 (상하좌우 스크롤 보장) */}
+          <div className="inline-block min-w-max min-h-max p-10">
             <div 
-              className="origin-top-left transition-transform duration-75 ease-out p-4 md:p-10"
+              className="origin-top-left transition-transform duration-150 ease-in-out"
               style={{ transform: `scale(${zoom})` }}
             >
               <Manuscript text={content} settings={{ gridType, viewMode, lineColor }} name={studentName} />
@@ -211,22 +180,53 @@ const App = () => {
       </div>
 
       <style>{`
-        .scrollbar-visible::-webkit-scrollbar { width: 10px; height: 10px; }
+        /* 스크롤바 디자인 */
+        .scrollbar-visible::-webkit-scrollbar { width: 12px; height: 12px; }
         .scrollbar-visible::-webkit-scrollbar-track { background: #cbd5e1; }
-        .scrollbar-visible::-webkit-scrollbar-thumb { background: #475569; border-radius: 5px; border: 2px solid #cbd5e1; }
+        .scrollbar-visible::-webkit-scrollbar-thumb { background: #475569; border-radius: 6px; border: 3px solid #cbd5e1; }
         
+        /* 핀치줌 방지 및 터치 스크롤 허용 */
         main {
-          touch-action: none;
+          touch-action: pan-x pan-y; /* 핀치줌은 막고 상하좌우 스크롤만 허용 */
           -webkit-overflow-scrolling: touch;
         }
 
         @media print {
           .no-print { display: none !important; }
           body, html { margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; }
-          .app-container, .flex-1, main { display: block !important; overflow: visible !important; height: auto !important; width: 100% !important; background: white !important; }
-          .origin-top-left { transform: scale(1) !important; padding: 0 !important; }
-          .wongoji-page-unit { page-break-after: always !important; height: 100vh !important; display: flex !important; align-items: center !important; justify-content: center !important; }
-          .wongoji-paper-dynamic { transform: scale(0.9); width: auto !important; padding: 0 !important; }
+          
+          /* 인쇄 시 레이아웃 초기화 (줌 무시) */
+          .app-container, .flex-1, main { 
+            display: block !important; 
+            overflow: visible !important; 
+            height: auto !important; 
+            width: 100% !important; 
+            background: white !important; 
+          }
+          
+          .origin-top-left { 
+            transform: scale(1) !important; 
+            padding: 0 !important; 
+          }
+
+          /* 용지 설정 (디폴트값 유지하되 브라우저에서 수정 가능) */
+          .print-landscape { @page { size: auto; margin: 10mm; } }
+          .print-portrait { @page { size: auto; margin: 10mm; } }
+          
+          .wongoji-page-unit { 
+            page-break-after: always !important; 
+            height: 100vh !important; 
+            display: flex !important; 
+            align-items: center !important; 
+            justify-content: center !important; 
+          }
+          
+          .wongoji-paper-dynamic { 
+            transform: scale(0.9); 
+            width: auto !important; 
+            padding: 0 !important; 
+            box-shadow: none !important;
+          }
         }
       `}</style>
     </div>
