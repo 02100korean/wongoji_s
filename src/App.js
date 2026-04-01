@@ -73,15 +73,11 @@ const App = () => {
     const rowGap = settings.viewMode === 'feedback' ? '28px' : (settings.viewMode === 'traditional' ? '14px' : '0');
     
     return (
-      <div className="flex flex-col items-center w-full bg-white">
+      <div className="manuscript-wrapper flex flex-col items-center w-full bg-white print:block">
         {Array.from({ length: pageCount }).map((_, p) => (
-          <div key={p} className="wongoji-page-unit flex flex-col items-center bg-white print:h-screen print:w-screen print:justify-center">
-            {/* 미리보기에서는 여백 없이 격자 크기만큼만 차지, 인쇄 시에는 A4 규격 적용 */}
+          <div key={p} className="wongoji-page-unit">
             <div className="wongoji-paper-dynamic bg-white print:shadow-none flex flex-col items-center p-4 lg:p-8" 
-                 style={{ 
-                   width: 'fit-content', // 미리보기 핵심: 격자 크기에 맞춤
-                   minHeight: 'fit-content'
-                 }}>
+                 style={{ width: 'fit-content', minHeight: 'fit-content' }}>
               <div className="w-full flex justify-end mb-4 px-2 no-print-margin">
                 {p === 0 && name && <div className="border-b-2 border-black px-4 text-sm font-bold flex items-end pb-1">성명: {name}</div>}
               </div>
@@ -102,7 +98,7 @@ const App = () => {
   };
 
   return (
-    <div className={`h-screen w-screen flex flex-col bg-white overflow-hidden ${gridType === '200' ? 'print-landscape' : 'print-portrait'}`}>
+    <div className={`app-container h-screen w-screen flex flex-col bg-white ${gridType === '200' ? 'print-landscape' : 'print-portrait'}`}>
       <nav className="bg-white border-b px-4 py-3 no-print flex justify-between items-center shadow-sm shrink-0 z-20">
         <h1 className="text-lg font-bold text-slate-700 flex items-center gap-2 font-serif italic"><FileText className="text-red-600" /> 원고지 연습기</h1>
         <div className="flex gap-2">
@@ -112,63 +108,68 @@ const App = () => {
         </div>
       </nav>
 
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden print:block print:overflow-visible">
         <aside className="h-[35%] lg:h-full w-full lg:w-[380px] bg-white border-b lg:border-b-0 lg:border-r no-print flex flex-col shadow-md shrink-0 z-10">
           <div className="p-3 border-b flex flex-col gap-2 bg-slate-50">
             <div className="grid grid-cols-2 gap-2">
-              <select value={gridType} onChange={e => setGridType(e.target.value)} className="p-2 border rounded-lg text-xs font-bold outline-none">
+              <select value={gridType} onChange={e => setGridType(e.target.value)} className="p-2 border rounded-lg text-xs font-bold">
                 <option value="200">200자 원고지</option>
                 <option value="400">400자 원고지</option>
               </select>
-              <select value={viewMode} onChange={e => setViewMode(e.target.value)} className="p-2 border rounded-lg text-xs font-bold outline-none">
+              <select value={viewMode} onChange={e => setViewMode(e.target.value)} className="p-2 border rounded-lg text-xs font-bold">
                 <option value="traditional">일반형</option>
                 <option value="feedback">피드백형</option>
-                <option value="grid">격자형</option>
               </select>
             </div>
             <div className="flex gap-2">
-              <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="학생 성명" className="flex-1 p-2 border rounded-lg font-bold outline-none text-xs" />
-              <button onClick={() => window.print()} className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-red-600 transition-colors shadow-sm">
-                <Printer size={14} className="inline mr-1"/> PDF 인쇄
+              <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="학생 성명" className="flex-1 p-2 border rounded-lg font-bold text-xs" />
+              <button onClick={() => window.print()} className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-red-600 shadow-sm transition-all">
+                <Printer size={14} className="inline mr-1"/> PDF 인쇄 (전체)
               </button>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
-            <textarea value={content} onChange={e => setContent(e.target.value)} className="w-full h-full border-none outline-none resize-none bg-transparent text-base leading-relaxed font-serif" placeholder="원고지 내용을 입력하세요..." />
+          <div className="flex-1 overflow-y-auto p-4">
+            <textarea value={content} onChange={e => setContent(e.target.value)} className="w-full h-full border-none outline-none resize-none bg-transparent text-base leading-relaxed font-serif" placeholder="내용을 입력하면 자동으로 원고지 페이지가 생성됩니다..." />
           </div>
         </aside>
 
-        <main className="flex-1 overflow-auto bg-white p-4 lg:p-8 flex justify-center items-start scroll-smooth scrollbar-hide">
+        <main className="flex-1 overflow-auto bg-white p-4 lg:p-8 flex justify-center items-start print:block print:overflow-visible print:p-0">
           <Manuscript text={content} settings={{ gridType, viewMode, lineColor }} name={studentName} />
         </main>
       </div>
 
       <style>{`
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
         @media print {
+          /* 1. 모든 레이아웃 제약 해제 */
           .no-print { display: none !important; }
-          body, html { margin: 0 !important; padding: 0 !important; }
+          .app-container, .flex-1, main { 
+            display: block !important; 
+            overflow: visible !important; 
+            height: auto !important; 
+            width: 100% !important; 
+            position: static !important;
+          }
           
-          /* 인쇄 시에는 강제로 A4 규격 중앙에 맞춤 */
+          /* 2. 원고지 페이지 단위 설정 */
           .wongoji-page-unit {
-            page-break-after: always !important;
-            height: 100vh !important;
-            width: 100vw !important;
+            page-break-after: always !important; /* 각 원고지 페이지를 다음 종이로 넘김 */
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
+            height: 100vh !important; /* 종이 한 장에 꽉 차게 함 */
+            width: 100vw !important;
           }
 
+          /* 3. 종이 크기 및 비율 강제 조정 (내용 전체가 들어가도록) */
           .wongoji-paper-dynamic {
-            /* 인쇄 시에만 고정 규격 적용 */
-            width: ${gridType === '200' ? '297mm' : '210mm'} !important;
-            height: ${gridType === '200' ? '210mm' : '297mm'} !important;
+            width: ${gridType === '200' ? '280mm' : '190mm'} !important; 
+            height: auto !important;
+            max-height: 95% !important;
             padding: 0 !important;
-            transform: scale(0.9); /* 인쇄 마진 확보를 위한 미세 축소 */
+            margin: 0 !important;
+            transform: scale(0.9); /* 인쇄 여백 안전빵 */
           }
-          
+
           .print-landscape { @page { size: A4 landscape; margin: 0; } }
           .print-portrait { @page { size: A4 portrait; margin: 0; } }
         }
