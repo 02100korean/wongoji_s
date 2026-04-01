@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { Printer, FileText } from 'lucide-react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Printer, FileText, ZoomIn, Search } from 'lucide-react';
 
 const App = () => {
   const [content, setContent] = useState('');
@@ -7,6 +7,35 @@ const App = () => {
   const [gridType, setGridType] = useState('200'); 
   const [viewMode, setViewMode] = useState('traditional'); 
   const [lineColor, setLineColor] = useState('#607d8b');
+  
+  // Isolated Zoom State (0.5 to 1.0)
+  const [zoom, setZoom] = useState(0.8);
+  const mainRef = useRef(null);
+  const touchDistRef = useRef(0);
+
+  // Manual Pinch-Zoom Logic for Manuscript Area only
+  const handleTouchMove = (e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault(); // Stop whole page from zooming
+      const dist = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+
+      if (touchDistRef.current > 0) {
+        const delta = dist - touchDistRef.current;
+        setZoom((prev) => {
+          const nextZoom = prev + delta * 0.005;
+          return Math.min(Math.max(nextZoom, 0.5), 1.5); // Allow up to 150% for visibility
+        });
+      }
+      touchDistRef.current = dist;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchDistRef.current = 0;
+  };
 
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
@@ -81,9 +110,8 @@ const App = () => {
     return (
       <div className="inline-flex flex-col items-center bg-white shadow-2xl print:shadow-none">
         {Array.from({ length: pageCount }).map((_, p) => (
-          <div key={p} className="wongoji-page-unit flex flex-col items-center">
-            <div className="wongoji-paper-dynamic bg-white flex flex-col items-center p-12 md:p-16" 
-                 style={{ width: 'max-content' }}>
+          <div key={p} className="flex flex-col items-center">
+            <div className="bg-white flex flex-col items-center p-12 md:p-16" style={{ width: 'max-content' }}>
               <div className="w-full flex justify-end mb-8 px-2">
                 {p === 0 && name && <div className="border-b-2 border-slate-900 px-8 text-lg font-bold pb-1">성명: {name}</div>}
               </div>
@@ -94,7 +122,7 @@ const App = () => {
                   </div>
                 ))}
               </div>
-              <div className="w-full text-center mt-10 text-[11px] text-slate-300 font-bold no-print tracking-widest">PAGE {p + 1}</div>
+              <div className="w-full text-center mt-10 text-[11px] text-slate-300 font-bold no-print uppercase tracking-widest">PAGE {p + 1}</div>
               {p < pageCount - 1 && <div className="w-full border-b-2 border-dotted border-slate-200 my-20 no-print"></div>}
             </div>
           </div>
@@ -104,12 +132,12 @@ const App = () => {
   };
 
   return (
-    <div className={`app-container flex flex-col bg-slate-200 min-h-screen overflow-hidden ${gridType === '200' ? 'print-landscape' : 'print-portrait'}`}>
-      {/* 네비게이션 */}
-      <nav className="bg-white border-b px-4 py-3 no-print flex justify-between items-center shrink-0 z-40 shadow-sm">
+    <div className={`app-container flex flex-col bg-slate-200 h-screen overflow-hidden ${gridType === '200' ? 'print-landscape' : 'print-portrait'}`}>
+      {/* Navigation */}
+      <nav className="bg-white border-b px-4 py-3 no-print flex justify-between items-center shrink-0 z-50 shadow-sm">
         <div className="flex items-center gap-2">
           <FileText className="text-red-600" size={20} />
-          <h1 className="text-base font-black text-slate-800">원고지 연습기</h1>
+          <h1 className="text-base font-black text-slate-800">Manuscript Pro</h1>
         </div>
         <div className="flex gap-2">
           {['#607d8b', '#ef4444', '#2d6a4f', '#000000'].map(c => (
@@ -119,41 +147,67 @@ const App = () => {
       </nav>
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-        {/* 입력 사이드바 */}
-        <aside className="w-full md:w-[360px] bg-white border-b md:border-b-0 md:border-r no-print flex flex-col shrink-0 z-30 h-[30%] md:h-full shadow-lg">
+        {/* Input Sidebar */}
+        <aside className="w-full md:w-[350px] bg-white border-b md:border-b-0 md:border-r no-print flex flex-col shrink-0 z-30 h-[30%] md:h-full">
           <div className="p-3 border-b bg-slate-50 flex flex-col gap-2">
             <div className="grid grid-cols-2 gap-2">
-              <select value={gridType} onChange={e => setGridType(e.target.value)} className="p-2 border rounded-xl text-xs font-bold bg-white">
+              <select value={gridType} onChange={e => setGridType(e.target.value)} className="p-2 border rounded-xl text-xs font-bold bg-white outline-none">
                 <option value="200">200자 (가로)</option>
                 <option value="400">400자 (세로)</option>
               </select>
-              <select value={viewMode} onChange={e => setViewMode(e.target.value)} className="p-2 border rounded-xl text-xs font-bold bg-white">
+              <select value={viewMode} onChange={e => setViewMode(e.target.value)} className="p-2 border rounded-xl text-xs font-bold bg-white outline-none">
                 <option value="traditional">일반형</option>
                 <option value="feedback">피드백용</option>
                 <option value="grid">격자형</option>
               </select>
             </div>
-            <div className="flex gap-2">
-              <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="학생명" className="flex-1 p-2 border rounded-xl font-bold text-xs outline-none" />
-              <button onClick={() => window.print()} className="bg-slate-900 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1">
-                <Printer size={14}/> 인쇄
-              </button>
-            </div>
+            <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="학생 성명" className="p-2 border rounded-xl font-bold text-xs outline-none" />
+            <button onClick={() => window.print()} className="bg-slate-900 text-white w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1 hover:bg-blue-700 transition-colors">
+              <Printer size={16}/> Save as PDF
+            </button>
           </div>
           <div className="flex-1 p-3">
             <textarea 
               value={content} 
               onChange={e => setContent(e.target.value)} 
-              className="w-full h-full border-none outline-none resize-none bg-transparent text-base leading-relaxed font-serif overflow-y-auto" 
-              placeholder="내용 입력..." 
+              className="w-full h-full border-none outline-none resize-none bg-transparent text-base leading-relaxed font-serif" 
+              placeholder="Start writing..." 
             />
           </div>
         </aside>
 
-        {/* 원고지 영역: 상하좌우 모든 방향 스크롤 가능하도록 설정 */}
-        <main className="flex-1 overflow-auto bg-slate-300 p-4 md:p-12 relative scrollbar-visible touch-auto">
+        {/* Manuscript Main View with Isolated Zoom */}
+        <main 
+          ref={mainRef}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="flex-1 overflow-auto bg-slate-300 relative touch-none scrollbar-visible p-4 md:p-8"
+        >
+          {/* Zoom Control Dropdown (Fixed in Manuscript Area) */}
+          <div className="sticky top-0 left-0 z-40 bg-white/90 backdrop-blur-sm border-b px-3 py-2 flex items-center gap-2 rounded-br-2xl shadow-sm w-fit no-print">
+            <Search size={14} className="text-slate-400" />
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Zoom</span>
+            <select 
+              value={zoom} 
+              onChange={(e) => setZoom(parseFloat(e.target.value))}
+              className="bg-transparent border-none text-xs font-black outline-none focus:ring-0 cursor-pointer text-slate-800"
+            >
+              <option value="0.5">50%</option>
+              <option value="0.6">60%</option>
+              <option value="0.7">70%</option>
+              <option value="0.8">80%</option>
+              <option value="0.9">90%</option>
+              <option value="1.0">100%</option>
+              <option value="1.2">120%</option>
+            </select>
+          </div>
+
+          {/* Zoomable Manuscript Wrapper */}
           <div className="inline-block min-w-full min-h-full">
-            <div className="manuscript-wrapper origin-top-left scale-[0.7] sm:scale-[0.8] md:scale-100 p-4">
+            <div 
+              className="origin-top-left transition-transform duration-100 ease-out p-4 md:p-10"
+              style={{ transform: `scale(${zoom})` }}
+            >
               <Manuscript text={content} settings={{ gridType, viewMode, lineColor }} name={studentName} />
             </div>
           </div>
@@ -161,31 +215,23 @@ const App = () => {
       </div>
 
       <style>{`
-        /* 스크롤바가 항상 보이도록 설정 (사용자 가이드 역할) */
+        /* Persistent Scrollbars */
         .scrollbar-visible::-webkit-scrollbar { width: 10px; height: 10px; }
         .scrollbar-visible::-webkit-scrollbar-track { background: #cbd5e1; }
-        .scrollbar-visible::-webkit-scrollbar-thumb { background: #64748b; border-radius: 5px; }
-
-        /* 핀치 줌 및 자유 스크롤을 위한 터치 설정 */
+        .scrollbar-visible::-webkit-scrollbar-thumb { background: #475569; border-radius: 5px; border: 2px solid #cbd5e1; }
+        
         main {
+          touch-action: none; /* Disables browser-wide pinch zoom so we can isolate it to the div */
           -webkit-overflow-scrolling: touch;
-          overflow: auto !important;
-          display: block;
-        }
-
-        .manuscript-wrapper {
-          display: inline-block;
-          white-space: nowrap; /* 가로 너비 유지 */
-          touch-action: auto; /* 브라우저 기본 줌/스크롤 허용 */
         }
 
         @media print {
           .no-print { display: none !important; }
           body, html { margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; }
           .app-container, .flex-1, main { display: block !important; overflow: visible !important; height: auto !important; width: 100% !important; background: white !important; }
-          .manuscript-wrapper { transform: none !important; display: block !important; p: 0 !important; }
-          .wongoji-page-unit { page-break-after: always !important; display: flex !important; align-items: center !important; justify-content: center !important; height: 100vh !important; }
-          .wongoji-paper-dynamic { transform: scale(0.9); box-shadow: none !important; padding: 0 !important; width: auto !important; }
+          .origin-top-left { transform: scale(1) !important; padding: 0 !important; }
+          .wongoji-page-unit { page-break-after: always !important; height: 100vh !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+          .wongoji-paper-dynamic { transform: scale(0.9); width: auto !important; padding: 0 !important; }
           .print-landscape { @page { size: A4 landscape; margin: 0; } }
           .print-portrait { @page { size: A4 portrait; margin: 0; } }
         }
