@@ -46,10 +46,13 @@ const App = () => {
   const renderCell = (cellData, key, isLastCol) => {
     const cellStyle = { 
         width: '37px', height: '37px', 
-        borderLeft: `1px solid ${lineColor}`, borderTop: `1px solid ${lineColor}`,
+        borderLeft: `1px solid ${lineColor}`, 
+        borderTop: `1px solid ${lineColor}`,
+        borderBottom: `1px solid ${lineColor}`, // 모든 셀에 하단 테두리 추가
         borderRight: isLastCol ? `1px solid ${lineColor}` : 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center', 
-        fontSize: '21px', backgroundColor: 'white'
+        fontSize: '21px', backgroundColor: 'white',
+        boxSizing: 'border-box'
     };
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
     if (cellData.type === 'pair') {
@@ -72,22 +75,24 @@ const App = () => {
     const rowGap = settings.viewMode === 'feedback' ? '28px' : (settings.viewMode === 'traditional' ? '14px' : '0');
     
     const paperStyle = settings.gridType === '200' 
-      ? { width: '297mm', minHeight: '210mm' } 
-      : { width: '210mm', minHeight: '297mm' };
+      ? { width: '297mm', height: '210mm' } 
+      : { width: '210mm', height: '297mm' };
 
     return (
       <div className="flex flex-col items-center w-full print:bg-white print:gap-0 min-w-max lg:min-w-0">
         {Array.from({ length: pageCount }).map((_, p) => (
-          <div key={p} className="wongoji-paper bg-white shadow-2xl print:shadow-none flex flex-col items-center justify-center print:m-0 mb-10 lg:mb-20" style={{ fontFamily: settings.fontType, ...paperStyle }}>
-            <div className="w-full flex justify-end h-8 mb-4 px-20">
-              {p === 0 && name && <div className="border-b-2 border-black px-6 text-sm font-bold flex items-end pb-1">성명: {name}</div>}
-            </div>
-            <div className="flex flex-col border-b" style={{ borderColor: lineColor, gap: rowGap }}>
-              {Array.from({ length: rows }).map((_, r) => (
-                <div key={r} className="flex">
-                  {Array.from({ length: cols }).map((_, c) => renderCell(allCells[p * gridVal + r * cols + c], `c-${p}-${r}-${c}`, c === cols - 1))}
-                </div>
-              ))}
+          <div key={p} className="wongoji-page-container flex items-center justify-center print:h-screen print:w-screen">
+            <div className="wongoji-paper bg-white shadow-2xl print:shadow-none flex flex-col items-center justify-center print:m-0" style={paperStyle}>
+              <div className="w-full flex justify-end h-8 mb-4 px-20">
+                {p === 0 && name && <div className="border-b-2 border-black px-6 text-sm font-bold flex items-end pb-1">성명: {name}</div>}
+              </div>
+              <div className="flex flex-col" style={{ gap: rowGap }}>
+                {Array.from({ length: rows }).map((_, r) => (
+                  <div key={r} className="flex">
+                    {Array.from({ length: cols }).map((_, c) => renderCell(allCells[p * gridVal + r * cols + c], `c-${p}-${r}-${c}`, c === cols - 1))}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ))}
@@ -97,7 +102,6 @@ const App = () => {
 
   return (
     <div className={`h-screen w-screen flex flex-col bg-slate-100 overflow-hidden ${gridType === '200' ? 'print-landscape' : 'print-portrait'}`}>
-      {/* 상단 바 */}
       <nav className="bg-white border-b px-4 py-3 no-print flex justify-between items-center shadow-sm shrink-0 z-20">
         <h1 className="text-lg font-bold text-slate-700 flex items-center gap-2 font-serif italic"><FileText className="text-red-600" /> 원고지 연습기</h1>
         <div className="flex gap-1.5">
@@ -108,34 +112,32 @@ const App = () => {
       </nav>
 
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        {/* 입력창 (모바일/세로 시 상단 40% 고정) */}
         <aside className="h-[40%] lg:h-full w-full lg:w-[380px] bg-white border-b lg:border-b-0 lg:border-r no-print flex flex-col shadow-md shrink-0 z-10">
           <div className="p-3 border-b flex flex-col gap-2 bg-slate-50">
             <div className="grid grid-cols-2 gap-2">
-              <select value={gridType} onChange={e => setGridType(e.target.value)} className="p-2 border rounded-lg text-xs font-bold outline-none">
-                <option value="200">200자 (가로)</option>
-                <option value="400">400자 (세로)</option>
+              <select value={gridType} onChange={e => setGridType(e.target.value)} className="p-2 border rounded-lg text-xs font-bold">
+                <option value="200">200자 (가로용지)</option>
+                <option value="400">400자 (세로용지)</option>
               </select>
-              <select value={viewMode} onChange={e => setViewMode(e.target.value)} className="p-2 border rounded-lg text-xs font-bold outline-none">
+              <select value={viewMode} onChange={e => setViewMode(e.target.value)} className="p-2 border rounded-lg text-xs font-bold">
                 <option value="traditional">일반형</option>
-                <option value="feedback">피드백</option>
+                <option value="feedback">피드백형</option>
                 <option value="grid">격자형</option>
               </select>
             </div>
             <div className="flex gap-2">
-              <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="성명" className="flex-1 p-2 border rounded-lg font-bold outline-none text-xs" />
-              <button onClick={() => window.print()} className="bg-slate-900 text-white px-3 py-2 rounded-lg font-bold text-xs hover:bg-red-600 flex items-center gap-1">
+              <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="성명" className="flex-1 p-2 border rounded-lg font-bold text-xs" />
+              <button onClick={() => window.print()} className="bg-slate-900 text-white px-3 py-2 rounded-lg font-bold text-xs hover:bg-red-600 flex items-center gap-1 shadow-sm">
                 <Printer size={14}/> Print
               </button>
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
-            <textarea value={content} onChange={e => setContent(e.target.value)} className="w-full h-full min-h-[100px] p-0 border-none outline-none resize-none bg-transparent text-base leading-relaxed font-serif" placeholder="내용 입력..." />
+            <textarea value={content} onChange={e => setContent(e.target.value)} className="w-full h-full p-0 border-none outline-none resize-none bg-transparent text-base leading-relaxed font-serif" placeholder="내용을 입력하세요..." />
           </div>
         </aside>
 
-        {/* 원고지 미리보기 (가로/세로 스크롤 모두 허용) */}
-        <main className="flex-1 overflow-auto bg-slate-300 p-4 lg:p-12 flex justify-start lg:justify-center items-start scroll-smooth overflow-x-auto">
+        <main className="flex-1 overflow-auto bg-slate-300 p-4 lg:p-12 flex justify-start lg:justify-center items-start scroll-smooth">
           <div className="inline-block">
             <Manuscript text={content} settings={{ gridType, viewMode, lineColor }} name={studentName} />
           </div>
@@ -143,23 +145,37 @@ const App = () => {
       </div>
 
       <style>{`
-        /* 모바일에서 원고지 영역 가로 스크롤을 부드럽게 */
-        main {
-          -webkit-overflow-scrolling: touch;
-        }
-
         @media print {
           .no-print { display: none !important; }
-          body, html { background: white !important; margin: 0 !important; padding: 0 !important; width: 100% !important; height: 100% !important; }
+          body, html { 
+            background: white !important; 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            width: 100% !important; 
+            height: 100% !important; 
+          }
           main { 
             background: white !important; 
-            margin: 0 !important; padding: 0 !important; 
-            display: block !important; overflow: visible !important; width: 100% !important; 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            display: block !important; 
+            width: 100% !important; 
+            height: auto !important;
           }
-          .wongoji-paper { 
-            page-break-after: always !important; 
-            display: flex !important; justify-content: center !important; align-items: center !important;
-            margin: 0 auto !important; height: 100vh !important; width: 100% !important;
+          .wongoji-page-container {
+            page-break-after: always !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 100vw !important;
+            height: 100vh !important;
+          }
+          .wongoji-paper {
+            box-shadow: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
           }
           .print-landscape { @page { size: A4 landscape; margin: 0; } }
           .print-portrait { @page { size: A4 portrait; margin: 0; } }
