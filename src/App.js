@@ -82,9 +82,26 @@ const App = () => {
         .main-container { display: flex; flex: 1; flex-direction: row; overflow: hidden; }
         .sidebar { width: 350px; background-color: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; height: 100%; z-index: 30; }
 
+        /* 컨트롤 박스 공통 스타일 */
+        .control-item {
+          width: 100%;
+          height: 40px;
+          padding: 0 10px;
+          border-radius: 8px;
+          border: 1px solid #cbd5e1;
+          font-size: 12px;
+          font-weight: 700;
+          color: #334155;
+          background-color: white;
+          box-sizing: border-box;
+          outline: none;
+          transition: border-color 0.2s;
+        }
+        .control-item:focus { border-color: #64748b; }
+
         @media (max-width: 768px) {
           .main-container { flex-direction: column; }
-          .sidebar { width: 100%; height: 40%; border-right: none; border-bottom: 1px solid #ddd; }
+          .sidebar { width: 100%; height: 42%; border-right: none; border-bottom: 1px solid #ddd; }
         }
 
         @media print {
@@ -94,12 +111,12 @@ const App = () => {
           div[style*="transform"] { transform: scale(1) !important; }
           .p-landscape { @page { size: auto; margin: 10mm; } }
           .p-portrait { @page { size: auto; margin: 10mm; } }
-          .page-unit { page-break-after: always !important; display: flex !important; align-items: center; justify-content: center; height: 100vh; }
+          .page-unit { page-break-after: always !important; display: flex !important; align-items: center; justify-content: center; height: 100vh; padding: 0 !important; }
         }
       `}</style>
 
-      <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100 }}>
-        <div style={{ fontWeight: '900', color: '#1e293b', fontFamily: "'Noto Sans KR', sans-serif" }}>원고지 연습기</div>
+      <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100 }}>
+        <div style={{ fontWeight: '900', color: '#1e293b', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '15px' }}>원고지 연습기</div>
         <div style={{ display: 'flex', gap: '8px' }}>
           {['#607d8b', '#ef4444', '#2d6a4f', '#000000'].map(c => (
             <button key={c} onClick={() => setLineColor(c)} style={{ width: '22px', height: '22px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', cursor: 'pointer', backgroundColor: c }} />
@@ -109,37 +126,44 @@ const App = () => {
 
       <div className="main-container">
         <aside className="sidebar no-print">
-          <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-              <select value={gridType} onChange={e => setGridType(e.target.value)} style={{ padding: '6px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '11px', fontWeight: 'bold' }}>
+          <div style={{ padding: '15px', backgroundColor: '#f8fafc', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            
+            {/* 4개 박스 2x2 그리드 배치 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <select value={gridType} onChange={e => setGridType(e.target.value)} className="control-item">
                 <option value="200">200자 (가로)</option>
                 <option value="400">400자 (세로)</option>
               </select>
-              <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={{ padding: '6px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '11px', fontWeight: 'bold' }}>
+              
+              <select value={viewMode} onChange={e => setViewMode(e.target.value)} className="control-item">
                 <option value="traditional">일반형</option>
                 <option value="feedback">피드백용</option>
                 <option value="grid">격자형</option>
               </select>
-            </div>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <select 
-                value={fontFamily} 
-                onChange={e => setFontFamily(e.target.value)} 
-                style={{ padding: '6px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '11px', fontWeight: 'bold', width: '60%' }}
-              >
-                {/* 요청하신 명칭으로 수정 */}
+
+              <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} className="control-item">
                 <option value="'Noto Serif KR', serif">NOTO SERIF(바탕)</option>
                 <option value="'Noto Sans KR', sans-serif">NOTO SANS(고딕)</option>
               </select>
-              <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름" style={{ flex: 1, padding: '6px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '11px', fontWeight: 'bold' }} />
+
+              <input 
+                type="text" 
+                value={studentName} 
+                onChange={e => setStudentName(e.target.value)} 
+                placeholder="이름 입력" 
+                className="control-item"
+                style={{ textAlign: 'center' }}
+              />
             </div>
-            <button onClick={() => window.print()} style={{ backgroundColor: '#0f172a', color: 'white', padding: '8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>인쇄 / PDF 저장</button>
+
+            <button onClick={() => window.print()} style={{ backgroundColor: '#0f172a', color: 'white', padding: '10px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', border: 'none', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>인쇄 / PDF 저장</button>
           </div>
+          
           <textarea 
             value={content} 
             onChange={e => setContent(e.target.value)} 
-            style={{ flex: 1, padding: '12px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} 
-            placeholder="내용을 입력하세요..." 
+            style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} 
+            placeholder="여기에 원고지 내용을 입력하세요..." 
           />
         </aside>
 
@@ -176,7 +200,7 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
       <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', backgroundColor: 'white', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>
         {Array.from({ length: pageCount }).map((_, p) => (
           <div key={p} className="page-unit" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ backgroundColor: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '50px', width: 'max-content' }}>
+            <div style={{ backgroundColor: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 60px', width: 'max-content' }}>
               <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px' }}>
                 {p === 0 && name && <div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily }}>이름: {name}</div>}
               </div>
@@ -187,8 +211,10 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
                   </div>
                 ))}
               </div>
-              <div className="no-print" style={{ marginTop: '30px', fontSize: '10px', color: '#cbd5e1', fontWeight: 'bold', letterSpacing: '2px' }}>PAGE {p + 1}</div>
-              {p < pageCount - 1 && <div className="no-print" style={{ width: '100%', borderBottom: '2px dotted #eee', margin: '60px 0' }}></div>}
+              <div className="no-print" style={{ marginTop: '20px', fontSize: '10px', color: '#cbd5e1', fontWeight: 'bold', letterSpacing: '2px' }}>PAGE {p + 1}</div>
+              {p < pageCount - 1 && (
+                <div className="no-print" style={{ width: '100%', borderBottom: '2px dotted #eee', margin: '15px 0' }}></div>
+              )}
             </div>
           </div>
         ))}
