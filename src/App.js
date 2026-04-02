@@ -73,41 +73,18 @@ const App = () => {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Serif+KR:wght@400;700&display=swap');
         
-        /* 스크롤바 설정 */
         .manuscript-main::-webkit-scrollbar { width: 10px; height: 10px; }
         .manuscript-main::-webkit-scrollbar-track { background: #cbd5e1; }
         .manuscript-main::-webkit-scrollbar-thumb { background: #475569; border-radius: 6px; border: 2px solid #cbd5e1; }
         
         main { touch-action: pan-x pan-y; }
 
-        /* 반응형 레이아웃 핵심 */
-        .main-container {
-          display: flex;
-          flex: 1;
-          flex-direction: row; /* 기본 데스크탑: 가로 배열 */
-          overflow: hidden;
-        }
-
-        .sidebar {
-          width: 350px;
-          background-color: white;
-          border-right: 1px solid #ddd;
-          display: flex;
-          flex-direction: column;
-          height: 100%;
-          z-index: 30;
-        }
+        .main-container { display: flex; flex: 1; flex-direction: row; overflow: hidden; }
+        .sidebar { width: 350px; background-color: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; height: 100%; z-index: 30; }
 
         @media (max-width: 768px) {
-          .main-container {
-            flex-direction: column; /* 모바일: 세로 배열 */
-          }
-          .sidebar {
-            width: 100%;
-            height: 40%; /* 모바일에서 입력창 높이 조절 */
-            border-right: none;
-            border-bottom: 1px solid #ddd;
-          }
+          .main-container { flex-direction: column; }
+          .sidebar { width: 100%; height: 40%; border-right: none; border-bottom: 1px solid #ddd; }
         }
 
         @media print {
@@ -121,7 +98,6 @@ const App = () => {
         }
       `}</style>
 
-      {/* 상단바 */}
       <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100 }}>
         <div style={{ fontWeight: '900', color: '#1e293b', fontFamily: "'Noto Sans KR', sans-serif" }}>원고지 연습기</div>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -132,7 +108,6 @@ const App = () => {
       </header>
 
       <div className="main-container">
-        {/* 사이드바 (입력창) */}
         <aside className="sidebar no-print">
           <div style={{ padding: '12px', backgroundColor: '#f8fafc', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -150,10 +125,11 @@ const App = () => {
               <select 
                 value={fontFamily} 
                 onChange={e => setFontFamily(e.target.value)} 
-                style={{ padding: '6px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '11px', fontWeight: 'bold', width: '45%' }}
+                style={{ padding: '6px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '11px', fontWeight: 'bold', width: '60%' }}
               >
-                <option value="'Noto Serif KR', serif">Noto 바탕</option>
-                <option value="'Noto Sans KR', sans-serif">Noto 고딕</option>
+                {/* 요청하신 명칭으로 수정 */}
+                <option value="'Noto Serif KR', serif">NOTO SERIF(바탕)</option>
+                <option value="'Noto Sans KR', sans-serif">NOTO SANS(고딕)</option>
               </select>
               <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름" style={{ flex: 1, padding: '6px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '11px', fontWeight: 'bold' }} />
             </div>
@@ -167,9 +143,7 @@ const App = () => {
           />
         </aside>
 
-        {/* 원고지 영역 */}
         <main className="manuscript-main" style={{ flex: 1, overflow: 'auto', position: 'relative', backgroundColor: '#cbd5e1' }}>
-          {/* 줌 컨트롤 (왼쪽 상단 고정) */}
           <div className="no-print" style={{ position: 'sticky', top: '10px', left: '10px', zIndex: 50, backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', gap: '6px', width: 'fit-content', border: '1px solid #ddd' }}>
             <span style={{ fontSize: '9px', fontWeight: '800', color: '#64748b' }}>ZOOM</span>
             <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '11px', fontWeight: '900', cursor: 'pointer' }}>
@@ -179,7 +153,6 @@ const App = () => {
             </select>
           </div>
 
-          {/* 원고지 배치 (상하좌우 스크롤 가능) */}
           <div style={{ display: 'inline-block', minWidth: '100%', padding: '20px' }}>
             <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', transition: 'transform 0.15s ease' }}>
                 <ManuscriptContainer text={content} gridType={gridType} viewMode={viewMode} lineColor={lineColor} name={studentName} fontFamily={fontFamily} processToCells={processToCells} renderCell={renderCell} />
