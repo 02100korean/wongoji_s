@@ -190,18 +190,15 @@ export default function App() {
 
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
-    // 구글 폰트(Jua, Gamja Flower 등)는 가독성이 좋아 22px 그대로 사용해도 예쁩니다.
-    const baseFontSize = 22;
-
     const cellStyle = { 
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
         borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, fontWeight: 'normal'
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, fontWeight: 'normal'
     };
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
     if (cellData.type === 'pair') {
         return (
-            <div key={key} style={{...cellStyle, display: 'flex', fontSize: `${baseFontSize - 2}px`}}>
+            <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}>
                 <div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[0]}</div>
                 <div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[1]}</div>
             </div>
@@ -213,8 +210,8 @@ export default function App() {
   return (
     <div className="app-root">
       <style>{`
-        /* 절대 깨지지 않는 구글 서버에서 폰트 로드 */
-        @import url('https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&family=Hi+Melody&family=Poor+Story&family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
+        /* 구글 폰트 서버에서 폰트 통합 로드 */
+        @import url('https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&family=Hi+Melody&family=Poor+Story&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         
         body { margin: 0; padding: 0; overflow-x: hidden; }
         
@@ -237,19 +234,8 @@ export default function App() {
           body, html { margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; }
           .app-root, .manuscript-main, .main-container { display: block !important; background: white !important; height: auto !important; overflow: visible !important; }
           .manuscript-print-root { display: block !important; }
-          .page-unit { 
-            display: block !important; 
-            page-break-after: always !important; 
-            background: white !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            height: auto !important;
-          }
-          .page-box { 
-            box-shadow: none !important; 
-            margin: 0 auto !important; 
-            padding: 40px 60px !important; 
-          }
+          .page-unit { display: block !important; page-break-after: always !important; background: white !important; margin: 0 !important; padding: 0 !important; height: auto !important; }
+          .page-box { box-shadow: none !important; margin: 0 auto !important; padding: 40px 60px !important; }
           div[style*="transform"] { transform: scale(1) !important; } 
           @page { size: auto; margin: 10mm; }
         }
@@ -285,14 +271,16 @@ export default function App() {
                     <option value="grid">격자형</option>
                   </select>
                 </div>
+                {/* 폰트 이름 정리 완료 */}
                 <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={selectStyle}>
                   <option value="'Noto Serif KR', serif">Noto Serif KR (바탕체)</option>
                   <option value="'Noto Sans KR', sans-serif">Noto Sans KR (고딕체)</option>
-                  <option value="'Jua', sans-serif">Jua (주아체 - 추천! 동글동글)</option>
-                  <option value="'Gamja Flower', cursive">Gamja Flower (감자꽃체 - 귀엽고 내츄럴)</option>
-                  <option value="'Hi Melody', cursive">Hi Melody (하이멜로디체 - 러블리)</option>
-                  <option value="'Poor Story', cursive">Poor Story (푸른밤체 - 단정한 손글씨)</option>
-                  <option value="'Gowun Dodum', sans-serif">Gowun Dodum (고운돋움체 - 세련된 손글씨)</option>
+                  <option value="'Jua', sans-serif">Jua (주아체)</option>
+                  <option value="'Gamja Flower', cursive">Gamja Flower (감자꽃체)</option>
+                  <option value="'Hi Melody', cursive">Hi Melody (하이멜로디체)</option>
+                  <option value="'Poor Story', cursive">Poor Story (푸른밤체)</option>
+                  <option value="'Gowun Dodum', sans-serif">Gowun Dodum (고운돋움체)</option>
+                  <option value="'Nanum Pen Script', cursive">Nanum Pen Script (나눔펜글씨)</option>
                 </select>
                 <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={{ ...selectStyle, textAlign: 'center' }} />
                 <button onClick={() => window.print()} style={{ backgroundColor: '#6366f1', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', border: 'none', cursor: 'pointer', marginTop: '5px' }}>인쇄 / PDF 저장</button>
