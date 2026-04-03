@@ -40,7 +40,6 @@ const Home = ({ onNavigate }) => {
           가장 세련된 방법으로 한국어 쓰기를 연습하고,<br/>필수 패턴을 내 것으로 만드세요.
         </p>
         
-        {/* 세로 모드에서만 보이는 노란색 굵은 화살표 */}
         <div className="scroll-indicator" style={{ 
           position: 'absolute', 
           bottom: '25px', 
@@ -108,7 +107,6 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
       {Array.from({ length: pageCount }).map((_, p) => (
         <div key={p} className="page-unit">
           <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content', boxShadow: '0 15px 35px rgba(0,0,0,0.1)', marginBottom: '40px' }} className="page-box">
-            {/* 모든 페이지 여백 통일 (고정 높이) */}
             <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
               {p === 0 ? (
                 <div style={{ borderBottom: name ? '2px solid black' : '2px solid #ccc', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: name ? 'black' : '#ccc' }}>
@@ -192,9 +190,9 @@ export default function App() {
 
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
-    // 빙그레 싸만코체인 경우 5% 확대 로직
-    const isBinggrae = fontFamily === "'Binggrae Samanco'";
-    const baseFontSize = isBinggrae ? 23.1 : 22;
+    // 폰트에 따른 크기 보정 (싸만코, 주아체는 조금 크게)
+    const isCuteFont = fontFamily === "'Binggrae Samanco'" || fontFamily === "'Jua', sans-serif";
+    const baseFontSize = isCuteFont ? 23.1 : 22;
 
     const cellStyle = { 
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
@@ -216,30 +214,23 @@ export default function App() {
   return (
     <div className="app-root">
       <style>{`
-        /* 폰트 안정성 확보 (눈누 정식 배포 코드) */
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
+        /* 구글 폰트에서 주아체와 기본체 로드 */
+        @import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         
+        /* 빙그레 싸만코 웹폰트 연결 */
         @font-face {
-            font-family: 'Binggrae Samanco';
-            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Regular.woff') format('woff');
-            font-weight: normal;
-            font-style: normal;
+          font-family: 'Binggrae Samanco';
+          src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Regular.woff') format('woff');
+          font-weight: normal;
+          font-style: normal;
         }
 
         body { margin: 0; padding: 0; overflow-x: hidden; }
-        
         .cards-container { grid-template-columns: 1fr; }
         @media (min-width: 900px) { .cards-container { grid-template-columns: repeat(3, 1fr) !important; } }
-
         .scroll-indicator { display: none; animation: bounce 2s infinite; }
         @media (orientation: portrait) { .scroll-indicator { display: flex; } }
-        
-        @keyframes bounce { 
-          0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 
-          40% {transform: translate(-50%, -10px);} 
-          60% {transform: translate(-50%, -5px);} 
-        }
-
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 40% {transform: translate(-50%, -10px);} 60% {transform: translate(-50%, -5px);} }
         .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #6366f1 !important; }
         
         @media print {
@@ -247,19 +238,8 @@ export default function App() {
           body, html { margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; }
           .app-root, .manuscript-main, .main-container { display: block !important; background: white !important; height: auto !important; overflow: visible !important; }
           .manuscript-print-root { display: block !important; }
-          .page-unit { 
-            display: block !important; 
-            page-break-after: always !important; 
-            background: white !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            height: auto !important;
-          }
-          .page-box { 
-            box-shadow: none !important; 
-            margin: 0 auto !important; 
-            padding: 40px 60px !important; 
-          }
+          .page-unit { display: block !important; page-break-after: always !important; background: white !important; margin: 0 !important; padding: 0 !important; height: auto !important; }
+          .page-box { box-shadow: none !important; margin: 0 auto !important; padding: 40px 60px !important; }
           div[style*="transform"] { transform: scale(1) !important; } 
           @page { size: auto; margin: 10mm; }
         }
@@ -295,10 +275,10 @@ export default function App() {
                     <option value="grid">격자형</option>
                   </select>
                 </div>
-                {/* 폰트 이름 형식 통일: English (Korean) */}
                 <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={selectStyle}>
                   <option value="'Noto Serif KR', serif">Noto Serif KR (바탕체)</option>
                   <option value="'Noto Sans KR', sans-serif">Noto Sans KR (고딕체)</option>
+                  <option value="'Jua', sans-serif">Jua (주아체 - 동글동글 추천)</option>
                   <option value="'Binggrae Samanco'">Binggrae Samanco (빙그레 싸만코체)</option>
                   <option value="'Nanum Barun Pen', cursive">Nanum Barun Pen (나눔바른펜)</option>
                 </select>
@@ -317,16 +297,7 @@ export default function App() {
                 <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>화면맞춤</button>
               </div>
               <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', transition: 'transform 0.2s ease-out' }}>
-                <ManuscriptContainer 
-                  text={content} 
-                  gridType={gridType} 
-                  viewMode={viewMode} 
-                  lineColor={lineColor} 
-                  name={studentName} 
-                  fontFamily={fontFamily} 
-                  processToCells={processToCells} 
-                  renderCell={renderCell} 
-                />
+                <ManuscriptContainer text={content} gridType={gridType} viewMode={viewMode} lineColor={lineColor} name={studentName} fontFamily={fontFamily} processToCells={processToCells} renderCell={renderCell} />
               </div>
             </main>
           </div>
