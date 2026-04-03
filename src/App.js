@@ -27,7 +27,7 @@ const Home = ({ onNavigate }) => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Noto Sans KR', sans-serif", color: '#1e293b' }}>
       <section style={{
-        padding: '100px 20px 140px', 
+        padding: '100px 20px 120px', 
         textAlign: 'center',
         background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
         color: 'white',
@@ -40,13 +40,12 @@ const Home = ({ onNavigate }) => {
           가장 세련된 방법으로 한국어 쓰기를 연습하고,<br/>필수 패턴을 내 것으로 만드세요.
         </p>
         
-        {/* 노란색 두꺼운 화살표 SVG */}
+        {/* 세로 모드(Portrait)에서만 보이는 노란색 굵은 화살표 */}
         <div className="scroll-indicator" style={{ 
           position: 'absolute', 
-          bottom: '30px', 
+          bottom: '25px', 
           left: '50%', 
           transform: 'translateX(-50%)',
-          display: 'flex', 
           flexDirection: 'column', 
           alignItems: 'center' 
         }}>
@@ -57,7 +56,7 @@ const Home = ({ onNavigate }) => {
         </div>
       </section>
 
-      <div style={{ maxWidth: '1200px', margin: '-60px auto 80px', padding: '0 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', position: 'relative', zIndex: 10 }}>
+      <div style={{ maxWidth: '1200px', margin: '-50px auto 80px', padding: '0 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', position: 'relative', zIndex: 10 }}>
         <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
           <div style={{ fontSize: '50px', marginBottom: '20px' }}>✍️</div>
           <h3 style={cardTitleStyle}>원고지 연습장</h3>
@@ -166,17 +165,31 @@ export default function App() {
   return (
     <div className={`app-root ${gridType === '200' ? 'p-landscape' : 'p-portrait'}`}>
       <style>{`
-        /* 폰트 로드: 가장 안정적인 눈누 CDN 주소로 교체 */
+        /* 구글 폰트에서 가장 안정적인 폰트들만 로드 */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         
-        @font-face { font-family: 'BinggraeSamanco-Bold'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Bold.woff') format('woff'); }
-        @font-face { font-family: 'KyoboHandwriting2019'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/KyoboHandwriting2019.woff') format('woff'); }
-        @font-face { font-family: 'KOTRA_HOPE'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2110@1.0/KOTRA_HOPE.woff') format('woff'); }
-        @font-face { font-family: 'Cafe24Ssurround'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105@1.1/Cafe24Ssurround.woff') format('woff'); }
+        /* 빙그레 싸만코체 (사용자가 선호하는 귀여운 폰트) */
+        @font-face { 
+          font-family: 'BinggraeSamanco-Bold'; 
+          src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Bold.woff') format('woff'); 
+          font-weight: normal; 
+          font-style: normal; 
+        }
 
         body { margin: 0; padding: 0; overflow-x: hidden; }
-        .scroll-indicator { animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
+        
+        /* 세로 화면(Portrait)에서만 화살표 표시 */
+        .scroll-indicator { display: none; animation: bounce 2s infinite; }
+        @media (orientation: portrait) { 
+          .scroll-indicator { display: flex; } 
+        }
+        
+        @keyframes bounce { 
+          0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 
+          40% {transform: translate(-50%, -12px);} 
+          60% {transform: translate(-50%, -6px);} 
+        }
+
         .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #6366f1 !important; }
         .manuscript-main::-webkit-scrollbar { width: 10px; height: 10px; }
         .manuscript-main::-webkit-scrollbar-track { background: #cbd5e1; }
@@ -217,10 +230,7 @@ export default function App() {
                     <option value="'Noto Serif KR', serif">NOTO SERIF (바탕)</option>
                     <option value="'Noto Sans KR', sans-serif">NOTO SANS (고딕)</option>
                     <option value="'BinggraeSamanco-Bold'">Binggrae Samanco (동글귀염)</option>
-                    <option value="'KyoboHandwriting2019'">Kyobo Handwriting (정갈한손글씨)</option>
-                    <option value="'KOTRA_HOPE'">KOTRA Hope (각진손글씨)</option>
                     <option value="'Nanum Barun Pen', cursive">Nanum Barun Pen (깔끔한펜글씨)</option>
-                    <option value="'Cafe24Ssurround'">Cafe24 Ssurround (동글동글)</option>
                   </select>
                   <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={{ ...selectStyle, gridColumn: 'span 2', textAlign: 'center' }} />
                 </div>
