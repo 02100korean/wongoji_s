@@ -20,7 +20,7 @@ const cardStyle = {
 const cardTitleStyle = { fontSize: '20px', fontWeight: '800', marginBottom: '12px', color: '#1e293b' };
 const cardDescStyle = { fontSize: '14px', color: '#64748b', lineHeight: '1.5', marginBottom: '20px', flex: 1 };
 const cardButtonStyle = { padding: '10px 20px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '13px' };
-const selectStyle = { height: '40px', padding: '0 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: '700', backgroundColor: 'white' };
+const selectStyle = { height: '42px', padding: '0 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '700', backgroundColor: 'white', color: '#334155' };
 
 // --- 2. 메인 홈 컴포넌트 (Home) ---
 const Home = ({ onNavigate }) => {
@@ -103,14 +103,8 @@ export default function App() {
   const [lineColor, setLineColor] = useState('#607d8b');
   const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
   const [zoom, setZoom] = useState(1.0);
-  const [printOrientation, setPrintOrientation] = useState('landscape'); 
   
   const mainRef = useRef(null);
-
-  useEffect(() => {
-    if (gridType === '200') setPrintOrientation('landscape');
-    else setPrintOrientation('portrait');
-  }, [gridType]);
 
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
@@ -158,6 +152,7 @@ export default function App() {
 
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
+    // 빙그레 싸만코체 5% 확대 (22px * 1.05 = 23.1px)
     const baseFontSize = fontFamily === "'BinggraeSamanco-Bold'" ? 23.1 : 22;
 
     const cellStyle = { 
@@ -178,7 +173,7 @@ export default function App() {
   }, [lineColor, viewMode, fontFamily]);
 
   return (
-    <div className={`app-root ${printOrientation === 'landscape' ? 'p-landscape' : 'p-portrait'}`}>
+    <div className="app-root">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         
@@ -189,41 +184,17 @@ export default function App() {
         }
 
         body { margin: 0; padding: 0; overflow-x: hidden; }
-        
         .cards-container { grid-template-columns: 1fr; }
         @media (min-width: 900px) { .cards-container { grid-template-columns: repeat(3, 1fr) !important; } }
-
         .scroll-indicator { display: none; animation: bounce 2s infinite; }
         @media (orientation: portrait) { .scroll-indicator { display: flex; } }
-        
-        @keyframes bounce { 
-          0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 
-          40% {transform: translate(-50%, -10px);} 
-          60% {transform: translate(-50%, -5px);} 
-        }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 40% {transform: translate(-50%, -10px);} 60% {transform: translate(-50%, -5px);} }
 
-        .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #6366f1 !important; }
-        .manuscript-main::-webkit-scrollbar { width: 10px; height: 10px; }
-        .manuscript-main::-webkit-scrollbar-track { background: #cbd5e1; }
-        .manuscript-main::-webkit-scrollbar-thumb { background: #475569; border-radius: 6px; border: 2px solid #cbd5e1; }
-
-        /* 인쇄 설정: 배경색 제거 및 흰색 배경 강제 */
+        /* 인쇄 설정: 배경색 제거 및 중앙 정렬 */
         @media print {
           .no-print { display: none !important; }
-          body, html { 
-            margin: 0 !important; 
-            padding: 0 !important; 
-            background: white !important; 
-            background-color: white !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          .app-root, .manuscript-main, .main-container { 
-            background: white !important; 
-            background-color: white !important; 
-            height: auto !important; 
-            overflow: visible !important;
-          }
+          body, html { margin: 0 !important; padding: 0 !important; background: white !important; }
+          .app-root, .manuscript-main { background: white !important; height: auto !important; overflow: visible !important; }
           .page-unit { 
             page-break-after: always !important; 
             display: flex !important; 
@@ -231,17 +202,16 @@ export default function App() {
             justify-content: center !important; 
             height: 100vh !important;
             width: 100vw !important;
-            background: white !important;
           }
           div[style*="transform"] { transform: scale(1) !important; } 
-          @page { size: ${printOrientation}; margin: 0; }
+          @page { size: auto; margin: 0; }
         }
       `}</style>
 
       {view === 'home' ? (
         <Home onNavigate={setView} />
       ) : (
-        <div className="main-container" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
           <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <button onClick={() => setView('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>🏠</button>
@@ -255,35 +225,37 @@ export default function App() {
           </header>
 
           <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-            <aside className="sidebar no-print" style={{ width: '350px', backgroundColor: 'white', borderRight: '1px solid #ddd', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+            <aside className="sidebar no-print" style={{ width: '340px', backgroundColor: 'white', borderRight: '1px solid #ddd', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
               <div style={{ padding: '15px', backgroundColor: '#f8fafc', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <div style={{ gridColumn: 'span 2', display: 'flex', gap: '4px' }}>
-                    <select value={gridType} onChange={e => setGridType(e.target.value)} style={{ ...selectStyle, flex: 1 }}>
-                      <option value="200">200자 원고지</option>
-                      <option value="400">400자 원고지</option>
-                    </select>
-                    <select value={printOrientation} onChange={e => setPrintOrientation(e.target.value)} style={{ ...selectStyle, flex: 1 }}>
-                      <option value="landscape">가로 인쇄</option>
-                      <option value="portrait">세로 인쇄</option>
-                    </select>
-                  </div>
+                
+                {/* 상단 2분할 (원고지 유형, 일반형) */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <select value={gridType} onChange={e => setGridType(e.target.value)} style={selectStyle}>
+                    <option value="200">{gridType === '200' ? '200자 (가로)' : '200자'}</option>
+                    <option value="400">{gridType === '400' ? '400자 (세로)' : '400자'}</option>
+                  </select>
                   <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={selectStyle}>
                     <option value="traditional">일반형</option>
                     <option value="feedback">피드백용</option>
                     <option value="grid">격자형</option>
                   </select>
-                  <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={selectStyle}>
-                    <option value="'Noto Serif KR', serif">바탕체</option>
-                    <option value="'Noto Sans KR', sans-serif">고딕체</option>
-                    <option value="'BinggraeSamanco-Bold'">빙그레 싸만코</option>
-                    <option value="'Nanum Barun Pen', cursive">나눔바른펜</option>
-                  </select>
-                  <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={{ ...selectStyle, gridColumn: 'span 2', textAlign: 'center' }} />
                 </div>
-                <button onClick={() => window.print()} style={{ backgroundColor: '#6366f1', color: 'white', padding: '10px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>인쇄 / PDF 저장</button>
+
+                {/* 폰트 선택 (풀사이즈) */}
+                <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={selectStyle}>
+                  <option value="'Noto Serif KR', serif">바탕체</option>
+                  <option value="'Noto Sans KR', sans-serif">고딕체</option>
+                  <option value="'BinggraeSamanco-Bold'">Binggrae Samanco (동글귀염)</option>
+                  <option value="'Nanum Barun Pen', cursive">나눔바른펜</option>
+                </select>
+
+                {/* 이름 입력 (풀사이즈) */}
+                <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={{ ...selectStyle, textAlign: 'center' }} />
+
+                {/* 인쇄 버튼 */}
+                <button onClick={() => window.print()} style={{ backgroundColor: '#6366f1', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', border: 'none', cursor: 'pointer', marginTop: '5px' }}>인쇄 / PDF 저장</button>
               </div>
-              <textarea value={content} onChange={e => setContent(e.target.value)} style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} placeholder="내용을 입력하면 자동으로 원고지에 채워집니다..." />
+              <textarea value={content} onChange={e => setContent(e.target.value)} style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} placeholder="내용을 입력하세요..." />
             </aside>
 
             <main ref={mainRef} className="manuscript-main" style={{ flex: 1, overflow: 'auto', backgroundColor: '#cbd5e1', padding: '20px', position: 'relative' }}>
@@ -312,7 +284,7 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
   const rowGap = viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px';
 
   return (
-    <div className="manuscript-wrapper" style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', backgroundColor: 'white', boxShadow: '0 15px 35px rgba(0,0,0,0.1)' }}>
+    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', backgroundColor: 'white', boxShadow: '0 15px 35px rgba(0,0,0,0.1)' }}>
       {Array.from({ length: pageCount }).map((_, p) => (
         <div key={p} className="page-unit">
           <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content' }}>
