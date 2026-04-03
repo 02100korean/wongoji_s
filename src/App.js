@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-// --- 1. 스타일 객체 정의 ---
+// --- 1. 스타일 객체 정의 (컴포넌트 외부 배치로 안전성 확보) ---
 const cardStyle = { 
   transition: 'all 0.3s ease', 
   cursor: 'pointer', 
@@ -93,7 +93,47 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- 3. 메인 앱 컴포넌트 (App) ---
+// --- 3. 원고지 컨테이너 컴포넌트 ---
+const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFamily, processToCells, renderCell }) => {
+  const cols = 20; 
+  const gridVal = parseInt(gridType); 
+  const rows = gridVal / cols;
+  const allCells = processToCells(text, cols);
+  const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
+  const rowGap = viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px';
+
+  return (
+    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', backgroundColor: 'white', boxShadow: '0 15px 35px rgba(0,0,0,0.1)' }}>
+      {Array.from({ length: pageCount }).map((_, p) => (
+        <div key={p} className="page-unit">
+          <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content' }}>
+            {/* 이름 칸 영역 고정 (모든 페이지 여백 동일화) */}
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
+              {p === 0 ? (
+                <div style={{ borderBottom: name ? '2px solid black' : '2px solid #ccc', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: name ? 'black' : '#ccc' }}>
+                  이름: {name || ''}
+                </div>
+              ) : (
+                <div style={{ height: '100%', width: '1px' }}></div>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap }}>
+              {Array.from({ length: rows }).map((_, r) => (
+                <div key={r} style={{ display: 'flex', borderRight: viewMode !== 'grid' ? `1.2px solid ${lineColor}` : 'none' }}>
+                  {Array.from({ length: cols }).map((_, c) => renderCell(allCells[p * gridVal + r * cols + c], `c-${p}-${r}-${c}`, c === cols - 1))}
+                </div>
+              ))}
+            </div>
+            <div className="no-print" style={{ marginTop: '20px', textAlign: 'center', fontSize: '10px', color: '#cbd5e1', fontWeight: 'bold', letterSpacing: '2px' }}>PAGE {p + 1}</div>
+            {p < pageCount - 1 && <div className="no-print" style={{ width: '100%', borderBottom: '1px dashed #ddd', margin: '20px 0' }}></div>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// --- 4. 메인 앱 컴포넌트 ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -152,8 +192,8 @@ export default function App() {
 
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
-    // 빙그레 싸만코체 5% 확대 (22px * 1.05 = 23.1px)
-    const baseFontSize = fontFamily === "'BinggraeSamanco-Regular'" ? 23.1 : 22;
+    const isBinggrae = fontFamily === "'BinggraeSamanco-Regular'";
+    const baseFontSize = isBinggrae ? 23.1 : 22;
 
     const cellStyle = { 
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
@@ -177,7 +217,6 @@ export default function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         
-        /* 빙그레 싸만코체 Regular (일반 굵기)로 교체 */
         @font-face { 
           font-family: 'BinggraeSamanco-Regular'; 
           src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Regular.woff') format('woff'); 
@@ -185,12 +224,21 @@ export default function App() {
         }
 
         body { margin: 0; padding: 0; overflow-x: hidden; }
+        
         .cards-container { grid-template-columns: 1fr; }
         @media (min-width: 900px) { .cards-container { grid-template-columns: repeat(3, 1fr) !important; } }
+
         .scroll-indicator { display: none; animation: bounce 2s infinite; }
         @media (orientation: portrait) { .scroll-indicator { display: flex; } }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 40% {transform: translate(-50%, -10px);} 60% {transform: translate(-50%, -5px);} }
+        
+        @keyframes bounce { 
+          0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 
+          40% {transform: translate(-50%, -10px);} 
+          60% {transform: translate(-50%, -5px);} 
+        }
 
+        .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #6366f1 !important; }
+        
         @media print {
           .no-print { display: none !important; }
           body, html { margin: 0 !important; padding: 0 !important; background: white !important; }
@@ -268,45 +316,3 @@ export default function App() {
     </div>
   );
 }
-
-const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFamily, processToCells, renderCell }) => {
-  const cols = 20; const gridVal = parseInt(gridType); const rows = gridVal / cols;
-  const allCells = processToCells(text, cols);
-  const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
-  const rowGap = viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px';
-
-  return (
-    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', backgroundColor: 'white', boxShadow: '0 15px 35px rgba(0,0,0,0.1)' }}>
-      {Array.from({ length: pageCount }).map((_, p) => (
-        <div key={p} className="page-unit">
-          <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content' }}>
-            {/* 이름 칸 영역: 모든 페이지에 동일한 높이의 영역을 할당 (첫 페이지만 텍스트 노출) */}
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
-              {p === 0 ? (
-                studentName || name ? (
-                  <div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily }}>
-                    이름: {studentName || name}
-                  </div>
-                ) : (
-                  <div style={{ borderBottom: '2px solid #ccc', padding: '0 25px 5px 25px', fontSize: '18px', color: '#ccc', fontFamily }}>이름: </div>
-                )
-              ) : (
-                /* 2페이지부터는 이름 칸만큼의 빈 공간만 유지하여 여백 통일 */
-                <div style={{ height: '100%', width: '1px' }}></div>
-              )}
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap }}>
-              {Array.from({ length: rows }).map((_, r) => (
-                <div key={r} style={{ display: 'flex', borderRight: viewMode !== 'grid' ? `1.2px solid ${lineColor}` : 'none' }}>
-                  {Array.from({ length: cols }).map((_, c) => renderCell(allCells[p * gridVal + r * cols + c], `c-${p}-${r}-${c}`, c === cols - 1))}
-                </div>
-              ))}
-            </div>
-            <div className="no-print" style={{ marginTop: '20px', textAlign: 'center', fontSize: '10px', color: '#cbd5e1', fontWeight: 'bold', letterSpacing: '2px' }}>PAGE {p + 1}</div>
-            {p < pageCount - 1 && <div className="no-print" style={{ width: '100%', borderBottom: '1px dashed #ddd', margin: '20px 0' }}></div>}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
