@@ -40,6 +40,7 @@ const Home = ({ onNavigate }) => {
           가장 세련된 방법으로 한국어 쓰기를 연습하고,<br/>필수 패턴을 내 것으로 만드세요.
         </p>
         
+        {/* 세로 모드에서만 보이는 노란색 굵은 화살표 */}
         <div className="scroll-indicator" style={{ 
           position: 'absolute', 
           bottom: '25px', 
@@ -107,7 +108,7 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
       {Array.from({ length: pageCount }).map((_, p) => (
         <div key={p} className="page-unit">
           <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content', boxShadow: '0 15px 35px rgba(0,0,0,0.1)', marginBottom: '40px' }} className="page-box">
-            {/* 이름 칸 영역 고정 (모든 페이지 여백 동일화) */}
+            {/* 모든 페이지 여백 통일 (고정 높이) */}
             <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
               {p === 0 ? (
                 <div style={{ borderBottom: name ? '2px solid black' : '2px solid #ccc', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: name ? 'black' : '#ccc' }}>
@@ -191,8 +192,8 @@ export default function App() {
 
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
-    // 빙그레 싸만코체인 경우 5% 더 크게 적용
-    const isBinggrae = fontFamily === "'BinggraeSamanco-Regular'";
+    // 빙그레 싸만코체인 경우 5% 확대 로직
+    const isBinggrae = fontFamily === "'Binggrae Samanco'";
     const baseFontSize = isBinggrae ? 23.1 : 22;
 
     const cellStyle = { 
@@ -215,14 +216,14 @@ export default function App() {
   return (
     <div className="app-root">
       <style>{`
+        /* 폰트 안정성 확보 (눈누 정식 배포 코드) */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         
-        /* 빙그레 싸만코 Regular 정식 웹폰트 연결 */
         @font-face {
-          font-family: 'BinggraeSamanco-Regular';
-          src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Regular.woff') format('woff');
-          font-weight: normal;
-          font-style: normal;
+            font-family: 'Binggrae Samanco';
+            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Regular.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
         }
 
         body { margin: 0; padding: 0; overflow-x: hidden; }
@@ -241,12 +242,10 @@ export default function App() {
 
         .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #6366f1 !important; }
         
-        /* 인쇄 설정: 다중 페이지 출력 해결 */
         @media print {
           .no-print { display: none !important; }
           body, html { margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; }
           .app-root, .manuscript-main, .main-container { display: block !important; background: white !important; height: auto !important; overflow: visible !important; }
-          
           .manuscript-print-root { display: block !important; }
           .page-unit { 
             display: block !important; 
@@ -259,7 +258,7 @@ export default function App() {
           .page-box { 
             box-shadow: none !important; 
             margin: 0 auto !important; 
-            padding: 50px !important; /* 인쇄 시 적절한 여백 */
+            padding: 40px 60px !important; 
           }
           div[style*="transform"] { transform: scale(1) !important; } 
           @page { size: auto; margin: 10mm; }
@@ -296,11 +295,12 @@ export default function App() {
                     <option value="grid">격자형</option>
                   </select>
                 </div>
+                {/* 폰트 이름 형식 통일: English (Korean) */}
                 <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={selectStyle}>
-                  <option value="'Noto Serif KR', serif">바탕체</option>
-                  <option value="'Noto Sans KR', sans-serif">고딕체</option>
-                  <option value="'BinggraeSamanco-Regular'">Binggrae Samanco (동글귀염)</option>
-                  <option value="'Nanum Barun Pen', cursive">나눔바른펜</option>
+                  <option value="'Noto Serif KR', serif">Noto Serif KR (바탕체)</option>
+                  <option value="'Noto Sans KR', sans-serif">Noto Sans KR (고딕체)</option>
+                  <option value="'Binggrae Samanco'">Binggrae Samanco (빙그레 싸만코체)</option>
+                  <option value="'Nanum Barun Pen', cursive">Nanum Barun Pen (나눔바른펜)</option>
                 </select>
                 <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={{ ...selectStyle, textAlign: 'center' }} />
                 <button onClick={() => window.print()} style={{ backgroundColor: '#6366f1', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', border: 'none', cursor: 'pointer', marginTop: '5px' }}>인쇄 / PDF 저장</button>
