@@ -153,23 +153,23 @@ export default function App() {
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
     // 빙그레 싸만코체 5% 확대 (22px * 1.05 = 23.1px)
-    const baseFontSize = fontFamily === "'BinggraeSamanco-Bold'" ? 23.1 : 22;
+    const baseFontSize = fontFamily === "'BinggraeSamanco-Regular'" ? 23.1 : 22;
 
     const cellStyle = { 
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
         borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, fontWeight: 'normal'
     };
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
     if (cellData.type === 'pair') {
         return (
-            <div key={key} style={{...cellStyle, display: 'flex', fontWeight: 'bold', fontSize: `${baseFontSize - 2}px`}}>
+            <div key={key} style={{...cellStyle, display: 'flex', fontSize: `${baseFontSize - 2}px`}}>
                 <div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[0]}</div>
                 <div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[1]}</div>
             </div>
         );
     }
-    return <div key={key} style={{...cellStyle, fontWeight: '500', color: '#0f172a'}}>{cellData.content}</div>;
+    return <div key={key} style={{...cellStyle, color: '#0f172a'}}>{cellData.content}</div>;
   }, [lineColor, viewMode, fontFamily]);
 
   return (
@@ -177,9 +177,10 @@ export default function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         
+        /* 빙그레 싸만코체 Regular (일반 굵기)로 교체 */
         @font-face { 
-          font-family: 'BinggraeSamanco-Bold'; 
-          src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Bold.woff') format('woff'); 
+          font-family: 'BinggraeSamanco-Regular'; 
+          src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Regular.woff') format('woff'); 
           font-weight: normal; font-style: normal; 
         }
 
@@ -190,7 +191,6 @@ export default function App() {
         @media (orientation: portrait) { .scroll-indicator { display: flex; } }
         @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 40% {transform: translate(-50%, -10px);} 60% {transform: translate(-50%, -5px);} }
 
-        /* 인쇄 설정: 배경색 제거 및 중앙 정렬 */
         @media print {
           .no-print { display: none !important; }
           body, html { margin: 0 !important; padding: 0 !important; background: white !important; }
@@ -227,12 +227,10 @@ export default function App() {
           <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
             <aside className="sidebar no-print" style={{ width: '340px', backgroundColor: 'white', borderRight: '1px solid #ddd', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
               <div style={{ padding: '15px', backgroundColor: '#f8fafc', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                
-                {/* 상단 2분할 (원고지 유형, 일반형) */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <select value={gridType} onChange={e => setGridType(e.target.value)} style={selectStyle}>
-                    <option value="200">{gridType === '200' ? '200자 (가로)' : '200자'}</option>
-                    <option value="400">{gridType === '400' ? '400자 (세로)' : '400자'}</option>
+                    <option value="200">200자 (가로)</option>
+                    <option value="400">400자 (세로)</option>
                   </select>
                   <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={selectStyle}>
                     <option value="traditional">일반형</option>
@@ -240,19 +238,13 @@ export default function App() {
                     <option value="grid">격자형</option>
                   </select>
                 </div>
-
-                {/* 폰트 선택 (풀사이즈) */}
                 <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={selectStyle}>
                   <option value="'Noto Serif KR', serif">바탕체</option>
                   <option value="'Noto Sans KR', sans-serif">고딕체</option>
-                  <option value="'BinggraeSamanco-Bold'">Binggrae Samanco (동글귀염)</option>
+                  <option value="'BinggraeSamanco-Regular'">Binggrae Samanco (동글귀염)</option>
                   <option value="'Nanum Barun Pen', cursive">나눔바른펜</option>
                 </select>
-
-                {/* 이름 입력 (풀사이즈) */}
                 <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={{ ...selectStyle, textAlign: 'center' }} />
-
-                {/* 인쇄 버튼 */}
                 <button onClick={() => window.print()} style={{ backgroundColor: '#6366f1', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', border: 'none', cursor: 'pointer', marginTop: '5px' }}>인쇄 / PDF 저장</button>
               </div>
               <textarea value={content} onChange={e => setContent(e.target.value)} style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} placeholder="내용을 입력하세요..." />
@@ -288,8 +280,20 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
       {Array.from({ length: pageCount }).map((_, p) => (
         <div key={p} className="page-unit">
           <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content' }}>
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px' }}>
-              {p === 0 && name && <div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily }}>이름: {name}</div>}
+            {/* 이름 칸 영역: 모든 페이지에 동일한 높이의 영역을 할당 (첫 페이지만 텍스트 노출) */}
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
+              {p === 0 ? (
+                studentName || name ? (
+                  <div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily }}>
+                    이름: {studentName || name}
+                  </div>
+                ) : (
+                  <div style={{ borderBottom: '2px solid #ccc', padding: '0 25px 5px 25px', fontSize: '18px', color: '#ccc', fontFamily }}>이름: </div>
+                )
+              ) : (
+                /* 2페이지부터는 이름 칸만큼의 빈 공간만 유지하여 여백 통일 */
+                <div style={{ height: '100%', width: '1px' }}></div>
+              )}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap }}>
               {Array.from({ length: rows }).map((_, r) => (
