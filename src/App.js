@@ -190,9 +190,8 @@ export default function App() {
 
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
-    // 폰트에 따른 크기 보정 (싸만코, 주아체는 조금 크게)
-    const isCuteFont = fontFamily === "'Binggrae Samanco'" || fontFamily === "'Jua', sans-serif";
-    const baseFontSize = isCuteFont ? 23.1 : 22;
+    // 구글 폰트(Jua, Gamja Flower 등)는 가독성이 좋아 22px 그대로 사용해도 예쁩니다.
+    const baseFontSize = 22;
 
     const cellStyle = { 
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
@@ -214,23 +213,23 @@ export default function App() {
   return (
     <div className="app-root">
       <style>{`
-        /* 구글 폰트에서 주아체와 기본체 로드 */
-        @import url('https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
+        /* 절대 깨지지 않는 구글 서버에서 폰트 로드 */
+        @import url('https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&family=Hi+Melody&family=Poor+Story&family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         
-        /* 빙그레 싸만코 웹폰트 연결 */
-        @font-face {
-          font-family: 'Binggrae Samanco';
-          src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Regular.woff') format('woff');
-          font-weight: normal;
-          font-style: normal;
-        }
-
         body { margin: 0; padding: 0; overflow-x: hidden; }
+        
         .cards-container { grid-template-columns: 1fr; }
         @media (min-width: 900px) { .cards-container { grid-template-columns: repeat(3, 1fr) !important; } }
+
         .scroll-indicator { display: none; animation: bounce 2s infinite; }
         @media (orientation: portrait) { .scroll-indicator { display: flex; } }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 40% {transform: translate(-50%, -10px);} 60% {transform: translate(-50%, -5px);} }
+        
+        @keyframes bounce { 
+          0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 
+          40% {transform: translate(-50%, -10px);} 
+          60% {transform: translate(-50%, -5px);} 
+        }
+
         .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #6366f1 !important; }
         
         @media print {
@@ -238,8 +237,19 @@ export default function App() {
           body, html { margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; }
           .app-root, .manuscript-main, .main-container { display: block !important; background: white !important; height: auto !important; overflow: visible !important; }
           .manuscript-print-root { display: block !important; }
-          .page-unit { display: block !important; page-break-after: always !important; background: white !important; margin: 0 !important; padding: 0 !important; height: auto !important; }
-          .page-box { box-shadow: none !important; margin: 0 auto !important; padding: 40px 60px !important; }
+          .page-unit { 
+            display: block !important; 
+            page-break-after: always !important; 
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+          }
+          .page-box { 
+            box-shadow: none !important; 
+            margin: 0 auto !important; 
+            padding: 40px 60px !important; 
+          }
           div[style*="transform"] { transform: scale(1) !important; } 
           @page { size: auto; margin: 10mm; }
         }
@@ -278,9 +288,11 @@ export default function App() {
                 <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={selectStyle}>
                   <option value="'Noto Serif KR', serif">Noto Serif KR (바탕체)</option>
                   <option value="'Noto Sans KR', sans-serif">Noto Sans KR (고딕체)</option>
-                  <option value="'Jua', sans-serif">Jua (주아체 - 동글동글 추천)</option>
-                  <option value="'Binggrae Samanco'">Binggrae Samanco (빙그레 싸만코체)</option>
-                  <option value="'Nanum Barun Pen', cursive">Nanum Barun Pen (나눔바른펜)</option>
+                  <option value="'Jua', sans-serif">Jua (주아체 - 추천! 동글동글)</option>
+                  <option value="'Gamja Flower', cursive">Gamja Flower (감자꽃체 - 귀엽고 내츄럴)</option>
+                  <option value="'Hi Melody', cursive">Hi Melody (하이멜로디체 - 러블리)</option>
+                  <option value="'Poor Story', cursive">Poor Story (푸른밤체 - 단정한 손글씨)</option>
+                  <option value="'Gowun Dodum', sans-serif">Gowun Dodum (고운돋움체 - 세련된 손글씨)</option>
                 </select>
                 <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={{ ...selectStyle, textAlign: 'center' }} />
                 <button onClick={() => window.print()} style={{ backgroundColor: '#6366f1', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', border: 'none', cursor: 'pointer', marginTop: '5px' }}>인쇄 / PDF 저장</button>
