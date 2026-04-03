@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-// --- 1. 스타일 객체 정의 (에러 방지) ---
+// --- 1. 스타일 객체 정의 (에러 방지 및 테마 복구) ---
 const cardStyle = { 
   transition: 'all 0.3s ease', 
   cursor: 'pointer', 
@@ -19,14 +19,14 @@ const cardStyle = {
 
 const cardTitleStyle = { fontSize: '22px', fontWeight: '800', marginBottom: '15px', color: '#1e293b' };
 const cardDescStyle = { fontSize: '15px', color: '#64748b', lineHeight: '1.6', marginBottom: '25px', flex: 1 };
-const cardButtonStyle = { padding: '12px 24px', borderRadius: '12px', border: 'none', backgroundColor: '#1e293b', color: 'white', fontWeight: '700', cursor: 'pointer' };
+const cardButtonStyle = { padding: '12px 24px', borderRadius: '12px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer' };
 const selectStyle = { height: '40px', padding: '0 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: '700' };
 
 // --- 2. 메인 홈 컴포넌트 (Home) ---
 const Home = ({ onNavigate }) => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Noto Sans KR', sans-serif", color: '#1e293b' }}>
-      {/* Hero Section */}
+      {/* Hero Section: Purple Gradient 복구 */}
       <section style={{
         height: '100vh',
         display: 'flex',
@@ -34,31 +34,32 @@ const Home = ({ onNavigate }) => {
         justifyContent: 'center',
         alignItems: 'center',
         textAlign: 'center',
-        background: '#1e293b',
+        background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
         color: 'white',
         padding: '0 20px',
         position: 'relative'
       }}>
-        <div style={{ backgroundColor: '#facc15', color: '#1e293b', padding: '5px 15px', borderRadius: '20px', fontWeight: '900', fontSize: '14px', marginBottom: '20px' }}>0 to 100 Korean</div>
         <h1 style={{ fontSize: '3.5rem', fontWeight: '900', marginBottom: '20px', lineHeight: '1.1' }}>
-          Master Korean <br/> <span style={{ color: '#facc15' }}>Writing</span>
+          Master Korean <br/> <span style={{ color: '#ffffff', textDecoration: 'underline', textDecorationColor: '#facc15' }}>Writing</span>
         </h1>
         <p style={{ fontSize: '1.2rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto 40px' }}>
           가장 세련된 방법으로 한국어 쓰기를 연습하고,<br/>필수 패턴을 내 것으로 만드세요.
         </p>
         
-        <div className="scroll-indicator" style={{ position: 'absolute', bottom: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '8px', color: '#facc15' }}>SCROLL DOWN</span>
-          <div style={{ width: '0', height: '0', borderLeft: '8px solid transparent', borderRight: '8px solid transparent', borderTop: '10px solid #facc15' }}></div>
+        {/* 명시적인 스크롤 화살표 추가 */}
+        <div className="scroll-indicator" style={{ position: 'absolute', bottom: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'default' }}>
+          <span style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '10px', letterSpacing: '1px' }}>SCROLL DOWN</span>
+          <div style={{ fontSize: '30px', lineHeight: '1' }}>↓</div>
         </div>
       </section>
 
       {/* Cards Section */}
       <div style={{ maxWidth: '1200px', margin: '-60px auto 100px', padding: '0 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', position: 'relative', zIndex: 10 }}>
+        {/* 명칭 변경: 원고지 연습장 */}
         <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
           <div style={{ fontSize: '50px', marginBottom: '20px' }}>✍️</div>
-          <h3 style={cardTitleStyle}>원고지 연습 도구</h3>
-          <p style={cardDescStyle}>온라인 원고지에 직접 쓰고 PDF로 소장하세요. 한눈에 들어오는 스마트 줌 기능이 포함되어 있습니다.</p>
+          <h3 style={cardTitleStyle}>원고지 연습장</h3>
+          <p style={cardDescStyle}>온라인 원고지에 직접 쓰고 PDF로 소장하세요. 화면 크기에 딱 맞는 스마트 자동 줌 기능이 제공됩니다.</p>
           <button style={cardButtonStyle}>바로 시작하기</button>
         </div>
 
@@ -67,7 +68,7 @@ const Home = ({ onNavigate }) => {
             <div style={{ fontSize: '50px', marginBottom: '20px' }}>📚</div>
             <h3 style={cardTitleStyle}>한국어 패턴 100 E-book</h3>
             <p style={cardDescStyle}>외국인이 가장 많이 틀리는 한국어 문장 패턴 100가지를 한 권에 담았습니다.</p>
-            <button style={{ ...cardButtonStyle, backgroundColor: '#facc15', color: '#1e293b' }}>다운로드 하기</button>
+            <button style={{ ...cardButtonStyle, backgroundColor: '#10b981' }}>다운로드 하기</button>
           </div>
         </a>
 
@@ -76,7 +77,7 @@ const Home = ({ onNavigate }) => {
             <div style={{ fontSize: '50px', marginBottom: '20px' }}>📺</div>
             <h3 style={cardTitleStyle}>한국어 패턴 100 영상</h3>
             <p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 바로 시청하세요.</p>
-            <button style={{ ...cardButtonStyle, backgroundColor: '#1e293b', color: 'white' }}>강의 시청하기</button>
+            <button style={{ ...cardButtonStyle, backgroundColor: '#f59e0b' }}>강의 시청하기</button>
           </div>
         </a>
       </div>
@@ -95,22 +96,20 @@ export default function App() {
   const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
   const [zoom, setZoom] = useState(1.0);
   
-  const mainRef = useRef(null); // 원고지 영역 참조
+  const mainRef = useRef(null);
 
-  // 화면 사이즈에 맞춰 줌 자동 조절하는 함수
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
-      const containerWidth = mainRef.current.clientWidth - 40; // 여백 제외 너비
-      const manuscriptWidth = 880; // 원고지 실제 너비 (38px * 20 + padding)
+      const containerWidth = mainRef.current.clientWidth - 40;
+      const manuscriptWidth = 880; 
       const newZoom = Math.min(1.0, containerWidth / manuscriptWidth);
-      setZoom(Math.floor(newZoom * 10) / 10); // 소수점 첫째자리까지 조절
+      setZoom(Math.floor(newZoom * 10) / 10);
     }
   }, []);
 
-  // 에디터 뷰로 전환될 때 자동 실행
   useEffect(() => {
     if (view === 'editor') {
-      setTimeout(fitToScreen, 100); // 렌더링 후 계산을 위해 약간의 지연
+      setTimeout(fitToScreen, 150);
       window.addEventListener('resize', fitToScreen);
     }
     return () => window.removeEventListener('resize', fitToScreen);
@@ -165,18 +164,19 @@ export default function App() {
   return (
     <div className={`app-root ${gridType === '200' ? 'p-landscape' : 'p-portrait'}`}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&display=swap');
+        /* 폰트 안정성 확보를 위한 구글 폰트 및 눈누 폰트 임포트 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         
-        @font-face { font-family: 'BinggraeSamanco'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Bold.woff') format('woff'); }
-        @font-face { font-family: 'KyoboHandwriting2019'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/KyoboHandwriting2019.woff') format('woff'); }
-        @font-face { font-family: 'KOTRA_HOPE'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2110@1.0/KOTRA_HOPE.woff') format('woff'); }
-        @font-face { font-family: 'NanumBarunPen'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_two@1.0/NanumBarunPen.woff') format('woff'); }
-        @font-face { font-family: 'Cafe24Ssurround'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105@1.1/Cafe24Ssurround.woff') format('woff'); }
+        /* 폰트 파일 경로 및 포맷 명시 (폰트 안 바뀜 문제 해결) */
+        @font-face { font-family: 'BinggraeSamanco-Bold'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Bold.woff') format('woff'); font-weight: normal; font-style: normal; }
+        @font-face { font-family: 'KyoboHandwriting2019'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/KyoboHandwriting2019.woff') format('woff'); font-weight: normal; font-style: normal; }
+        @font-face { font-family: 'KOTRA_HOPE'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2110@1.0/KOTRA_HOPE.woff') format('woff'); font-weight: normal; font-style: normal; }
+        @font-face { font-family: 'Cafe24Ssurround'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105@1.1/Cafe24Ssurround.woff') format('woff'); font-weight: normal; font-style: normal; }
 
         body { margin: 0; padding: 0; overflow-x: hidden; }
         .scroll-indicator { animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
-        .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #facc15 !important; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-12px);} 60% {transform: translateY(-6px);} }
+        .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #6366f1 !important; }
         .manuscript-main::-webkit-scrollbar { width: 10px; height: 10px; }
         .manuscript-main::-webkit-scrollbar-track { background: #cbd5e1; }
         .manuscript-main::-webkit-scrollbar-thumb { background: #475569; border-radius: 6px; border: 2px solid #cbd5e1; }
@@ -190,7 +190,7 @@ export default function App() {
           <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <button onClick={() => setView('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>🏠</button>
-                <div style={{ fontWeight: '900', color: '#1e293b', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '15px' }}>원고지 연습기</div>
+                <div style={{ fontWeight: '900', color: '#1e293b', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '15px' }}>원고지 연습장</div>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               {['#607d8b', '#ef4444', '#2d6a4f', '#000000'].map(c => (
@@ -215,26 +215,26 @@ export default function App() {
                   <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={{ ...selectStyle, gridColumn: 'span 2' }}>
                     <option value="'Noto Serif KR', serif">NOTO SERIF (바탕)</option>
                     <option value="'Noto Sans KR', sans-serif">NOTO SANS (고딕)</option>
-                    <option value="'BinggraeSamanco'">Binggrae Samanco (동글귀염)</option>
+                    <option value="'BinggraeSamanco-Bold'">Binggrae Samanco (동글귀염)</option>
                     <option value="'KyoboHandwriting2019'">Kyobo Handwriting (정갈한손글씨)</option>
                     <option value="'KOTRA_HOPE'">KOTRA Hope (각진손글씨)</option>
-                    <option value="'NanumBarunPen'">Nanum Barun Pen (깔끔한펜글씨)</option>
+                    <option value="'Nanum Barun Pen', cursive">Nanum Barun Pen (깔끔한펜글씨)</option>
                     <option value="'Cafe24Ssurround'">Cafe24 Ssurround (동글동글)</option>
                   </select>
                   <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={{ ...selectStyle, gridColumn: 'span 2', textAlign: 'center' }} />
                 </div>
-                <button onClick={() => window.print()} style={{ backgroundColor: '#1e293b', color: 'white', padding: '10px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>인쇄 / PDF 저장</button>
+                <button onClick={() => window.print()} style={{ backgroundColor: '#6366f1', color: 'white', padding: '10px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>인쇄 / PDF 저장</button>
               </div>
               <textarea value={content} onChange={e => setContent(e.target.value)} style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} placeholder="여기에 원고지 내용을 입력하세요..." />
             </aside>
 
             <main ref={mainRef} className="manuscript-main" style={{ flex: 1, overflow: 'auto', backgroundColor: '#cbd5e1', padding: '20px', position: 'relative' }}>
               <div className="no-print" style={{ marginBottom: '15px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', width: 'fit-content', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                <span style={{ fontSize: '10px', fontWeight: '900', color: '#1e293b' }}>ZOOM</span>
+                <span style={{ fontSize: '10px', fontWeight: '900', color: '#6366f1' }}>ZOOM</span>
                 <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900', cursor: 'pointer' }}>
                   {[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}
                 </select>
-                <button onClick={fitToScreen} style={{ border: 'none', background: '#1e293b', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>화면맞춤</button>
+                <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>화면맞춤</button>
               </div>
               <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', transition: 'transform 0.2s ease-out' }}>
                 <ManuscriptContainer text={content} gridType={gridType} viewMode={viewMode} lineColor={lineColor} name={studentName} fontFamily={fontFamily} processToCells={processToCells} renderCell={renderCell} />
