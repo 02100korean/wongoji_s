@@ -107,15 +107,19 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
       {Array.from({ length: pageCount }).map((_, p) => (
         <div key={p} className="page-unit">
           <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content', boxShadow: '0 15px 35px rgba(0,0,0,0.1)', marginBottom: '40px' }} className="page-box">
+            
+            {/* 이름 영역: 이름이 있을 때만 첫 페이지에 표시, 없거나 2페이지부터는 투명 여백만 유지 */}
             <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
-              {p === 0 ? (
-                <div style={{ borderBottom: name ? '2px solid black' : '2px solid #ccc', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: name ? 'black' : '#ccc' }}>
-                  이름: {name || ''}
+              {p === 0 && name.trim() !== '' ? (
+                <div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>
+                  이름: {name}
                 </div>
               ) : (
-                <div style={{ height: '100%', width: '100%' }}></div>
+                /* 레이아웃 유지를 위한 빈 공간 */
+                <div style={{ height: '35px' }}></div>
               )}
             </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap }}>
               {Array.from({ length: rows }).map((_, r) => (
                 <div key={r} style={{ display: 'flex', borderRight: viewMode !== 'grid' ? `1.2px solid ${lineColor}` : 'none' }}>
@@ -191,22 +195,13 @@ export default function App() {
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
     
-    // 1. 크기 보정 (이전 요청사항)
-    const largeFonts = [
-      "'Gamja Flower', cursive",
-      "'Hi Melody', cursive",
-      "'Poor Story', cursive",
-      "'Nanum Pen Script', cursive"
-    ];
+    // 크기 보정 4종
+    const largeFonts = ["'Gamja Flower', cursive", "'Hi Melody', cursive", "'Poor Story', cursive", "'Nanum Pen Script', cursive"];
     const isLarge = largeFonts.includes(fontFamily);
     const baseFontSize = isLarge ? 23.5 : 22;
 
-    // 2. 위치 보정 (아래로 조금 내림)
-    const shiftDownFonts = [
-      "'Hi Melody', cursive",
-      "'Poor Story', cursive",
-      "'Nanum Pen Script', cursive"
-    ];
+    // 위치 보정 3종 (아래로 밀기)
+    const shiftDownFonts = ["'Hi Melody', cursive", "'Poor Story', cursive", "'Nanum Pen Script', cursive"];
     const isShifted = shiftDownFonts.includes(fontFamily);
 
     const cellStyle = { 
@@ -214,20 +209,10 @@ export default function App() {
         borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', 
         fontFamily: fontFamily, fontWeight: 'normal',
-        paddingTop: isShifted ? '4px' : '0px' // 위쪽 패딩을 주어 글자를 아래로 밀어냄
+        paddingTop: isShifted ? '4px' : '0px'
     };
 
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
-    
-    // 글자가 아래로 내려가 보이도록 내부 div에도 정렬값 적용
-    const contentInnerStyle = {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '100%',
-      height: '100%'
-    };
-
     if (cellData.type === 'pair') {
         return (
             <div key={key} style={{...cellStyle, display: 'flex', fontSize: `${baseFontSize - 2}px`}}>
