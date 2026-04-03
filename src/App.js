@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-// --- 1. 스타일 객체 정의 (에러 방지 및 테마 복구) ---
+// --- 1. 스타일 객체 정의 ---
 const cardStyle = { 
   transition: 'all 0.3s ease', 
   cursor: 'pointer', 
@@ -26,36 +26,38 @@ const selectStyle = { height: '40px', padding: '0 10px', borderRadius: '8px', bo
 const Home = ({ onNavigate }) => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Noto Sans KR', sans-serif", color: '#1e293b' }}>
-      {/* Hero Section: Purple Gradient 복구 */}
       <section style={{
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
+        padding: '100px 20px 140px', 
         textAlign: 'center',
         background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
         color: 'white',
-        padding: '0 20px',
         position: 'relative'
       }}>
-        <h1 style={{ fontSize: '3.5rem', fontWeight: '900', marginBottom: '20px', lineHeight: '1.1' }}>
-          Master Korean <br/> <span style={{ color: '#ffffff', textDecoration: 'underline', textDecorationColor: '#facc15' }}>Writing</span>
+        <h1 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '20px', lineHeight: '1.2' }}>
+          Master Korean Writing
         </h1>
-        <p style={{ fontSize: '1.2rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto 40px' }}>
+        <p style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto' }}>
           가장 세련된 방법으로 한국어 쓰기를 연습하고,<br/>필수 패턴을 내 것으로 만드세요.
         </p>
         
-        {/* 명시적인 스크롤 화살표 추가 */}
-        <div className="scroll-indicator" style={{ position: 'absolute', bottom: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'default' }}>
-          <span style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '10px', letterSpacing: '1px' }}>SCROLL DOWN</span>
-          <div style={{ fontSize: '30px', lineHeight: '1' }}>↓</div>
+        {/* 노란색 두꺼운 화살표 SVG */}
+        <div className="scroll-indicator" style={{ 
+          position: 'absolute', 
+          bottom: '30px', 
+          left: '50%', 
+          transform: 'translateX(-50%)',
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center' 
+        }}>
+          <span style={{ fontSize: '12px', fontWeight: '900', color: '#facc15', marginBottom: '5px', letterSpacing: '1px' }}>SCROLL DOWN</span>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 10L12 15L17 10" stroke="#facc15" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
       </section>
 
-      {/* Cards Section */}
-      <div style={{ maxWidth: '1200px', margin: '-60px auto 100px', padding: '0 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', position: 'relative', zIndex: 10 }}>
-        {/* 명칭 변경: 원고지 연습장 */}
+      <div style={{ maxWidth: '1200px', margin: '-60px auto 80px', padding: '0 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', position: 'relative', zIndex: 10 }}>
         <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
           <div style={{ fontSize: '50px', marginBottom: '20px' }}>✍️</div>
           <h3 style={cardTitleStyle}>원고지 연습장</h3>
@@ -109,7 +111,7 @@ export default function App() {
 
   useEffect(() => {
     if (view === 'editor') {
-      setTimeout(fitToScreen, 150);
+      setTimeout(fitToScreen, 200);
       window.addEventListener('resize', fitToScreen);
     }
     return () => window.removeEventListener('resize', fitToScreen);
@@ -164,18 +166,17 @@ export default function App() {
   return (
     <div className={`app-root ${gridType === '200' ? 'p-landscape' : 'p-portrait'}`}>
       <style>{`
-        /* 폰트 안정성 확보를 위한 구글 폰트 및 눈누 폰트 임포트 */
+        /* 폰트 로드: 가장 안정적인 눈누 CDN 주소로 교체 */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         
-        /* 폰트 파일 경로 및 포맷 명시 (폰트 안 바뀜 문제 해결) */
-        @font-face { font-family: 'BinggraeSamanco-Bold'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Bold.woff') format('woff'); font-weight: normal; font-style: normal; }
-        @font-face { font-family: 'KyoboHandwriting2019'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/KyoboHandwriting2019.woff') format('woff'); font-weight: normal; font-style: normal; }
-        @font-face { font-family: 'KOTRA_HOPE'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2110@1.0/KOTRA_HOPE.woff') format('woff'); font-weight: normal; font-style: normal; }
-        @font-face { font-family: 'Cafe24Ssurround'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105@1.1/Cafe24Ssurround.woff') format('woff'); font-weight: normal; font-style: normal; }
+        @font-face { font-family: 'BinggraeSamanco-Bold'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Bold.woff') format('woff'); }
+        @font-face { font-family: 'KyoboHandwriting2019'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/KyoboHandwriting2019.woff') format('woff'); }
+        @font-face { font-family: 'KOTRA_HOPE'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2110@1.0/KOTRA_HOPE.woff') format('woff'); }
+        @font-face { font-family: 'Cafe24Ssurround'; src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105@1.1/Cafe24Ssurround.woff') format('woff'); }
 
         body { margin: 0; padding: 0; overflow-x: hidden; }
         .scroll-indicator { animation: bounce 2s infinite; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-12px);} 60% {transform: translateY(-6px);} }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
         .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #6366f1 !important; }
         .manuscript-main::-webkit-scrollbar { width: 10px; height: 10px; }
         .manuscript-main::-webkit-scrollbar-track { background: #cbd5e1; }
