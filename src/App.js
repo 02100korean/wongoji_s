@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-// --- 1. 스타일 객체 정의 (컴포넌트 외부 배치로 안전성 확보) ---
+// --- 1. 스타일 객체 정의 ---
 const cardStyle = { 
   transition: 'all 0.3s ease', 
   cursor: 'pointer', 
@@ -103,10 +103,10 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
   const rowGap = viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px';
 
   return (
-    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', backgroundColor: 'white', boxShadow: '0 15px 35px rgba(0,0,0,0.1)' }}>
+    <div className="manuscript-print-root" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {Array.from({ length: pageCount }).map((_, p) => (
         <div key={p} className="page-unit">
-          <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content' }}>
+          <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content', boxShadow: '0 15px 35px rgba(0,0,0,0.1)', marginBottom: '40px' }} className="page-box">
             {/* 이름 칸 영역 고정 (모든 페이지 여백 동일화) */}
             <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
               {p === 0 ? (
@@ -114,7 +114,7 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
                   이름: {name || ''}
                 </div>
               ) : (
-                <div style={{ height: '100%', width: '1px' }}></div>
+                <div style={{ height: '100%', width: '100%' }}></div>
               )}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap }}>
@@ -125,7 +125,6 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
               ))}
             </div>
             <div className="no-print" style={{ marginTop: '20px', textAlign: 'center', fontSize: '10px', color: '#cbd5e1', fontWeight: 'bold', letterSpacing: '2px' }}>PAGE {p + 1}</div>
-            {p < pageCount - 1 && <div className="no-print" style={{ width: '100%', borderBottom: '1px dashed #ddd', margin: '20px 0' }}></div>}
           </div>
         </div>
       ))}
@@ -192,6 +191,7 @@ export default function App() {
 
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
+    // 빙그레 싸만코체인 경우 5% 더 크게 적용
     const isBinggrae = fontFamily === "'BinggraeSamanco-Regular'";
     const baseFontSize = isBinggrae ? 23.1 : 22;
 
@@ -217,10 +217,12 @@ export default function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         
-        @font-face { 
-          font-family: 'BinggraeSamanco-Regular'; 
-          src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Regular.woff') format('woff'); 
-          font-weight: normal; font-style: normal; 
+        /* 빙그레 싸만코 Regular 정식 웹폰트 연결 */
+        @font-face {
+          font-family: 'BinggraeSamanco-Regular';
+          src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_20-10@1.0/BinggraeSamanco-Regular.woff') format('woff');
+          font-weight: normal;
+          font-style: normal;
         }
 
         body { margin: 0; padding: 0; overflow-x: hidden; }
@@ -239,27 +241,35 @@ export default function App() {
 
         .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #6366f1 !important; }
         
+        /* 인쇄 설정: 다중 페이지 출력 해결 */
         @media print {
           .no-print { display: none !important; }
-          body, html { margin: 0 !important; padding: 0 !important; background: white !important; }
-          .app-root, .manuscript-main { background: white !important; height: auto !important; overflow: visible !important; }
+          body, html { margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; }
+          .app-root, .manuscript-main, .main-container { display: block !important; background: white !important; height: auto !important; overflow: visible !important; }
+          
+          .manuscript-print-root { display: block !important; }
           .page-unit { 
+            display: block !important; 
             page-break-after: always !important; 
-            display: flex !important; 
-            align-items: center !important; 
-            justify-content: center !important; 
-            height: 100vh !important;
-            width: 100vw !important;
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+          }
+          .page-box { 
+            box-shadow: none !important; 
+            margin: 0 auto !important; 
+            padding: 50px !important; /* 인쇄 시 적절한 여백 */
           }
           div[style*="transform"] { transform: scale(1) !important; } 
-          @page { size: auto; margin: 0; }
+          @page { size: auto; margin: 10mm; }
         }
       `}</style>
 
       {view === 'home' ? (
         <Home onNavigate={setView} />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+        <div className="main-container" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
           <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <button onClick={() => setView('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>🏠</button>
@@ -307,7 +317,16 @@ export default function App() {
                 <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>화면맞춤</button>
               </div>
               <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', transition: 'transform 0.2s ease-out' }}>
-                <ManuscriptContainer text={content} gridType={gridType} viewMode={viewMode} lineColor={lineColor} name={studentName} fontFamily={fontFamily} processToCells={processToCells} renderCell={renderCell} />
+                <ManuscriptContainer 
+                  text={content} 
+                  gridType={gridType} 
+                  viewMode={viewMode} 
+                  lineColor={lineColor} 
+                  name={studentName} 
+                  fontFamily={fontFamily} 
+                  processToCells={processToCells} 
+                  renderCell={renderCell} 
+                />
               </div>
             </main>
           </div>
