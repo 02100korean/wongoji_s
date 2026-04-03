@@ -191,22 +191,43 @@ export default function App() {
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
     
-    // 작아 보이는 폰트 특정하여 크기 보정 (기본 22px -> 23.5px)
-    const smallFonts = [
+    // 1. 크기 보정 (이전 요청사항)
+    const largeFonts = [
       "'Gamja Flower', cursive",
       "'Hi Melody', cursive",
       "'Poor Story', cursive",
       "'Nanum Pen Script', cursive"
     ];
-    const isSmallFont = smallFonts.includes(fontFamily);
-    const baseFontSize = isSmallFont ? 23.5 : 22;
+    const isLarge = largeFonts.includes(fontFamily);
+    const baseFontSize = isLarge ? 23.5 : 22;
+
+    // 2. 위치 보정 (아래로 조금 내림)
+    const shiftDownFonts = [
+      "'Hi Melody', cursive",
+      "'Poor Story', cursive",
+      "'Nanum Pen Script', cursive"
+    ];
+    const isShifted = shiftDownFonts.includes(fontFamily);
 
     const cellStyle = { 
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
         borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, fontWeight: 'normal'
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', 
+        fontFamily: fontFamily, fontWeight: 'normal',
+        paddingTop: isShifted ? '4px' : '0px' // 위쪽 패딩을 주어 글자를 아래로 밀어냄
     };
+
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
+    
+    // 글자가 아래로 내려가 보이도록 내부 div에도 정렬값 적용
+    const contentInnerStyle = {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+      height: '100%'
+    };
+
     if (cellData.type === 'pair') {
         return (
             <div key={key} style={{...cellStyle, display: 'flex', fontSize: `${baseFontSize - 2}px`}}>
