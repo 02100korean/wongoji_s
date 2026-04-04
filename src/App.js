@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 상수: 완벽 유지] ---
+// --- [1. 스타일 및 디자인: 완벽했던 상태 유지] ---
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: 카드 4개 + 애니메이션 완벽 유지] ---
+// --- [2. 홈 화면: 카드 4개 + 애니메이션 복구] ---
 const Home = ({ onNavigate }) => {
   return (
     <div className="home-root">
@@ -37,25 +37,25 @@ const Home = ({ onNavigate }) => {
         .home-root { min-height: 100vh; background-color: #f8fafc; font-family: 'Noto Sans KR', sans-serif; color: #1e293b; overflow-y: auto; }
         .hero-section { padding: 80px 20px 120px; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; }
         .cards-grid { max-width: 1200px; margin: -60px auto 60px; padding: 0 20px; display: grid; gridTemplateColumns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; perspective: 1000px; }
-        .card-item:hover { transform: translateY(-15px) rotateX(2deg); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); border-color: #6366f1; }
+        .card-item:hover { transform: translateY(-15px); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); border-color: #6366f1; }
         .fade-in { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
       <section className="hero-section">
         <h1 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '20px' }}>Master Korean <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
-        <p style={{ fontSize: '1.2rem', opacity: 0.9 }}>가장 정교한 한국어 원고지 연습 시스템</p>
+        <p style={{ fontSize: '1.2rem', opacity: 0.9 }}>정교한 한국어 원고지 연습 시스템</p>
       </section>
       <div className="cards-grid">
-        <div className="card-item fade-in" onClick={() => onNavigate('editor')} style={{...cardStyle, animationDelay: '0.1s'}}><WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>원고지 정석 규칙이 적용된 쓰기 연습.</p><button style={cardButtonStyle}>시작하기</button></div>
-        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item fade-in" style={{...cardStyle, animationDelay: '0.2s'}}><div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>초급 필수 문장 패턴 100가지.</p><button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button></a>
-        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item fade-in" style={{...cardStyle, animationDelay: '0.3s'}}><div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>강의와 함께하는 생생한 학습.</p><button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button></a>
-        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item fade-in" style={{...cardStyle, border:'2.5px solid #6366f1', animationDelay: '0.4s'}}><div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div><h3 style={cardTitleStyle}>TOPIK 1 단어장</h3><p style={cardDescStyle}>한 권으로 끝내는 필수 어휘 연습.</p><button style={{...cardButtonStyle, width:'100%'}}>구입하기</button></a>
+        <div className="card-item fade-in" onClick={() => onNavigate('editor')} style={{...cardStyle, animationDelay: '0.1s'}}><WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>정석 규칙이 적용된 쓰기 연습.</p><button style={cardButtonStyle}>시작하기</button></div>
+        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item fade-in" style={{...cardStyle, animationDelay: '0.2s'}}><div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>초급 필수 패턴 100가지.</p><button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button></a>
+        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item fade-in" style={{...cardStyle, animationDelay: '0.3s'}}><div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>생생한 패턴 학습 강의.</p><button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button></a>
+        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item fade-in" style={{...cardStyle, border:'2.5px solid #6366f1', animationDelay: '0.4s'}}><div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div><h3 style={cardTitleStyle}>TOPIK 1 단어장</h3><p style={cardDescStyle}>한 권으로 끝내는 필수 어휘.</p><button style={{...cardButtonStyle, width:'100%'}}>구입하기</button></a>
       </div>
     </div>
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 기능 집대성] ---
+// --- [3. 메인 앱 컴포넌트] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -75,10 +75,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (view === 'editor') { setTimeout(fitToScreen, 150); window.addEventListener('resize', fitToScreen); }
+    if (view === 'editor') { setTimeout(fitToScreen, 200); window.addEventListener('resize', fitToScreen); }
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
+  // [엔진: 프리징 방지 + 모든 규칙 집약 - 절대 간소화 없음]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -90,7 +91,10 @@ export default function App() {
       if (isSingleQuote(char)) { sCount++; qType = sCount % 2 !== 0 ? 'open' : 'close'; }
       else if (isDoubleQuote(char)) { dCount++; qType = dCount % 2 !== 0 ? 'open' : 'close'; }
       const isQuoteActive = (sCount % 2 !== 0) || (dCount % 2 !== 0);
+      
+      // 인용 중 줄바꿈 시 첫 칸 비우기
       if (currentPos === 0 && isQuoteActive && qType !== 'open') cells.push({ type: 'empty' });
+      
       if (char === '.' && next === '.' && next2 === '.') { cells.push({ type: 'ellipsis' }); i += 3; continue; }
       if (char === '\n') {
         const rem = cols - (cells.length % cols || cols);
@@ -98,12 +102,16 @@ export default function App() {
         cells.push({ type: 'empty' }); i++; continue;
       }
       if (char === ' ') { if (cells.length % cols === 0) { i++; continue; } cells.push({ type: 'default', content: '' }); i++; continue; }
+      
+      // 숫자-부호 결합 (7.86, 81.7 완벽 대응)
       if (isDigit(char) && isSimplePunct(next) && isDigit(next2)) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
       if (isSimplePunct(char) && isDigit(next)) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
       if (next !== "" && ((isDigit(char) && isDigit(next)) || (isAlpha(char) && isAlpha(next)))) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
+      
       const isEnd = cells.length % cols === cols - 1;
       const nextIsClosing = isSingleQuote(next) ? (sCount+1)%2===0 : (isDoubleQuote(next) ? (dCount+1)%2===0 : false);
-      // 수정된 20번째 칸 결합 좌표: 85, 40
+      
+      // 20번째 칸 글자 결합
       if (isEnd && isSimplePunct(next)) { cells.push({ type: 'combined_end', content: char, punct: next }); i += 2; }
       else if (isSimplePunct(char) && nextIsClosing) {
         cells.push({ type: 'punct_quote_final', punct: char, quote: next });
@@ -119,6 +127,7 @@ export default function App() {
     return cells;
   }, [content]);
 
+  // [렌더링: 정밀 좌표 + 폰트 보정 - 절대 간소화 없음]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let baseSize = 22;
@@ -138,17 +147,19 @@ export default function App() {
         <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`, position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>
     );
     if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
+    // 20번째 칸 결합 좌표: 85, 40
     if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{zIndex:2}}>{cellData.content}</span><Punct char={cellData.punct} x={85} y={40} /></div>;
     if (cellData.type === 'punct_quote_final') return <div key={key} style={cellStyle}><Punct char={cellData.punct} x={30} y={40} /><Punct char={cellData.quote} x={90} y={70} /></div>;
     if (cellData.type === 'pair') return <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[0]}</div><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[1]}</div></div>;
     if (cellData.type === 'punct_alone') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={30} y={40} /></div>;
-    // [좌표 수정: 여는 따옴표 75 65, 닫는 따옴표 25 65]
+    // 수정된 따옴표 좌표: 여는 75/65, 닫는 25/65
     if (cellData.type === 'quote_open') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={75} y={65} /></div>;
     if (cellData.type === 'quote_close') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={25} y={65} /></div>;
     return <div key={key} style={{...cellStyle, color: '#0f172a'}}><span>{cellData.content}</span></div>;
   }, [lineColor, viewMode, fontFamily]);
 
   const gridVal = parseInt(gridType);
+  const rows = gridVal / 20; // 200자면 10행, 400자면 20행 정확히 계산
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
   return (
@@ -159,40 +170,39 @@ export default function App() {
         
         .editor-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; position: relative; }
         
-        /* 가로: 좌 340px, 우 원고지 */
+        /* 가로 모드 레이아웃 */
         .sidebar { width: 340px; height: 100vh; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
         .main-preview { flex: 1; height: 100vh; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; }
 
-        /* [세로 모드 복구: 상하 50:50 분할 및 원고지 노출 보장] */
+        /* 세로 모드 레이아웃 (50:50 분할 및 원고지 노출 고정) */
         @media (orientation: portrait) {
           .editor-container { flex-direction: column !important; }
-          .sidebar { width: 100% !important; height: 50vh !important; border-right: none; border-bottom: 2px solid #ddd; }
-          .main-preview { width: 100% !important; height: 50vh !important; padding: 10px; align-items: center; }
-          .sidebar-input { min-height: 0 !important; }
+          .sidebar { width: 100% !important; height: 50vh !important; border-right: none; border-bottom: 2px solid #ddd; overflow-y: auto; flex-shrink: 0; }
+          .main-preview { width: 100% !important; height: 50vh !important; padding: 10px; align-items: center; overflow-y: auto; flex: 1; }
+          .sidebar-input { min-height: 200px !important; }
         }
 
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; }
 
-        /* [인쇄 설정: 상하좌우 20mm 기준, 비율 유지 자동 맞춤] */
+        /* 인쇄 최적화: 20mm 여백 기준 좌상단 정렬 및 비율 유지 자동 스케일링 */
         @media print {
-          @page { size: auto; margin: 20mm; }
+          @page { size: auto; margin: 0; }
           .no-print, header, .sidebar { display: none !important; }
           body, html { background: white !important; overflow: visible !important; height: auto !important; width: auto !important; }
           .editor-container { display: block !important; height: auto !important; }
           .main-preview { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; height: auto !important; overflow: visible !important; }
           .page-unit { 
-            height: calc(100vh - 40mm) !important; width: calc(100vw - 40mm) !important; 
-            display: flex !important; justify-content: center !important; align-items: center !important; 
+            height: 100vh !important; width: 100vw !important; 
+            display: flex !important; justify-content: flex-start !important; align-items: flex-start !important; 
+            padding: 20mm !important; box-sizing: border-box !important;
             page-break-after: always !important; break-after: page !important;
           }
           .page-box { 
-            box-shadow: none !important; padding: 0 !important; margin: 0 !important; 
+            box-shadow: none !important; margin: 0 !important; padding: 0 !important; 
             max-width: 100% !important; max-height: 100% !important;
             width: auto !important; height: auto !important;
-            display: flex !important; flex-direction: column !important; justify-content: center !important;
-            /* 비율 유지하며 용지에 꽉 차도록 확대/축소 */
-            transform: scale(1);
+            display: flex !important; flex-direction: column !important;
           }
         }
       `}</style>
@@ -216,7 +226,7 @@ export default function App() {
                     <option value="'Noto Serif KR', serif">바탕체 (Noto Serif)</option><option value="'Noto Sans KR', sans-serif">고딕체 (Noto Sans)</option>
                     <option value="'Jua', sans-serif">주아체 (Jua)</option><option value="'Gamja Flower', cursive">감자꽃체 (Gamja)</option>
                     <option value="'Hi Melody', cursive">하이멜로디 (Hi Melody)</option><option value="'Poor Story', cursive">푸른밤체 (Poor Story)</option>
-                    <option value="'Nanum Pen Script', cursive">나눔펜글씨 (Nanum Pen)</option>
+                    <option value="'Nanum Pen Script', cursive">나눔손글씨 (Nanum Pen)</option>
                   </select>
                   <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={selectStyle} />
                 </div>
@@ -239,7 +249,7 @@ export default function App() {
                           {p === 0 && studentName ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {studentName}</div>) : (<div style={{ height: '35px' }}></div>)}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
-                          {Array.from({ length: gridVal/20 }).map((_, r) => (
+                          {Array.from({ length: rows }).map((_, r) => (
                             <div key={r} style={{ display: 'flex', borderRight: viewMode !== 'grid' ? `1.2px solid ${lineColor}` : 'none' }}>
                               {Array.from({ length: 20 }).map((_, c) => renderCell(allCells[p * gridVal + r * 20 + c], `c-${p}-${r}-${c}`, c === 19))}
                             </div>
