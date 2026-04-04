@@ -1,12 +1,12 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-// --- 1. 스타일 객체 정의 ---
+// --- 1. 스타일 객체 정의 (안전성 확보) ---
 const cardStyle = { 
   transition: 'all 0.3s ease', 
   cursor: 'pointer', 
   background: 'white', 
   borderRadius: '24px', 
-  padding: '25px 15px', // 4개 배치를 위해 패딩 최적화
+  padding: '25px 15px', 
   textAlign: 'center', 
   boxShadow: '0 10px 30px rgba(0,0,0,0.05)', 
   display: 'flex', 
@@ -18,8 +18,8 @@ const cardStyle = {
   position: 'relative'
 };
 
-const cardTitleStyle = { fontSize: '19px', fontWeight: '800', marginBottom: '10px', color: '#1e293b' };
-const cardDescStyle = { fontSize: '13.5px', color: '#64748b', lineHeight: '1.5', marginBottom: '15px', flex: 1 };
+const cardTitleStyle = { fontSize: '18px', fontWeight: '800', marginBottom: '10px', color: '#1e293b' };
+const cardDescStyle = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', marginBottom: '15px', flex: 1 };
 const cardButtonStyle = { padding: '10px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '12px' };
 const selectStyle = { height: '42px', padding: '0 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '700', backgroundColor: 'white', color: '#334155' };
 
@@ -28,45 +28,50 @@ const Home = ({ onNavigate }) => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Noto Sans KR', sans-serif", color: '#1e293b' }}>
       <section style={{
-        padding: '80px 20px 120px', 
+        padding: '80px 20px 140px', 
         textAlign: 'center',
         background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
         color: 'white',
-        position: 'relative'
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        minHeight: '60vh'
       }}>
-        <h1 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '15px', lineHeight: '1.2' }}>
+        <h1 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '20px', lineHeight: '1.2' }}>
           Master Korean Writing
         </h1>
         <p style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto' }}>
           가장 세련된 방법으로 한국어 쓰기를 연습하고,<br/>필수 패턴을 내 것으로 만드세요.
         </p>
         
+        {/* 세로 화면 전용: 노란색 삼각형 스크롤 가이드 */}
         <div className="scroll-indicator" style={{ 
           position: 'absolute', 
-          bottom: '25px', 
+          bottom: '30px', 
           left: '50%', 
           transform: 'translateX(-50%)',
           flexDirection: 'column', 
-          alignItems: 'center' 
+          alignItems: 'center',
+          display: 'none' // CSS 미디어쿼리로 portrait에서만 보이게 처리
         }}>
-          <span style={{ fontSize: '11px', fontWeight: '900', color: '#facc15', marginBottom: '5px', letterSpacing: '1px' }}>SCROLL DOWN</span>
-          <svg width="35" height="35" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 10L12 15L17 10" stroke="#facc15" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+          <span style={{ fontSize: '11px', fontWeight: '900', color: '#facc15', marginBottom: '8px', letterSpacing: '1px' }}>SCROLL DOWN</span>
+          {/* 강렬한 삼각형 화살표 SVG */}
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="#facc15" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 21l-10-14h20l-10 14z" />
           </svg>
         </div>
       </section>
 
-      {/* 카드 섹션: 가로 모드 4개 배치 최적화 */}
       <div className="cards-container" style={{ 
-        maxWidth: '1250px', 
-        margin: '-50px auto 80px', 
+        maxWidth: '1300px', 
+        margin: '-60px auto 80px', 
         padding: '0 20px', 
         display: 'grid', 
         gap: '20px', 
         position: 'relative', 
         zIndex: 10 
       }}>
-        {/* 카드 1: 원고지 연습장 */}
         <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
           <div style={{ fontSize: '40px', marginBottom: '15px' }}>✍️</div>
           <h3 style={cardTitleStyle}>원고지 연습장</h3>
@@ -74,7 +79,6 @@ const Home = ({ onNavigate }) => {
           <button style={cardButtonStyle}>바로 시작하기</button>
         </div>
 
-        {/* 카드 2: E-book */}
         <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
           <div className="card-item" style={cardStyle}>
             <div style={{ fontSize: '40px', marginBottom: '15px' }}>📚</div>
@@ -84,7 +88,6 @@ const Home = ({ onNavigate }) => {
           </div>
         </a>
 
-        {/* 카드 3: 영상 */}
         <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
           <div className="card-item" style={cardStyle}>
             <div style={{ fontSize: '40px', marginBottom: '15px' }}>📺</div>
@@ -94,27 +97,15 @@ const Home = ({ onNavigate }) => {
           </div>
         </a>
 
-        {/* 카드 4: TOPIK 1 단어장 (새로 추가) */}
         <div className="card-item" style={{...cardStyle, border: '2px solid #6366f1'}}>
-            <div style={{ 
-                backgroundColor: '#f1f2ff', 
-                color: '#4f46e5', 
-                fontSize: '10px', 
-                fontWeight: '800', 
-                padding: '6px 10px', 
-                borderRadius: '10px',
-                marginBottom: '15px',
-                lineHeight: '1.4'
-            }}>
-                해외 배송 및 10권 이상 구입 문의:<br/>
+            <div style={{ backgroundColor: '#f1f2ff', color: '#4f46e5', fontSize: '10px', fontWeight: '800', padding: '8px 10px', borderRadius: '12px', marginBottom: '15px', lineHeight: '1.4' }}>
+                해외 배송, 10권 이상 구입 문의:<br/>
                 <span style={{textDecoration: 'underline'}}>02100korean@gmail.com</span>
             </div>
             <div style={{ fontSize: '40px', marginBottom: '10px' }}>📖</div>
             <h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3>
-            <p style={cardDescStyle}>
-                TOPIK 1 단어 마스터! 연습 문제까지 포함된 완벽 교재입니다.
-            </p>
-            <a href="https://smartstore.naver.com/" target="_blank" rel="noreferrer" style={{ width: '100%' }}>
+            <p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p>
+            <a href="https://search.shopping.naver.com/book/search?bookTabType=ALL&pageIndex=1&pageSize=40&query=%ED%95%9C%20%EA%B6%8C%EC%9C%BC%EB%A1%9C%20%EC%99%84%EC%84%B1%ED%95%98%EB%8A%94%20TOPIK%201%20%EB%8B%A8%EC%96%B4&sort=REL" target="_blank" rel="noreferrer" style={{ width: '100%' }}>
                 <button style={{ ...cardButtonStyle, width: '100%', backgroundColor: '#6366f1' }}>구입하러 가기</button>
             </a>
         </div>
@@ -125,9 +116,7 @@ const Home = ({ onNavigate }) => {
 
 // --- 3. 원고지 컨테이너 컴포넌트 ---
 const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFamily, processToCells, renderCell }) => {
-  const cols = 20; 
-  const gridVal = parseInt(gridType); 
-  const rows = gridVal / cols;
+  const cols = 20; const gridVal = parseInt(gridType); const rows = gridVal / cols;
   const allCells = processToCells(text, cols);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
   const rowGap = viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px';
@@ -138,7 +127,7 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
         <div key={p} className="page-unit">
           <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content', boxShadow: '0 15px 35px rgba(0,0,0,0.1)', marginBottom: '40px' }} className="page-box">
             <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
-              {p === 0 && name.trim() !== '' ? (
+              {p === 0 && name && name.trim() !== '' ? (
                 <div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>
                   이름: {name}
                 </div>
@@ -171,7 +160,6 @@ export default function App() {
   const [lineColor, setLineColor] = useState('#607d8b');
   const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
   const [zoom, setZoom] = useState(1.0);
-  
   const mainRef = useRef(null);
 
   const fitToScreen = useCallback(() => {
@@ -221,18 +209,15 @@ export default function App() {
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
     const largeFonts = ["'Gamja Flower', cursive", "'Hi Melody', cursive", "'Poor Story', cursive", "'Nanum Pen Script', cursive"];
-    const isLarge = largeFonts.includes(fontFamily);
-    const baseFontSize = isLarge ? 23.5 : 22;
+    const baseFontSize = largeFonts.includes(fontFamily) ? 23.5 : 22;
     const shiftDownFonts = ["'Hi Melody', cursive", "'Poor Story', cursive", "'Nanum Pen Script', cursive"];
-    const isShifted = shiftDownFonts.includes(fontFamily);
-
+    
     const cellStyle = { 
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
         borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', 
-        fontFamily: fontFamily, fontWeight: 'normal', paddingTop: isShifted ? '4px' : '0px'
+        fontFamily: fontFamily, fontWeight: 'normal', paddingTop: shiftDownFonts.includes(fontFamily) ? '4px' : '0px'
     };
-
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
     if (cellData.type === 'pair') {
         return (
@@ -252,15 +237,23 @@ export default function App() {
         
         body { margin: 0; padding: 0; overflow-x: hidden; }
         
-        /* 4개 카드 레이아웃 최적화 */
+        /* 홈 화면 레이아웃 */
         .cards-container { grid-template-columns: 1fr; }
-        @media (min-width: 950px) { 
-          .cards-container { grid-template-columns: repeat(4, 1fr) !important; } 
+        @media (min-width: 1000px) { .cards-container { grid-template-columns: repeat(4, 1fr) !important; } }
+
+        /* 세로 모드(Portrait)에서만 삼각형 화살표 가이드 노출 */
+        @media (orientation: portrait) { 
+          .scroll-indicator { display: flex !important; } 
+        }
+        
+        /* 튀어오르는 애니메이션 */
+        .scroll-indicator { animation: bounceTriangle 2s infinite; }
+        @keyframes bounceTriangle { 
+          0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 
+          40% {transform: translate(-50%, -12px);} 
+          60% {transform: translate(-50%, -6px);} 
         }
 
-        .scroll-indicator { display: none; animation: bounce 2s infinite; }
-        @media (orientation: portrait) { .scroll-indicator { display: flex; } }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 40% {transform: translate(-50%, -10px);} 60% {transform: translate(-50%, -5px);} }
         .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #6366f1 !important; }
         
         @media print {
