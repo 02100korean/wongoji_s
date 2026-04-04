@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-// --- 1. 스타일 및 상수 정의 ---
+// --- 1. 스타일 및 유틸리티 ---
 const cardStyle = { 
   transition: 'all 0.3s ease', cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
   textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', 
@@ -11,7 +11,7 @@ const cardStyle = {
 const cardTitleStyle = { fontSize: '18px', fontWeight: '800', marginBottom: '10px', color: '#1e293b' };
 const cardDescStyle = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', marginBottom: '15px', flex: 1 };
 const cardButtonStyle = { padding: '10px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '12px' };
-const selectStyle = { height: '42px', padding: '0 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '700', backgroundColor: 'white', color: '#334155' };
+const selectStyle = { height: '38px', padding: '0 8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: '700', backgroundColor: 'white', color: '#334155' };
 
 const isSimplePunct = (c) => c === '.' || c === ',';
 const isSingleQuote = (c) => /['‘’]/.test(c);
@@ -22,7 +22,6 @@ const WonjiIcon = () => (
         <svg width="60" height="50" viewBox="0 0 60 50" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="0.5" y="0.5" width="59" height="49" rx="3.5" fill="white" stroke="#6366f1" strokeWidth="1"/>
             <line x1="15" y1="0" x2="15" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/><line x1="30" y1="0" x2="30" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/><line x1="45" y1="0" x2="45" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/><line x1="0" y1="16" x2="60" y2="16" stroke="#cbd5e1" strokeWidth="0.5"/><line x1="0" y1="33" x2="60" y2="33" stroke="#cbd5e1" strokeWidth="0.5"/>
-            <rect x="2" y="2" width="11" height="12" stroke="#fecaca" strokeWidth="0.5"/><rect x="17" y="2" width="11" height="12" stroke="#fecaca" strokeWidth="0.5"/>
         </svg>
         <span style={{ fontSize: '28px', position: 'absolute', bottom: '-5px', right: '0px', transform: 'rotate(-10deg)' }}>🖋️</span>
     </div>
@@ -65,7 +64,7 @@ export default function App() {
 
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
-      const containerWidth = mainRef.current.clientWidth - 80; 
+      const containerWidth = mainRef.current.clientWidth - 40;
       const manuscriptWidth = 880; 
       setZoom(Math.floor(Math.min(1.0, containerWidth / manuscriptWidth) * 10) / 10);
     }
@@ -82,27 +81,17 @@ export default function App() {
   // 원고지 가공 엔진
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
-    let i = 0;
-    let sQuoteCount = 0; 
-    let dQuoteCount = 0; 
+    let i = 0, sQuoteCount = 0, dQuoteCount = 0;
     const limit = Math.min(text.length, 3000); 
 
     while (i < limit) {
-      const char = text[i];
-      const next = text[i + 1] || "";
-      const next2 = text[i + 2] || "";
-
+      const char = text[i], next = text[i + 1] || "", next2 = text[i + 2] || "";
       let currentType = null;
       if (isSingleQuote(char)) { sQuoteCount++; currentType = sQuoteCount % 2 !== 0 ? 'open' : 'close'; }
       else if (isDoubleQuote(char)) { dQuoteCount++; currentType = dQuoteCount % 2 !== 0 ? 'open' : 'close'; }
-
       const isQuoteActive = (sQuoteCount % 2 !== 0) || (dQuoteCount % 2 !== 0);
 
-      // 인용구 줄바꿈 인덴트
-      if (cells.length % cols === 0 && isQuoteActive && currentType !== 'open') {
-        cells.push({ type: 'empty' });
-      }
-
+      if (cells.length % cols === 0 && isQuoteActive && currentType !== 'open') cells.push({ type: 'empty' });
       if (char === '.' && next === '.' && next2 === '.') { cells.push({ type: 'ellipsis' }); i += 3; continue; }
       if (char === '\n') {
         const remaining = cols - (cells.length % cols || cols);
@@ -110,7 +99,6 @@ export default function App() {
         cells.push({ type: 'empty' }); i++; continue;
       }
       if (char === ' ') { if (cells.length % cols === 0) { i++; continue; } cells.push({ type: 'default', content: '' }); i++; continue; }
-
       const isDigit = (c) => /[0-9]/.test(c);
       if (isDigit(char) && isSimplePunct(next) && isDigit(next2)) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
       if (next !== "" && ( (/[0-9]/.test(char) && /[0-9]/.test(next)) || (/[a-zA-Z]/.test(char) && /[a-zA-Z]/.test(next)) )) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
@@ -122,12 +110,11 @@ export default function App() {
       else if (isSimplePunct(char) && nextIsClosingQuote) {
         cells.push({ type: 'punct_quote_final', punct: char, quote: next });
         if (isSingleQuote(next)) sQuoteCount++; else dQuoteCount++; i += 2;
-      }
-      else {
+      } else {
         if (currentType === 'open') cells.push({ type: 'quote_open', content: char });
         else if (currentType === 'close') cells.push({ type: 'quote_close', content: char });
         else if (isSimplePunct(char)) cells.push({ type: 'punct_alone', content: char });
-        else { cells.push({ type: 'default', content: char }); }
+        else cells.push({ type: 'default', content: char });
         i++;
       }
     }
@@ -152,7 +139,6 @@ export default function App() {
     };
 
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
-
     const Punct = ({ char, x, y, size = baseFontSize }) => (
         <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`, position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>
     );
@@ -173,96 +159,66 @@ export default function App() {
     <div className="app-root">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&family=Hi+Melody&family=Poor+Story&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
-        
         body { margin: 0; padding: 0; overflow-x: hidden; }
         .cards-container { grid-template-columns: 1fr; }
         @media (min-width: 1000px) { .cards-container { grid-template-columns: repeat(4, 1fr) !important; } }
         .card-item:hover { transform: translateY(-12px) !important; box-shadow: 0 30px 60px rgba(0,0,0,0.1) !important; border-color: #6366f1 !important; }
         
-        /* [인쇄 자동 맞춤 엔진 핵심] */
+        /* 모바일 대응 레이아웃 */
+        .main-container { display: flex; height: 100vh; background-color: #e2e8f0; overflow: hidden; }
+        .sidebar { width: 340px; background: white; border-right: 1px solid #ddd; display: flex; flexDirection: column; flex-shrink: 0; }
+        .manuscript-main { flex: 1; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flexDirection: column; alignItems: center; }
+
+        /* [모바일 세로 화면] - 설정을 위로, 원고지를 아래로 */
+        @media (max-width: 768px) and (orientation: portrait) {
+          .main-container { flex-direction: column; }
+          .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid #ddd; }
+          .sidebar textarea { height: 120px !important; }
+          .manuscript-main { padding: 10px; }
+        }
+
+        /* [모바일 가로 화면] - 간격 축소 및 입력창 확대 */
+        @media (max-width: 900px) and (orientation: landscape) {
+          .sidebar { width: 260px; } /* 사이드바 폭 축소 */
+          .sidebar-top { padding: 8px !important; gap: 6px !important; }
+          .sidebar-top select, .sidebar-top input, .sidebar-top button { height: 32px !important; font-size: 11px !important; }
+        }
+
         @media print {
-          @page { 
-            size: auto; 
-            margin: 20mm !important; /* 20mm 최소 여백 강제 */
-          }
+          @page { size: auto; margin: 20mm !important; }
           .no-print { display: none !important; }
-          body, html { 
-            margin: 0 !important; 
-            padding: 0 !important; 
-            background: white !important; 
-            width: 100% !important;
-            height: 100% !important;
-          }
-          .main-container { background: white !important; }
-          .manuscript-main { 
-            padding: 0 !important; 
-            margin: 0 !important; 
-            background: white !important; 
-            overflow: hidden !important; 
-          }
-          .manuscript-print-root {
-            width: 100% !important;
-            height: auto !important;
-          }
-          .page-unit { 
-            /* 가로세로 비율을 유지하며 용지에 꽉 차게 조절 */
-            width: 100vw !important;
-            height: calc(100vh - 40mm) !important; /* 위아래 여백 제외 */
-            display: flex !important; 
-            justify-content: center !important; 
-            align-items: center !important; 
-            page-break-after: always !important; 
-            break-after: page !important;
-            background: white !important;
-            overflow: hidden !important;
-          }
-          .page-box { 
-            box-shadow: none !important; 
-            margin: 0 !important; 
-            padding: 40px 60px !important;
-            background: white !important;
-            /* 핵심: 비율 유지하면서 크기 제한 */
-            max-width: calc(100vw - 40mm) !important;
-            max-height: calc(100vh - 40mm) !important;
-            width: auto !important;
-            height: auto !important;
-            /* 원고지 내용물 비율 유지하며 자동 축소 */
-            transform-origin: center center !important;
-            display: inline-block !important;
-            /* 브라우저가 원고지를 작게 그려서 한 장에 넣도록 유도 */
-            zoom: 0.9; 
-          }
-          /* 이름표 위치 보정 */
-          .name-tag { margin-bottom: 25px !important; }
+          body, html { margin: 0 !important; padding: 0 !important; background: white !important; }
+          .page-unit { height: 100vh !important; display: flex !important; justifyContent: center !important; alignItems: center !important; page-break-after: always !important; break-after: page !important; }
+          .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; max-width: calc(100vw - 40mm) !important; max-height: calc(100vh - 45mm) !important; zoom: 0.9; }
         }
       `}</style>
 
       {view === 'home' ? (
         <Home onNavigate={setView} />
       ) : (
-        <div className="main-container" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-          <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}><button onClick={() => setView('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>🏠</button><div style={{ fontWeight: '900', color: '#1e293b', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '15px' }}>원고지 연습장</div></div>
+        <div className="main-container">
+          <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, position: 'absolute', top: 0, left: 0, right: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}><button onClick={() => setView('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>🏠</button><div style={{ fontWeight: '900', color: '#1e293b', fontSize: '15px' }}>원고지 연습장</div></div>
             <div style={{ display: 'flex', gap: '8px' }}>{['#607d8b', '#ef4444', '#2d6a4f', '#000000'].map(c => (<button key={c} onClick={() => setLineColor(c)} style={{ width: '22px', height: '22px', borderRadius: '50%', border: '2px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)', cursor: 'pointer', backgroundColor: c }} />))}</div>
           </header>
 
-          <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-            <aside className="sidebar no-print" style={{ width: '340px', backgroundColor: 'white', borderRight: '1px solid #ddd', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-              <div style={{ padding: '15px', backgroundColor: '#f8fafc', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div style={{ display: 'flex', flex: 1, overflow: 'hidden', paddingTop: '50px' }}>
+            <aside className="sidebar no-print">
+              <div className="sidebar-top" style={{ padding: '15px', backgroundColor: '#f8fafc', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   <select value={gridType} onChange={e => setGridType(e.target.value)} style={selectStyle}><option value="200">200자 (가로)</option><option value="400">400자 (세로)</option></select>
                   <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={selectStyle}><option value="traditional">일반형</option><option value="feedback">피드백용</option><option value="grid">격자형</option></select>
                 </div>
                 <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={selectStyle}>
-                  <option value="'Noto Serif KR', serif">Noto Serif KR (바탕체)</option><option value="'Noto Sans KR', sans-serif">Noto Sans KR (고딕체)</option><option value="'Jua', sans-serif">Jua (주아체)</option><option value="'Gamja Flower', cursive">Gamja Flower (감자꽃체)</option><option value="'Hi Melody', cursive">Hi Melody (하이멜로디체)</option><option value="'Poor Story', cursive">Poor Story (푸른밤체)</option><option value="'Gowun Dodum', sans-serif">Gowun Dodum (고운돋움체)</option><option value="'Nanum Pen Script', cursive">Nanum Pen Script (나눔펜글씨)</option><option value="'Nanum Barun Pen', cursive">Nanum Barun Pen (나눔바른펜)</option>
+                  <option value="'Noto Serif KR', serif">바탕체</option><option value="'Noto Sans KR', sans-serif">고딕체</option><option value="'Jua', sans-serif">주아체</option><option value="'Gamja Flower', cursive">감자꽃체</option><option value="'Hi Melody', cursive">하이멜로디</option><option value="'Poor Story', cursive">푸른밤체</option><option value="'Gowun Dodum', sans-serif">고운돋움</option><option value="'Nanum Pen Script', cursive">나눔펜글씨</option><option value="'Nanum Barun Pen', cursive">나눔바른펜</option>
                 </select>
                 <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={{ ...selectStyle, textAlign: 'center' }} />
-                <button onClick={() => window.print()} style={{ backgroundColor: '#6366f1', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', border: 'none', cursor: 'pointer', marginTop: '5px' }}>인쇄 / PDF 저장</button>
+                <button onClick={() => window.print()} style={{ backgroundColor: '#6366f1', color: 'white', padding: '8px', borderRadius: '8px', fontSize: '13px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>인쇄 / PDF 저장</button>
               </div>
               <textarea value={content} onChange={e => setContent(e.target.value.slice(0, 3000))} style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} placeholder="내용을 입력하세요... (최대 3,000자)" />
             </aside>
-            <main ref={mainRef} className="manuscript-main" style={{ flex: 1, overflow: 'auto', backgroundColor: '#cbd5e1', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div className="no-print" style={{ marginBottom: '15px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start' }}>
+            <main ref={mainRef} className="manuscript-main">
+              <div className="no-print" style={{ marginBottom: '10px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start' }}>
                 <span style={{ fontSize: '10px', fontWeight: '900', color: '#6366f1' }}>ZOOM</span>
                 <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900' }}>{[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}</select>
                 <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer' }}>화면맞춤</button>
