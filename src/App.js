@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: 완벽했던 상태 유지] ---
+// --- [1. 스타일 및 디자인: 완벽했던 상태 그대로 유지] ---
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: 카드 4개 + 애니메이션 복구] ---
+// --- [2. 홈 화면: 카드 4개 + 애니메이션 완벽 유지] ---
 const Home = ({ onNavigate }) => {
   return (
     <div className="home-root">
@@ -55,7 +55,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트] ---
+// --- [3. 메인 앱 컴포넌트: 기능 집대성] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -79,7 +79,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
-  // [엔진: 프리징 방지 + 모든 규칙 집약 - 절대 간소화 없음]
+  // [엔진: 프리징 방지 + 모든 규칙 집약]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -91,10 +91,7 @@ export default function App() {
       if (isSingleQuote(char)) { sCount++; qType = sCount % 2 !== 0 ? 'open' : 'close'; }
       else if (isDoubleQuote(char)) { dCount++; qType = dCount % 2 !== 0 ? 'open' : 'close'; }
       const isQuoteActive = (sCount % 2 !== 0) || (dCount % 2 !== 0);
-      
-      // 인용 중 줄바꿈 시 첫 칸 비우기
       if (currentPos === 0 && isQuoteActive && qType !== 'open') cells.push({ type: 'empty' });
-      
       if (char === '.' && next === '.' && next2 === '.') { cells.push({ type: 'ellipsis' }); i += 3; continue; }
       if (char === '\n') {
         const rem = cols - (cells.length % cols || cols);
@@ -102,16 +99,11 @@ export default function App() {
         cells.push({ type: 'empty' }); i++; continue;
       }
       if (char === ' ') { if (cells.length % cols === 0) { i++; continue; } cells.push({ type: 'default', content: '' }); i++; continue; }
-      
-      // 숫자-부호 결합 (7.86, 81.7 완벽 대응)
       if (isDigit(char) && isSimplePunct(next) && isDigit(next2)) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
       if (isSimplePunct(char) && isDigit(next)) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
       if (next !== "" && ((isDigit(char) && isDigit(next)) || (isAlpha(char) && isAlpha(next)))) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
-      
       const isEnd = cells.length % cols === cols - 1;
       const nextIsClosing = isSingleQuote(next) ? (sCount+1)%2===0 : (isDoubleQuote(next) ? (dCount+1)%2===0 : false);
-      
-      // 20번째 칸 글자 결합
       if (isEnd && isSimplePunct(next)) { cells.push({ type: 'combined_end', content: char, punct: next }); i += 2; }
       else if (isSimplePunct(char) && nextIsClosing) {
         cells.push({ type: 'punct_quote_final', punct: char, quote: next });
@@ -127,7 +119,7 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [렌더링: 정밀 좌표 + 폰트 보정 - 절대 간소화 없음]
+  // [렌더링: 정밀 좌표 + 폰트 보정]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let baseSize = 22;
@@ -147,45 +139,45 @@ export default function App() {
         <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`, position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>
     );
     if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
-    // 20번째 칸 결합 좌표: 85, 40
     if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{zIndex:2}}>{cellData.content}</span><Punct char={cellData.punct} x={85} y={40} /></div>;
     if (cellData.type === 'punct_quote_final') return <div key={key} style={cellStyle}><Punct char={cellData.punct} x={30} y={40} /><Punct char={cellData.quote} x={90} y={70} /></div>;
     if (cellData.type === 'pair') return <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[0]}</div><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[1]}</div></div>;
     if (cellData.type === 'punct_alone') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={30} y={40} /></div>;
-    // 수정된 따옴표 좌표: 여는 75/65, 닫는 25/65
+    // 따옴표 좌표 확정: 75/65, 25/65
     if (cellData.type === 'quote_open') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={75} y={65} /></div>;
     if (cellData.type === 'quote_close') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={25} y={65} /></div>;
     return <div key={key} style={{...cellStyle, color: '#0f172a'}}><span>{cellData.content}</span></div>;
   }, [lineColor, viewMode, fontFamily]);
 
   const gridVal = parseInt(gridType);
-  const rows = gridVal / 20; // 200자면 10행, 400자면 20행 정확히 계산
+  const rows = gridVal / 20;
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
   return (
     <div className="app-root">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&family=Hi+Melody&family=Poor+Story&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
-        body { margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw; background: #e2e8f0; }
         
-        .editor-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; position: relative; }
+        /* 전체 컨테이너 고정 및 스크롤 방해 요소 제거 */
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+        .editor-container { display: flex; width: 100vw; height: 100vh; background-color: #e2e8f0; position: relative; }
         
         /* 가로 모드 레이아웃 */
-        .sidebar { width: 340px; height: 100vh; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
-        .main-preview { flex: 1; height: 100vh; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; }
+        .sidebar { width: 340px; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
+        .main-preview { flex: 1; height: 100%; overflow-y: auto; overflow-x: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; }
 
-        /* 세로 모드 레이아웃 (50:50 분할 및 원고지 노출 고정) */
+        /* [세로 모드 복구 및 스크롤 해결 핵심] */
         @media (orientation: portrait) {
           .editor-container { flex-direction: column !important; }
-          .sidebar { width: 100% !important; height: 50vh !important; border-right: none; border-bottom: 2px solid #ddd; overflow-y: auto; flex-shrink: 0; }
-          .main-preview { width: 100% !important; height: 50vh !important; padding: 10px; align-items: center; overflow-y: auto; flex: 1; }
+          .sidebar { width: 100% !important; height: 50% !important; border-right: none; border-bottom: 2px solid #ddd; overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
+          .main-preview { width: 100% !important; height: 50% !important; padding: 10px; align-items: center; overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
           .sidebar-input { min-height: 200px !important; }
         }
 
-        .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+        .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; }
 
-        /* 인쇄 최적화: 20mm 여백 기준 좌상단 정렬 및 비율 유지 자동 스케일링 */
+        /* [인쇄 최적화: 20mm 여백 및 비율 유지 확대축소] */
         @media print {
           @page { size: auto; margin: 0; }
           .no-print, header, .sidebar { display: none !important; }
@@ -226,7 +218,7 @@ export default function App() {
                     <option value="'Noto Serif KR', serif">바탕체 (Noto Serif)</option><option value="'Noto Sans KR', sans-serif">고딕체 (Noto Sans)</option>
                     <option value="'Jua', sans-serif">주아체 (Jua)</option><option value="'Gamja Flower', cursive">감자꽃체 (Gamja)</option>
                     <option value="'Hi Melody', cursive">하이멜로디 (Hi Melody)</option><option value="'Poor Story', cursive">푸른밤체 (Poor Story)</option>
-                    <option value="'Nanum Pen Script', cursive">나눔손글씨 (Nanum Pen)</option>
+                    <option value="'Nanum Pen Script', cursive">나눔펜글씨 (Nanum Pen)</option>
                   </select>
                   <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={selectStyle} />
                 </div>
