@@ -79,12 +79,11 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
-  // 원고지 가공 엔진 (무한 루프 방지 및 정석 규칙)
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
     let i = 0;
-    let sQuoteCount = 0;
-    let dQuoteCount = 0;
+    let sQuoteCount = 0; 
+    let dQuoteCount = 0; 
     const limit = Math.min(text.length, 3000); 
 
     while (i < limit) {
@@ -93,32 +92,22 @@ export default function App() {
       const next2 = text[i + 2] || "";
 
       let currentType = null;
-      if (isSingleQuote(char)) {
-        sQuoteCount++;
-        currentType = sQuoteCount % 2 !== 0 ? 'open' : 'close';
-      } else if (isDoubleQuote(char)) {
-        dQuoteCount++;
-        currentType = dQuoteCount % 2 !== 0 ? 'open' : 'close';
-      }
+      if (isSingleQuote(char)) { sQuoteCount++; currentType = sQuoteCount % 2 !== 0 ? 'open' : 'close'; }
+      else if (isDoubleQuote(char)) { dQuoteCount++; currentType = dQuoteCount % 2 !== 0 ? 'open' : 'close'; }
+
       const isQuoteActive = (sQuoteCount % 2 !== 0) || (dQuoteCount % 2 !== 0);
 
-      // 인용구 줄바꿈 인덴트
       if (cells.length % cols === 0 && isQuoteActive && currentType !== 'open') {
         cells.push({ type: 'empty' });
       }
 
-      if (char === '.' && next === '.' && next2 === '.') {
-        cells.push({ type: 'ellipsis' });
-        i += 3; continue;
-      }
-
+      if (char === '.' && next === '.' && next2 === '.') { cells.push({ type: 'ellipsis' }); i += 3; continue; }
       if (char === '\n') {
         const remaining = cols - (cells.length % cols || cols);
         if (cells.length % cols !== 0) { for (let r = 0; r < remaining; r++) cells.push({ type: 'empty' }); }
         cells.push({ type: 'empty' });
         i++; continue;
       }
-
       if (char === ' ') {
         if (cells.length % cols === 0) { i++; continue; }
         cells.push({ type: 'default', content: '' });
@@ -126,23 +115,13 @@ export default function App() {
       }
 
       const isDigit = (c) => /[0-9]/.test(c);
-      if (isDigit(char) && isSimplePunct(next) && isDigit(next2)) {
-        cells.push({ type: 'pair', content: [char, next] });
-        i += 2; continue;
-      }
-
-      if (next !== "" && ( (/[0-9]/.test(char) && /[0-9]/.test(next)) || (/[a-zA-Z]/.test(char) && /[a-zA-Z]/.test(next)) )) {
-        cells.push({ type: 'pair', content: [char, next] });
-        i += 2; continue;
-      }
+      if (isDigit(char) && isSimplePunct(next) && isDigit(next2)) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
+      if (next !== "" && ( (/[0-9]/.test(char) && /[0-9]/.test(next)) || (/[a-zA-Z]/.test(char) && /[a-zA-Z]/.test(next)) )) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
 
       const isEndCol = cells.length % cols === cols - 1;
       const nextIsClosingQuote = isSingleQuote(next) ? (sQuoteCount + 1) % 2 === 0 : isDoubleQuote(next) ? (dQuoteCount + 1) % 2 === 0 : false;
 
-      if (isEndCol && isSimplePunct(next)) {
-        cells.push({ type: 'combined_end', content: char, punct: next });
-        i += 2;
-      } 
+      if (isEndCol && isSimplePunct(next)) { cells.push({ type: 'combined_end', content: char, punct: next }); i += 2; } 
       else if (isSimplePunct(char) && nextIsClosingQuote) {
         cells.push({ type: 'punct_quote_final', punct: char, quote: next });
         if (isSingleQuote(next)) sQuoteCount++; else dQuoteCount++;
@@ -161,12 +140,10 @@ export default function App() {
 
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
-    
-    // 폰트 크기 및 확대 비율
     let baseFontSize = 22;
     if (fontFamily.includes('Gamja') || fontFamily.includes('Poor')) baseFontSize = 23.5;
-    if (fontFamily.includes('Hi Melody')) baseFontSize = 24.675;
-    if (fontFamily.includes('Nanum Pen')) baseFontSize = 25.85;
+    if (fontFamily.includes('Hi Melody')) baseFontSize = 24.675; 
+    if (fontFamily.includes('Nanum Pen')) baseFontSize = 25.85; 
 
     const isShiftDown = ["'Hi Melody', cursive", "'Gamja Flower', cursive", "'Jua', sans-serif"].includes(fontFamily);
     const isMoreShiftDown = ["'Poor Story', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily);
@@ -187,46 +164,15 @@ export default function App() {
         }}>{char}</span>
     );
 
-    if (cellData.type === 'ellipsis') {
-      return (
-        <div key={key} style={cellStyle}>
-          <Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} />
-        </div>
-      );
-    }
-
-    if (cellData.type === 'combined_end') {
-      return (
-        <div key={key} style={cellStyle}>
-          <span style={{position:'relative', zIndex:2}}>{cellData.content}</span>
-          <Punct char={cellData.punct} x={80} y={30} />
-        </div>
-      );
-    }
-
-    if (cellData.type === 'punct_quote_final') {
-      return (
-        <div key={key} style={cellStyle}>
-          <Punct char={cellData.punct} x={30} y={40} />
-          <Punct char={cellData.quote} x={90} y={70} />
-        </div>
-      );
-    }
-
-    if (cellData.type === 'pair') {
-      return (
-        <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}>
-          <div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[0]}</div>
-          <div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[1]}</div>
-        </div>
-      );
-    }
+    if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
+    if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{position:'relative', zIndex:2}}>{cellData.content}</span><Punct char={cellData.punct} x={80} y={30} /></div>;
+    if (cellData.type === 'punct_quote_final') return <div key={key} style={cellStyle}><Punct char={cellData.punct} x={25} y={25} /><Punct char={cellData.quote} x={90} y={70} /></div>;
+    if (cellData.type === 'pair') return <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[0]}</div><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[1]}</div></div>;
 
     const char = cellData.content;
     if (cellData.type === 'punct_alone') return <div key={key} style={cellStyle}><Punct char={char} x={30} y={40} /></div>;
     if (cellData.type === 'quote_open') return <div key={key} style={cellStyle}><Punct char={char} x={80} y={70} /></div>;
     if (cellData.type === 'quote_close') return <div key={key} style={cellStyle}><Punct char={char} x={20} y={70} /></div>;
-
     return <div key={key} style={{...cellStyle, color: '#0f172a'}}><span>{cellData.content}</span></div>;
   }, [lineColor, viewMode, fontFamily]);
 
@@ -243,51 +189,58 @@ export default function App() {
         @keyframes bounceTriangle { 0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 40% {transform: translate(-50%, -12px);} 60% {transform: translate(-50%, -6px);} }
         .card-item:hover { transform: translateY(-12px) !important; box-shadow: 0 30px 60px rgba(0,0,0,0.1) !important; border-color: #6366f1 !important; }
         
-        /* [인쇄 최적화 핵심 설정] */
+        /* [인쇄 최적화 엔진] */
         @media print {
           @page { 
             size: auto; 
-            margin: 20mm; /* 요청하신 최소 여백 20mm 설정 */
+            margin: 20mm !important; /* 최소 여백 20mm 강제 */
           }
           .no-print { display: none !important; }
           body, html { 
             margin: 0 !important; 
             padding: 0 !important; 
-            width: 100% !important; 
-            height: 100% !important; 
+            background: white !important; 
+            height: auto !important; 
+            overflow: visible !important; 
+          }
+          .app-root, .main-container {
             background: white !important;
+            height: auto !important;
           }
           .manuscript-main { 
             padding: 0 !important; 
             margin: 0 !important; 
-            background: transparent !important; 
+            background: white !important;
+            overflow: visible !important;
           }
           .manuscript-print-root {
-            width: 100vw !important;
-            height: auto !important;
+            display: block !important;
+            width: 100% !important;
           }
           .page-unit { 
-            width: 100vw !important; 
-            height: calc(100vh - 40mm) !important; /* 여백을 제외한 가용 높이 */
-            display: flex !important; 
-            justify-content: center !important; 
-            align-items: center !important; 
-            page-break-after: always !important; 
+            /* 한 페이지에 원고지 한 페이지를 꽉 채우고 정중앙 배치 */
+            height: 100vh !important;
+            page-break-after: always !important;
             break-after: page !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            background: white !important;
+            overflow: hidden !important; /* 스크롤바 절대 방지 */
           }
           .page-box { 
             box-shadow: none !important; 
-            padding: 0 !important; 
+            padding: 0 !important;
             margin: 0 !important;
-            /* 용지에 맞게 자동 확대/축소 핵심 로직 */
+            background: white !important;
+            /* 용지 크기에 따른 자동 축소/확대(Auto-fit) */
             max-width: 100% !important;
             max-height: 100% !important;
-            width: auto !important;
-            height: auto !important;
-            object-fit: contain !important;
-            /* transform scale을 제거하고 브라우저 인쇄 맞춤 기능 유도 */
-            transform: scale(1) !important; 
+            transform-origin: center center !important;
+            zoom: 1 !important; /* 브라우저 인쇄 자동 맞춤 유도 */
           }
+          /* 인쇄물에서 배경색이나 그림자 제거 */
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
       `}</style>
 
@@ -313,12 +266,7 @@ export default function App() {
                 <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={{ ...selectStyle, textAlign: 'center' }} />
                 <button onClick={() => window.print()} style={{ backgroundColor: '#6366f1', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', border: 'none', cursor: 'pointer', marginTop: '5px' }}>인쇄 / PDF 저장</button>
               </div>
-              <textarea 
-                value={content} 
-                onChange={e => setContent(e.target.value.slice(0, 3000))} 
-                style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} 
-                placeholder="내용을 입력하세요... (최대 3,000자)" 
-              />
+              <textarea value={content} onChange={e => setContent(e.target.value.slice(0, 3000))} style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} placeholder="내용을 입력하세요... (최대 3,000자)" />
             </aside>
             <main ref={mainRef} className="manuscript-main" style={{ flex: 1, overflow: 'auto', backgroundColor: '#cbd5e1', padding: '20px', position: 'relative' }}>
               <div className="no-print" style={{ marginBottom: '15px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', width: 'fit-content', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
@@ -326,7 +274,7 @@ export default function App() {
                 <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900', cursor: 'pointer' }}>{[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}</select>
                 <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>화면맞춤</button>
               </div>
-              <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', transition: 'transform 0.2s ease-out' }}>
+              <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
                 <ManuscriptContainer text={content} gridType={gridType} viewMode={viewMode} lineColor={lineColor} name={studentName} fontFamily={fontFamily} processToCells={processToCells} renderCell={renderCell} />
               </div>
             </main>
@@ -341,16 +289,17 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
   const cols = 20; const gridVal = parseInt(gridType); const rows = gridVal / cols;
   const allCells = processToCells(text, cols);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
+  const rowGap = viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px';
 
   return (
-    <div className="manuscript-print-root" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div className="manuscript-print-root">
       {Array.from({ length: pageCount }).map((_, p) => (
         <div key={p} className="page-unit">
-          <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content', marginBottom: '40px' }} className="page-box">
+          <div className="page-box">
             <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
               {p === 0 && name && name.trim() !== '' ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {name}</div>) : (<div style={{ height: '35px' }}></div>)}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap }}>
               {Array.from({ length: rows }).map((_, r) => (
                 <div key={r} style={{ display: 'flex', borderRight: viewMode !== 'grid' ? `1.2px solid ${lineColor}` : 'none' }}>
                   {Array.from({ length: cols }).map((_, c) => renderCell(allCells[p * gridVal + r * cols + c], `c-${p}-${r}-${c}`, c === cols - 1))}
