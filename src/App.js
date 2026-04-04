@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-// --- 1. 스타일 정의 ---
+// --- 1. 스타일 및 상수 정의 ---
 const cardStyle = { 
   transition: 'all 0.3s ease', cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
   textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', 
@@ -13,8 +13,7 @@ const cardDescStyle = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', m
 const cardButtonStyle = { padding: '10px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '12px' };
 const selectStyle = { height: '42px', padding: '0 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '700', backgroundColor: 'white', color: '#334155' };
 
-// 부호 및 따옴표 판별 유틸리티
-const isSimplePunct = (c) => /[.,]/.test(c);
+const isSimplePunct = (c) => c === '.' || c === ',';
 const isSingleQuote = (c) => /['‘’]/.test(c);
 const isDoubleQuote = (c) => /["“”]/.test(c);
 
@@ -22,13 +21,8 @@ const WonjiIcon = () => (
     <div style={{ marginBottom: '15px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <svg width="60" height="50" viewBox="0 0 60 50" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="0.5" y="0.5" width="59" height="49" rx="3.5" fill="white" stroke="#6366f1" strokeWidth="1"/>
-            <line x1="15" y1="0" x2="15" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/>
-            <line x1="30" y1="0" x2="30" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/>
-            <line x1="45" y1="0" x2="45" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/>
-            <line x1="0" y1="16" x2="60" y2="16" stroke="#cbd5e1" strokeWidth="0.5"/>
-            <line x1="0" y1="33" x2="60" y2="33" stroke="#cbd5e1" strokeWidth="0.5"/>
-            <rect x="2" y="2" width="11" height="12" stroke="#fecaca" strokeWidth="0.5"/>
-            <rect x="17" y="2" width="11" height="12" stroke="#fecaca" strokeWidth="0.5"/>
+            <line x1="15" y1="0" x2="15" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/><line x1="30" y1="0" x2="30" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/><line x1="45" y1="0" x2="45" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/><line x1="0" y1="16" x2="60" y2="16" stroke="#cbd5e1" strokeWidth="0.5"/><line x1="0" y1="33" x2="60" y2="33" stroke="#cbd5e1" strokeWidth="0.5"/>
+            <rect x="2" y="2" width="11" height="12" stroke="#fecaca" strokeWidth="0.5"/><rect x="17" y="2" width="11" height="12" stroke="#fecaca" strokeWidth="0.5"/>
         </svg>
         <span style={{ fontSize: '28px', position: 'absolute', bottom: '-5px', right: '0px', transform: 'rotate(-10deg)' }}>🖋️</span>
     </div>
@@ -86,50 +80,47 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
-  // --- 무한 루프 방지 로직이 강화된 데이터 가공 엔진 ---
+  // --- [핵심 수정] 원고지 데이터 가공 엔진 (무한 루프 완벽 차단) ---
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
     let i = 0;
     let sQuoteCount = 0;
     let dQuoteCount = 0;
-    const limit = Math.min(text.length, 3000); // 3,000자 제한
+    const limit = Math.min(text.length, 3000); 
 
     while (i < limit) {
       const char = text[i];
       const next = text[i + 1] || "";
       const next2 = text[i + 2] || "";
 
-      // 현재 줄의 위치 확인
-      const currentPos = cells.length % cols;
-
-      // 1. 인용구(따옴표) 상태 관리
-      let isOpening = false;
-      let isClosing = false;
+      // 1. 인용구 판별 로직 (홀수=여는, 짝수=닫는)
+      let currentIsOpening = false;
+      let currentIsClosing = false;
+      
       if (isSingleQuote(char)) {
-        sQuoteCount++;
-        isOpening = sQuoteCount % 2 !== 0;
-        isClosing = !isOpening;
+          sQuoteCount++;
+          currentIsOpening = sQuoteCount % 2 !== 0;
+          currentIsClosing = !currentIsOpening;
       } else if (isDoubleQuote(char)) {
-        dQuoteCount++;
-        isOpening = dQuoteCount % 2 !== 0;
-        isClosing = !isOpening;
-      }
-      const isInsideQuote = (sQuoteCount % 2 !== 0) || (dQuoteCount % 2 !== 0);
-
-      // 2. 줄의 시작점에서 인용 중이라면 한 칸 비우기 (무한루프 방지 처리)
-      if (currentPos === 0 && isInsideQuote && !isOpening) {
-        cells.push({ type: 'empty' });
-        // 여기서 글자를 소비하지 않고 루프를 다시 돌리면 무한 루프 위험이 있음
-        // 따라서 바로 다음 로직으로 진행하여 글자를 소비하게 함
+          dQuoteCount++;
+          currentIsOpening = dQuoteCount % 2 !== 0;
+          currentIsClosing = !currentIsOpening;
       }
 
-      // 말줄임표 처리 (...)
+      const isQuoteActive = (sQuoteCount % 2 !== 0) || (dQuoteCount % 2 !== 0);
+
+      // 2. 인용구 줄바꿈 인덴트: 현재 위치가 줄 시작점이고, 인용 중이며, 방금 연 따옴표가 아닐 때
+      if (cells.length % cols === 0 && isQuoteActive && !currentIsOpening) {
+          cells.push({ type: 'empty' });
+      }
+
+      // 3. 말줄임표 처리 (...)
       if (char === '.' && next === '.' && next2 === '.') {
         cells.push({ type: 'ellipsis' });
         i += 3; continue;
       }
 
-      // 줄바꿈 처리
+      // 4. 줄바꿈 처리
       if (char === '\n') {
         const remaining = cols - (cells.length % cols || cols);
         if (cells.length % cols !== 0) { for (let r = 0; r < remaining; r++) cells.push({ type: 'empty' }); }
@@ -137,52 +128,48 @@ export default function App() {
         i++; continue;
       }
 
-      // 공백 처리
+      // 5. 공백 처리
       if (char === ' ') {
         if (cells.length % cols === 0) { i++; continue; }
         cells.push({ type: 'default', content: '' });
         i++; continue;
       }
 
-      // 숫자 사이 . , 처리
+      // 6. 숫자 사이 부호 처리 (ex: 1.5)
       const isDigit = (c) => /[0-9]/.test(c);
       if (isDigit(char) && isSimplePunct(next) && isDigit(next2)) {
         cells.push({ type: 'pair', content: [char, next] });
         i += 2; continue;
       }
 
-      // 숫자/영어 페어링
+      // 7. 숫자/영어 페어링
       if (next !== "" && ((isDigit(char) && isDigit(next)) || (/[a-zA-Z]/.test(char) && /[a-zA-Z]/.test(next)))) {
         cells.push({ type: 'pair', content: [char, next] });
         i += 2; continue;
       }
 
-      // 결합 규칙 및 일반 글자
+      // 8. 특수 결합 및 일반 글자 (무조건 i++ 발생하도록 설계)
       const isEndCol = cells.length % cols === cols - 1;
       
+      // 행 끝 부호 결합 (20번째 칸)
       if (isEndCol && isSimplePunct(next)) {
         cells.push({ type: 'combined_end', content: char, punct: next });
         i += 2;
       } 
+      // 부호 + 닫는 따옴표 결합
       else if (isSimplePunct(char) && isClosingQuote(next)) {
-        // 실제 닫는 따옴표인지 카운트 검증
-        const isTrulyClosing = (isSingleQuote(next) && (sQuoteCount + 1) % 2 === 0) || 
-                               (isDoubleQuote(next) && (dQuoteCount + 1) % 2 === 0);
-        if (isTrulyClosing) {
           cells.push({ type: 'punct_quote_final', punct: char, quote: next });
           if (isSingleQuote(next)) sQuoteCount++; else dQuoteCount++;
           i += 2;
-        } else {
-          cells.push({ type: 'punct_only', content: char });
-          i++;
-        }
-      }
-      else if (isSimplePunct(char)) {
-        cells.push({ type: 'punct_only', content: char });
-        i++;
       }
       else {
-        cells.push({ type: 'default', content: char, isOpeningQuote: isOpening, isClosingQuote: isClosing });
+        // 단독 부호, 따옴표, 또는 일반 글자
+        cells.push({ 
+          type: isSimplePunct(char) ? 'punct_only' : 'default', 
+          content: char, 
+          isOpeningQuote: currentIsOpening, 
+          isClosingQuote: currentIsClosing 
+        });
         i++;
       }
     }
@@ -192,13 +179,13 @@ export default function App() {
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
     
-    // 폰트 크기 개별 확대 로직 (하이멜로디 +5%, 나눔손글씨 +10%)
+    // 폰트 크기 개별 보정
     let baseFontSize = 22;
     if (fontFamily.includes('Gamja') || fontFamily.includes('Poor')) baseFontSize = 23.5;
     if (fontFamily.includes('Hi Melody')) baseFontSize = 24.675; // 23.5 * 1.05
-    if (fontFamily.includes('Nanum Pen')) baseFontSize = 25.85; // 23.5 * 1.1
+    if (fontFamily.includes('Nanum Pen')) baseFontSize = 25.85;  // 23.5 * 1.1
 
-    // 폰트별 위치 하향 조정 (하이멜로디, 감자꽃, 주아체)
+    // 폰트 위치 하향 조정
     const isShiftDown = ["'Hi Melody', cursive", "'Gamja Flower', cursive", "'Jua', sans-serif"].includes(fontFamily);
     const isMoreShiftDown = ["'Poor Story', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily);
 
@@ -207,7 +194,7 @@ export default function App() {
         borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', 
         fontFamily: fontFamily, fontWeight: 'normal', 
-        paddingTop: isShiftDown ? '2px' : isMoreShiftDown ? '4px' : '0px', 
+        paddingTop: isShiftDown ? '2.5px' : isMoreShiftDown ? '4px' : '0px', 
         position: 'relative'
     };
 
@@ -233,7 +220,7 @@ export default function App() {
     if (cellData.type === 'combined_end') {
       return (
         <div key={key} style={cellStyle}>
-          <span>{cellData.content}</span>
+          <span style={{position:'relative', zIndex:2}}>{cellData.content}</span>
           <Punct char={cellData.punct} x={80} y={30} />
         </div>
       );
@@ -318,10 +305,9 @@ export default function App() {
                 value={content} 
                 onChange={e => setContent(e.target.value.slice(0, 3000))} 
                 style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} 
-                placeholder="최대 3,000자까지 입력 가능합니다." 
+                placeholder="내용을 입력하세요... (최대 3,000자)" 
               />
             </aside>
-
             <main ref={mainRef} className="manuscript-main" style={{ flex: 1, overflow: 'auto', backgroundColor: '#cbd5e1', padding: '20px', position: 'relative' }}>
               <div className="no-print" style={{ marginBottom: '15px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', width: 'fit-content', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
                 <span style={{ fontSize: '10px', fontWeight: '900', color: '#6366f1' }}>ZOOM</span>
@@ -329,16 +315,7 @@ export default function App() {
                 <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>화면맞춤</button>
               </div>
               <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', transition: 'transform 0.2s ease-out' }}>
-                <ManuscriptContainer 
-                    text={content} 
-                    gridType={gridType} 
-                    viewMode={viewMode} 
-                    lineColor={lineColor} 
-                    name={studentName} 
-                    fontFamily={fontFamily} 
-                    processToCells={processToCells} 
-                    renderCell={renderCell} 
-                />
+                <ManuscriptContainer text={content} gridType={gridType} viewMode={viewMode} lineColor={lineColor} name={studentName} fontFamily={fontFamily} processToCells={processToCells} renderCell={renderCell} />
               </div>
             </main>
           </div>
@@ -348,11 +325,8 @@ export default function App() {
   );
 }
 
-// 원고지 렌더링 컨테이너
 const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFamily, processToCells, renderCell }) => {
-  const cols = 20; 
-  const gridVal = parseInt(gridType); 
-  const rows = gridVal / cols;
+  const cols = 20; const gridVal = parseInt(gridType); const rows = gridVal / cols;
   const allCells = processToCells(text, cols);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
   const rowGap = viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px';
@@ -363,11 +337,7 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
         <div key={p} className="page-unit">
           <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content', boxShadow: '0 15px 35px rgba(0,0,0,0.1)', marginBottom: '40px' }} className="page-box">
             <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
-              {p === 0 && name && name.trim() !== '' ? (
-                <div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {name}</div>
-              ) : (
-                <div style={{ height: '35px' }}></div>
-              )}
+              {p === 0 && name && name.trim() !== '' ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {name}</div>) : (<div style={{ height: '35px' }}></div>)}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap }}>
               {Array.from({ length: rows }).map((_, r) => (
