@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-// --- 1. 스타일 객체 정의 (안전성 확보) ---
+// --- 1. 스타일 객체 정의 ---
 const cardStyle = { 
   transition: 'all 0.3s ease', 
   cursor: 'pointer', 
@@ -15,7 +15,9 @@ const cardStyle = {
   height: '100%', 
   boxSizing: 'border-box', 
   border: '1px solid #eee',
-  position: 'relative'
+  position: 'relative',
+  textDecoration: 'none',
+  color: 'inherit'
 };
 
 const cardTitleStyle = { fontSize: '18px', fontWeight: '800', marginBottom: '10px', color: '#1e293b' };
@@ -25,6 +27,8 @@ const selectStyle = { height: '42px', padding: '0 10px', borderRadius: '8px', bo
 
 // --- 2. 메인 홈 컴포넌트 (Home) ---
 const Home = ({ onNavigate }) => {
+  const bookSearchUrl = "https://search.shopping.naver.com/book/search?bookTabType=ALL&pageIndex=1&pageSize=40&query=%ED%95%9C%20%EA%B6%8C%EC%9C%BC%EB%A1%9C%20%EC%99%84%EC%84%B1%ED%95%98%EB%8A%94%20TOPIK%201%20%EB%8B%A8%EC%96%B4&sort=REL";
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Noto Sans KR', sans-serif", color: '#1e293b' }}>
       <section style={{
@@ -53,10 +57,9 @@ const Home = ({ onNavigate }) => {
           transform: 'translateX(-50%)',
           flexDirection: 'column', 
           alignItems: 'center',
-          display: 'none' // CSS 미디어쿼리로 portrait에서만 보이게 처리
+          display: 'none'
         }}>
           <span style={{ fontSize: '11px', fontWeight: '900', color: '#facc15', marginBottom: '8px', letterSpacing: '1px' }}>SCROLL DOWN</span>
-          {/* 강렬한 삼각형 화살표 SVG */}
           <svg width="40" height="40" viewBox="0 0 24 24" fill="#facc15" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 21l-10-14h20l-10 14z" />
           </svg>
@@ -64,14 +67,15 @@ const Home = ({ onNavigate }) => {
       </section>
 
       <div className="cards-container" style={{ 
-        maxWidth: '1300px', 
-        margin: '-60px auto 80px', 
+        maxWidth: '1350px', 
+        margin: '-50px auto 80px', 
         padding: '0 20px', 
         display: 'grid', 
         gap: '20px', 
         position: 'relative', 
         zIndex: 10 
       }}>
+        {/* 카드 1: 원고지 연습장 */}
         <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
           <div style={{ fontSize: '40px', marginBottom: '15px' }}>✍️</div>
           <h3 style={cardTitleStyle}>원고지 연습장</h3>
@@ -79,36 +83,47 @@ const Home = ({ onNavigate }) => {
           <button style={cardButtonStyle}>바로 시작하기</button>
         </div>
 
-        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-          <div className="card-item" style={cardStyle}>
-            <div style={{ fontSize: '40px', marginBottom: '15px' }}>📚</div>
-            <h3 style={cardTitleStyle}>패턴 100 E-book</h3>
-            <p style={cardDescStyle}>외국인이 가장 많이 틀리는 한국어 문장 패턴 100가지를 담았습니다.</p>
-            <button style={{ ...cardButtonStyle, backgroundColor: '#10b981' }}>다운로드 하기</button>
-          </div>
+        {/* 카드 2: E-book */}
+        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" style={cardStyle}>
+          <div style={{ fontSize: '40px', marginBottom: '15px' }}>📚</div>
+          <h3 style={cardTitleStyle}>패턴 100 E-book</h3>
+          <p style={cardDescStyle}>외국인이 가장 많이 틀리는 한국어 문장 패턴 100가지를 담았습니다.</p>
+          <button style={{ ...cardButtonStyle, backgroundColor: '#10b981' }}>다운로드 하기</button>
         </a>
 
-        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-          <div className="card-item" style={cardStyle}>
-            <div style={{ fontSize: '40px', marginBottom: '15px' }}>📺</div>
-            <h3 style={cardTitleStyle}>패턴 100 영상</h3>
-            <p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p>
-            <button style={{ ...cardButtonStyle, backgroundColor: '#f59e0b' }}>강의 시청하기</button>
-          </div>
+        {/* 카드 3: 영상 */}
+        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" style={cardStyle}>
+          <div style={{ fontSize: '40px', marginBottom: '15px' }}>📺</div>
+          <h3 style={cardTitleStyle}>패턴 100 영상</h3>
+          <p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p>
+          <button style={{ ...cardButtonStyle, backgroundColor: '#f59e0b' }}>강의 시청하기</button>
         </a>
 
-        <div className="card-item" style={{...cardStyle, border: '2px solid #6366f1'}}>
-            <div style={{ backgroundColor: '#f1f2ff', color: '#4f46e5', fontSize: '10px', fontWeight: '800', padding: '8px 10px', borderRadius: '12px', marginBottom: '15px', lineHeight: '1.4' }}>
-                해외 배송, 10권 이상 구입 문의:<br/>
-                <span style={{textDecoration: 'underline'}}>02100korean@gmail.com</span>
+        {/* 카드 4: TOPIK 1 단어장 (전체 클릭 가능) */}
+        <a href={bookSearchUrl} target="_blank" rel="noreferrer" style={{...cardStyle, border: '2.5px solid #6366f1'}}>
+            {/* 더 크고 명확해진 문의 박스 */}
+            <div style={{ 
+                backgroundColor: '#eff6ff', 
+                border: '2px dashed #6366f1', 
+                color: '#1e1b4b', 
+                width: '100%',
+                padding: '12px 10px', 
+                borderRadius: '16px', 
+                marginBottom: '15px', 
+                lineHeight: '1.4',
+                boxSizing: 'border-box'
+            }}>
+                <div style={{ fontSize: '11px', fontWeight: '800', color: '#4338ca', marginBottom: '4px' }}>해외 배송 / 10권 이상 구입 문의</div>
+                <div style={{ fontSize: '14px', fontWeight: '900' }}>02100korean@gmail.com</div>
             </div>
+            
             <div style={{ fontSize: '40px', marginBottom: '10px' }}>📖</div>
             <h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3>
-            <p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p>
-            <a href="https://search.shopping.naver.com/book/search?bookTabType=ALL&pageIndex=1&pageSize=40&query=%ED%95%9C%20%EA%B6%8C%EC%9C%BC%EB%A1%9C%20%EC%99%84%EC%84%B1%ED%95%98%EB%8A%94%20TOPIK%201%20%EB%8B%A8%EC%96%B4&sort=REL" target="_blank" rel="noreferrer" style={{ width: '100%' }}>
-                <button style={{ ...cardButtonStyle, width: '100%', backgroundColor: '#6366f1' }}>구입하러 가기</button>
-            </a>
-        </div>
+            <p style={cardDescStyle}>
+                한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.
+            </p>
+            <button style={{ ...cardButtonStyle, width: '100%', backgroundColor: '#6366f1' }}>구입하러 가기</button>
+        </a>
       </div>
     </div>
   );
@@ -236,24 +251,12 @@ export default function App() {
         @import url('https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&family=Hi+Melody&family=Poor+Story&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         
         body { margin: 0; padding: 0; overflow-x: hidden; }
-        
-        /* 홈 화면 레이아웃 */
         .cards-container { grid-template-columns: 1fr; }
         @media (min-width: 1000px) { .cards-container { grid-template-columns: repeat(4, 1fr) !important; } }
 
-        /* 세로 모드(Portrait)에서만 삼각형 화살표 가이드 노출 */
-        @media (orientation: portrait) { 
-          .scroll-indicator { display: flex !important; } 
-        }
-        
-        /* 튀어오르는 애니메이션 */
+        @media (orientation: portrait) { .scroll-indicator { display: flex !important; } }
         .scroll-indicator { animation: bounceTriangle 2s infinite; }
-        @keyframes bounceTriangle { 
-          0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 
-          40% {transform: translate(-50%, -12px);} 
-          60% {transform: translate(-50%, -6px);} 
-        }
-
+        @keyframes bounceTriangle { 0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 40% {transform: translate(-50%, -12px);} 60% {transform: translate(-50%, -6px);} }
         .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #6366f1 !important; }
         
         @media print {
