@@ -16,8 +16,8 @@ const cardStyle = {
   boxSizing: 'border-box', 
   border: '1px solid #eee',
   position: 'relative',
-  textDecoration: 'none',
-  color: 'inherit'
+  textDecoration: 'none', // 링크 밑줄 제거
+  color: 'inherit' // 기본 글자색 유지
 };
 
 const cardTitleStyle = { fontSize: '18px', fontWeight: '800', marginBottom: '10px', color: '#1e293b' };
@@ -49,7 +49,6 @@ const Home = ({ onNavigate }) => {
           가장 세련된 방법으로 한국어 쓰기를 연습하고,<br/>필수 패턴을 내 것으로 만드세요.
         </p>
         
-        {/* 세로 화면 전용: 노란색 삼각형 스크롤 가이드 */}
         <div className="scroll-indicator" style={{ 
           position: 'absolute', 
           bottom: '30px', 
@@ -75,7 +74,7 @@ const Home = ({ onNavigate }) => {
         position: 'relative', 
         zIndex: 10 
       }}>
-        {/* 카드 1 */}
+        {/* 카드 1: 원고지 연습장 */}
         <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
           <div style={{ fontSize: '40px', marginBottom: '15px' }}>✍️</div>
           <h3 style={cardTitleStyle}>원고지 연습장</h3>
@@ -83,16 +82,16 @@ const Home = ({ onNavigate }) => {
           <button style={cardButtonStyle}>바로 시작하기</button>
         </div>
 
-        {/* 카드 2 */}
-        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" style={cardStyle}>
+        {/* 카드 2: E-book */}
+        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
           <div style={{ fontSize: '40px', marginBottom: '15px' }}>📚</div>
           <h3 style={cardTitleStyle}>패턴 100 E-book</h3>
           <p style={cardDescStyle}>외국인이 가장 많이 틀리는 한국어 문장 패턴 100가지를 담았습니다.</p>
           <button style={{ ...cardButtonStyle, backgroundColor: '#10b981' }}>다운로드 하기</button>
         </a>
 
-        {/* 카드 3 */}
-        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" style={cardStyle}>
+        {/* 카드 3: 영상 */}
+        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
           <div style={{ fontSize: '40px', marginBottom: '15px' }}>📺</div>
           <h3 style={cardTitleStyle}>패턴 100 영상</h3>
           <p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p>
@@ -100,14 +99,8 @@ const Home = ({ onNavigate }) => {
         </a>
 
         {/* 카드 4: TOPIK 1 단어장 */}
-        <div onClick={() => window.open(bookUrl, '_blank')} className="card-item" style={{...cardStyle, border: '2.5px solid #6366f1'}}>
-            {/* 이메일 발송 박스 (버블링 차단 적용) */}
-            <div 
-              onClick={(e) => {
-                e.stopPropagation(); // 카드 전체 클릭 이벤트가 실행되지 않도록 차단
-                window.location.href = "mailto:02100korean@gmail.com";
-              }}
-              style={{ 
+        <a href={bookUrl} target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border: '2.5px solid #6366f1'}}>
+            <div style={{ 
                 backgroundColor: '#eff6ff', 
                 border: '2px dashed #6366f1', 
                 color: '#1e1b4b', 
@@ -119,16 +112,15 @@ const Home = ({ onNavigate }) => {
                 boxSizing: 'border-box'
             }}>
                 <div style={{ fontSize: '11px', fontWeight: '800', color: '#4338ca', marginBottom: '4px' }}>해외 배송 / 10권 이상 구입 문의</div>
-                <div style={{ fontSize: '14px', fontWeight: '900', textDecoration: 'underline' }}>02100korean@gmail.com</div>
+                <div style={{ fontSize: '14px', fontWeight: '900' }}>02100korean@gmail.com</div>
             </div>
-            
             <div style={{ fontSize: '40px', marginBottom: '10px' }}>📖</div>
             <h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3>
             <p style={cardDescStyle}>
                 한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.
             </p>
             <button style={{ ...cardButtonStyle, width: '100%', backgroundColor: '#6366f1' }}>구입하러 가기</button>
-        </div>
+        </a>
       </div>
     </div>
   );
@@ -262,7 +254,13 @@ export default function App() {
         @media (orientation: portrait) { .scroll-indicator { display: flex !important; } }
         .scroll-indicator { animation: bounceTriangle 2s infinite; }
         @keyframes bounceTriangle { 0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 40% {transform: translate(-50%, -12px);} 60% {transform: translate(-50%, -6px);} }
-        .card-item:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: #6366f1 !important; }
+        
+        /* 모든 카드 아이템에 마우스 오버 효과 통일 */
+        .card-item:hover { 
+          transform: translateY(-12px) !important; 
+          box-shadow: 0 30px 60px rgba(0,0,0,0.1) !important; 
+          border-color: #6366f1 !important; 
+        }
         
         @media print {
           .no-print { display: none !important; }
