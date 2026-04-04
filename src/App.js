@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-// --- 1. 스타일 및 유틸리티 ---
+// --- 1. 스타일 및 상수 정의 ---
 const cardStyle = { 
   transition: 'all 0.3s ease', cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
   textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', 
@@ -65,7 +65,7 @@ export default function App() {
 
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
-      const containerWidth = mainRef.current.clientWidth - 40;
+      const containerWidth = mainRef.current.clientWidth - 30;
       const manuscriptWidth = 880; 
       setZoom(Math.floor(Math.min(1.0, containerWidth / manuscriptWidth) * 10) / 10);
     }
@@ -79,27 +79,21 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
-  // --- [데이터 가공 엔진] ---
+  // 원고지 데이터 가공 엔진
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
     let i = 0, sQuoteCount = 0, dQuoteCount = 0;
     const limit = Math.min(text.length, 3000); 
 
     while (i < limit) {
-      const char = text[i];
-      const next = text[i + 1] || "";
-      const next2 = text[i + 2] || "";
+      const char = text[i], next = text[i + 1] || "", next2 = text[i + 2] || "";
       const currentPos = cells.length % cols;
-
       let currentType = null;
       if (isSingleQuote(char)) { sQuoteCount++; currentType = sQuoteCount % 2 !== 0 ? 'open' : 'close'; }
       else if (isDoubleQuote(char)) { dQuoteCount++; currentType = dQuoteCount % 2 !== 0 ? 'open' : 'close'; }
       const isQuoteActive = (sQuoteCount % 2 !== 0) || (dQuoteCount % 2 !== 0);
 
-      if (currentPos === 0 && isQuoteActive && currentType !== 'open') {
-        cells.push({ type: 'empty' });
-      }
-
+      if (currentPos === 0 && isQuoteActive && currentType !== 'open') cells.push({ type: 'empty' });
       if (char === '.' && next === '.' && next2 === '.') { cells.push({ type: 'ellipsis' }); i += 3; continue; }
       if (char === '\n') {
         const remaining = cols - (cells.length % cols || cols);
@@ -107,14 +101,11 @@ export default function App() {
         cells.push({ type: 'empty' }); i++; continue;
       }
       if (char === ' ') { if (cells.length % cols === 0) { i++; continue; } cells.push({ type: 'default', content: '' }); i++; continue; }
-
       const isDigit = (c) => /[0-9]/.test(c);
       if (isDigit(char) && isSimplePunct(next) && isDigit(next2)) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
-      if (next !== "" && ( (isDigit(char) && isDigit(next)) || (/[a-zA-Z]/.test(char) && /[a-zA-Z]/.test(next)) )) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
-
+      if (next !== "" && ( (/[0-9]/.test(char) && /[0-9]/.test(next)) || (/[a-zA-Z]/.test(char) && /[a-zA-Z]/.test(next)) )) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
       const isEndCol = cells.length % cols === cols - 1;
       const nextIsClosingQuote = isSingleQuote(next) ? (sQuoteCount + 1) % 2 === 0 : isDoubleQuote(next) ? (dQuoteCount + 1) % 2 === 0 : false;
-
       if (isEndCol && isSimplePunct(next)) { cells.push({ type: 'combined_end', content: char, punct: next }); i += 2; } 
       else if (isSimplePunct(char) && nextIsClosingQuote) {
         cells.push({ type: 'punct_quote_final', punct: char, quote: next });
@@ -144,20 +135,17 @@ export default function App() {
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
         borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', 
-        fontFamily: fontFamily, fontWeight: 'normal', paddingTop: isShiftDown ? '2.5px' : isMoreShiftDown ? '4px' : '0px', position: 'relative'
+        fontFamily: fontFamily, fontWeight: 'normal', paddingTop: isShiftDown ? '2px' : isMoreShiftDown ? '4px' : '0px', position: 'relative'
     };
 
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
-
     const Punct = ({ char, x, y, size = baseFontSize }) => (
         <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`, position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>
     );
-
     if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
     if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{zIndex:2}}>{cellData.content}</span><Punct char={cellData.punct} x={80} y={30} /></div>;
     if (cellData.type === 'punct_quote_final') return <div key={key} style={cellStyle}><Punct char={cellData.punct} x={30} y={40} /><Punct char={cellData.quote} x={90} y={70} /></div>;
     if (cellData.type === 'pair') return <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[0]}</div><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[1]}</div></div>;
-
     const char = cellData.content;
     if (cellData.type === 'punct_alone') return <div key={key} style={cellStyle}><Punct char={char} x={30} y={40} /></div>;
     if (cellData.type === 'quote_open') return <div key={key} style={cellStyle}><Punct char={char} x={80} y={70} /></div>;
@@ -170,35 +158,33 @@ export default function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&family=Hi+Melody&family=Poor+Story&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         body { margin: 0; padding: 0; overflow-x: hidden; }
-        .card-item:hover { transform: translateY(-12px) !important; box-shadow: 0 30px 60px rgba(0,0,0,0.1) !important; border-color: #6366f1 !important; }
         
-        /* --- [복구 핵심: 완벽한 반응형 레이아웃] --- */
-        .editor-container { display: flex; height: 100vh; background-color: #e2e8f0; overflow: hidden; }
+        /* [핵심 반응형 레이아웃] */
+        .editor-container { display: flex; height: 100vh; background-color: #e2e8f0; overflow: hidden; position: relative; }
         
-        /* 가로 모드 (Default) */
-        .sidebar { width: 340px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 10; }
+        /* 1. 가로 모드 (좌측: 입력/설정, 우측: 원고지) */
+        .sidebar { width: 340px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; }
         .main-preview { flex: 1; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; alignItems: center; }
 
-        /* 가로 화면 내 설정 상단 고정, 입력창 아래로 */
+        /* 2. 세로 모드 (상단: 입력/설정 50%, 하단: 원고지 50%) */
+        @media (orientation: portrait) {
+          .editor-container { flex-direction: column !important; }
+          .sidebar { width: 100% !important; height: 50vh !important; border-right: none; border-bottom: 2px solid #ddd; }
+          .main-preview { width: 100% !important; height: 50vh !important; padding: 10px; }
+          .sidebar-settings { padding: 10px !important; gap: 6px !important; }
+          .sidebar-input { flex: 1 !important; height: auto !important; }
+        }
+
+        /* 공통 입력창 스타일 */
         .sidebar-settings { padding: 15px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 8px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; }
 
-        /* 세로 모드 (Portrait) */
-        @media (orientation: portrait) {
-          .editor-container { flex-direction: column; }
-          .sidebar { width: 100%; height: 50vh; border-right: none; border-bottom: 2px solid #ddd; }
-          .main-preview { height: 50vh; width: 100%; padding: 10px; }
-          .sidebar-settings { gap: 6px; padding: 10px; }
-          .sidebar-input { height: auto; flex: 1; min-height: 150px; }
-        }
-
-        /* 인쇄 최적화 */
         @media print {
           @page { size: auto; margin: 20mm !important; }
           .no-print { display: none !important; }
-          body, html { background: white !important; height: auto !important; }
-          .page-unit { height: 100vh !important; display: flex !important; justify-content: center !important; align-items: center !important; page-break-after: always !important; }
-          .page-box { box-shadow: none !important; max-width: 100% !important; max-height: calc(100vh - 40mm) !important; zoom: 0.95; }
+          body, html { background: white !important; }
+          .page-unit { height: 100vh !important; display: flex !important; justifyContent: center !important; alignItems: center !important; page-break-after: always !important; }
+          .page-box { box-shadow: none !important; max-width: calc(100vw - 40mm) !important; max-height: calc(100vh - 40mm) !important; transform-origin: center center !important; zoom: 0.9; }
         }
       `}</style>
 
@@ -206,13 +192,14 @@ export default function App() {
         <Home onNavigate={setView} />
       ) : (
         <div className="editor-container">
-          <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, position: 'absolute', top: 0, left: 0, right: 0, height: '50px' }}>
+          {/* 헤더 */}
+          <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, height: '50px', position: 'fixed', top: 0, left: 0, right: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}><button onClick={() => setView('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>🏠</button><div style={{ fontWeight: '900', color: '#1e293b', fontSize: '15px' }}>원고지 연습장</div></div>
             <div style={{ display: 'flex', gap: '8px' }}>{['#607d8b', '#ef4444', '#2d6a4f', '#000000'].map(c => (<button key={c} onClick={() => setLineColor(c)} style={{ width: '22px', height: '22px', borderRadius: '50%', border: '2px solid white', backgroundColor: c }} />))}</div>
           </header>
 
           <div style={{ display: 'flex', flex: 1, width: '100%', paddingTop: '50px' }} className="editor-layout">
-            {/* 좌측(가로) 또는 상단(세로) 컨트롤 패널 */}
+            {/* 설정 및 입력창 (가로일 땐 좌측, 세로일 땐 상단) */}
             <aside className="sidebar no-print">
               <div className="sidebar-settings">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -236,9 +223,9 @@ export default function App() {
               />
             </aside>
 
-            {/* 우측(가로) 또는 하단(세로) 원고지 미리보기 */}
+            {/* 원고지 미리보기 (가로일 땐 우측, 세로일 땐 하단) */}
             <main ref={mainRef} className="main-preview">
-              <div className="no-print" style={{ marginBottom: '10px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'center' }}>
+              <div className="no-print" style={{ marginBottom: '10px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '10px', fontWeight: '900', color: '#6366f1' }}>ZOOM</span>
                 <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900' }}>{[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}</select>
                 <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px' }}>맞춤</button>
@@ -263,7 +250,7 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
       {Array.from({ length: pageCount }).map((_, p) => (
         <div key={p} className="page-unit">
           <div style={{ backgroundColor: 'white', padding: '40px 60px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', marginBottom: '40px' }} className="page-box">
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
+            <div className="name-tag" style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
               {p === 0 && name && name.trim() !== '' ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {name}</div>) : (<div style={{ height: '35px' }}></div>)}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
