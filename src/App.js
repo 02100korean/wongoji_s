@@ -13,28 +13,23 @@ const cardDescStyle = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', m
 const cardButtonStyle = { padding: '10px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '12px' };
 const selectStyle = { height: '42px', padding: '0 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '700', backgroundColor: 'white', color: '#334155' };
 
-// 부호 판단 유틸리티
 const isSimplePunct = (c) => /[.,]/.test(c);
 const isSingleQuote = (c) => /['‘’]/.test(c);
 const isDoubleQuote = (c) => /["“”]/.test(c);
 
-// 강화된 원고지 아이콘 (1번 카드용)
 const WonjiIcon = () => (
     <div style={{ marginBottom: '15px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {/* 원고지 격자 배경 */}
         <svg width="60" height="50" viewBox="0 0 60 50" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="0.5" y="0.5" width="59" height="49" rx="3.5" fill="white" stroke="#6366f1" strokeWidth="1"/>
-            <line x1="15" y1="0" x2="15" y2="50" stroke="#e2e8f0" strokeWidth="1"/>
-            <line x1="30" y1="0" x2="30" y2="50" stroke="#e2e8f0" strokeWidth="1"/>
-            <line x1="45" y1="0" x2="45" y2="50" stroke="#e2e8f0" strokeWidth="1"/>
-            <line x1="0" y1="16" x2="60" y2="16" stroke="#e2e8f0" strokeWidth="1"/>
-            <line x1="0" y1="33" x2="60" y2="33" stroke="#e2e8f0" strokeWidth="1"/>
-            {/* 원고지 느낌을 주는 빨간색 포인트 선 (선택사항) */}
-            <rect x="3" y="3" width="10" height="10" stroke="#fca5a5" strokeWidth="0.5"/>
-            <rect x="18" y="3" width="10" height="10" stroke="#fca5a5" strokeWidth="0.5"/>
+            <line x1="15" y1="0" x2="15" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/>
+            <line x1="30" y1="0" x2="30" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/>
+            <line x1="45" y1="0" x2="45" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/>
+            <line x1="0" y1="16" x2="60" y2="16" stroke="#cbd5e1" strokeWidth="0.5"/>
+            <line x1="0" y1="33" x2="60" y2="33" stroke="#cbd5e1" strokeWidth="0.5"/>
+            <rect x="2" y="2" width="11" height="12" stroke="#fecaca" strokeWidth="0.5"/>
+            <rect x="17" y="2" width="11" height="12" stroke="#fecaca" strokeWidth="0.5"/>
         </svg>
-        {/* 실제 쓰는 펜 */}
-        <span style={{ fontSize: '28px', position: 'absolute', bottom: '-5px', right: '0px', transform: 'rotate(-10deg)', filter: 'drop-shadow(2px 2px 2px rgba(0,0,0,0.1))' }}>🖋️</span>
+        <span style={{ fontSize: '28px', position: 'absolute', bottom: '-5px', right: '0px', transform: 'rotate(-10deg)' }}>🖋️</span>
     </div>
 );
 
@@ -90,40 +85,37 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
-  // 원고지 가공 엔진 (따옴표 카운팅 및 인덴트 로직 강화)
+  // 원고지 가공 엔진
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
     let i = 0;
-    let singleQuoteCount = 0;
-    let doubleQuoteCount = 0;
+    let sQuoteCount = 0;
+    let dQuoteCount = 0;
+    const maxSafety = 10000; // 3,000자 대응을 위해 안전장치 상향
 
-    while (i < text.length) {
+    while (i < text.length && cells.length < maxSafety) {
       const char = text[i];
-      const next = text[i + 1] || null;
-      const next2 = text[i + 2] || null;
+      const next = text[i + 1] || "";
+      const next2 = text[i + 2] || "";
 
-      // 1. 따옴표 성격 판별 (홀수=여는, 짝수=닫는)
       let isOpening = false;
       let isClosing = false;
       if (isSingleQuote(char)) {
-        singleQuoteCount++;
-        isOpening = singleQuoteCount % 2 !== 0;
+        sQuoteCount++;
+        isOpening = sQuoteCount % 2 !== 0;
         isClosing = !isOpening;
       } else if (isDoubleQuote(char)) {
-        doubleQuoteCount++;
-        isOpening = doubleQuoteCount % 2 !== 0;
+        dQuoteCount++;
+        isOpening = dQuoteCount % 2 !== 0;
         isClosing = !isOpening;
       }
+      const isInsideQuote = (sQuoteCount % 2 !== 0) || (dQuoteCount % 2 !== 0);
 
-      // 인용 중 여부 (하나라도 열려 있으면 인용 중으로 판단)
-      const isInsideQuote = (singleQuoteCount % 2 !== 0) || (doubleQuoteCount % 2 !== 0);
-
-      // 2. 인용구 줄바꿈 인덴트 처리 (강력 수정)
+      // 인용구 줄바꿈 인덴트 처리
       if (cells.length % cols === 0 && isInsideQuote && !isOpening) {
-          cells.push({ type: 'empty' });
+        cells.push({ type: 'empty' });
       }
 
-      // 말줄임표 처리
       if (char === '.' && next === '.' && next2 === '.') {
         cells.push({ type: 'ellipsis' });
         i += 3; continue;
@@ -144,41 +136,33 @@ export default function App() {
       }
 
       const isDigit = (c) => /[0-9]/.test(c);
-      const isSmallChar = (c) => /[a-zA-Z]/.test(c);
-
-      // 숫자 사이 . , 처리
       if (isDigit(char) && isSimplePunct(next) && isDigit(next2)) {
         cells.push({ type: 'pair', content: [char, next] });
         i += 2; continue;
       }
 
-      const canPair = next && ((isDigit(char) && isDigit(next)) || (isSmallChar(char) && isSmallChar(next)));
+      const canPair = next !== "" && ((isDigit(char) && isDigit(next)) || (/[a-zA-Z]/.test(char) && /[a-zA-Z]/.test(next)));
 
       if (canPair) {
         cells.push({ type: 'pair', content: [char, next] });
         i += 2;
       } else {
         const isEndCol = cells.length % cols === cols - 1;
-        
-        // 20번째 칸 글자 + 부호 결합
         if (isEndCol && isSimplePunct(next)) {
           cells.push({ type: 'combined_end', content: char, punct: next });
           i += 2;
         } 
-        // 부호(.,) + 닫는 따옴표 결합 (요청 좌표 반영)
         else if (isSimplePunct(char) && isClosingQuote(next)) {
-          // 다음이 닫는 따옴표인지 한 번 더 검증 (카운트 기준)
-          const nextIsTrulyClosing = (isSingleQuote(next) && (singleQuoteCount + 1) % 2 === 0) || 
-                                     (isDoubleQuote(next) && (doubleQuoteCount + 1) % 2 === 0);
-          
-          if (nextIsTrulyClosing) {
-            cells.push({ type: 'punct_quote_final', punct: char, quote: next });
-            if (isSingleQuote(next)) singleQuoteCount++; else doubleQuoteCount++;
-            i += 2;
-          } else {
-            cells.push({ type: 'punct_only', content: char });
-            i++;
-          }
+            const nextIsTrulyClosing = (isSingleQuote(next) && (sQuoteCount + 1) % 2 === 0) || 
+                                     (isDoubleQuote(next) && (dQuoteCount + 1) % 2 === 0);
+            if (nextIsTrulyClosing) {
+                cells.push({ type: 'punct_quote_final', punct: char, quote: next });
+                if (isSingleQuote(next)) sQuoteCount++; else dQuoteCount++;
+                i += 2;
+            } else {
+                cells.push({ type: 'punct_only', content: char });
+                i++;
+            }
         }
         else if (isSimplePunct(char)) {
             cells.push({ type: 'punct_only', content: char });
@@ -195,14 +179,11 @@ export default function App() {
 
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
-    
-    // 폰트 크기 및 위치 보정
     let baseFontSize = 22;
     if (fontFamily.includes('Gamja') || fontFamily.includes('Poor')) baseFontSize = 23.5;
-    if (fontFamily.includes('Hi Melody')) baseFontSize = 24.7; // +5%
-    if (fontFamily.includes('Nanum Pen')) baseFontSize = 25.9; // +10%
+    if (fontFamily.includes('Hi Melody')) baseFontSize = 24.7; 
+    if (fontFamily.includes('Nanum Pen')) baseFontSize = 25.9; 
 
-    // 폰트별 미세 위치 보정
     const isShiftDown = ["'Hi Melody', cursive", "'Gamja Flower', cursive", "'Jua', sans-serif"].includes(fontFamily);
     const isMoreShiftDown = ["'Poor Story', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily);
 
@@ -211,13 +192,12 @@ export default function App() {
         borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', 
         fontFamily: fontFamily, fontWeight: 'normal', 
-        paddingTop: isShiftDown ? '2px' : isMoreShiftDown ? '4px' : '0px', 
+        paddingTop: isShiftDown ? '2.5px' : isMoreShiftDown ? '4px' : '0px', 
         position: 'relative'
     };
 
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
 
-    // 문장부호 렌더러 (Noto Sans 고정)
     const Punct = ({ char, x, y, size = baseFontSize }) => (
         <span style={{
             fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`,
@@ -225,7 +205,6 @@ export default function App() {
         }}>{char}</span>
     );
 
-    // 말줄임표 보정: (35,65), (50,65), (65,65)
     if (cellData.type === 'ellipsis') {
       return (
         <div key={key} style={cellStyle}>
@@ -234,7 +213,6 @@ export default function App() {
       );
     }
 
-    // 20번째 칸 결합 (x80, y30)
     if (cellData.type === 'combined_end') {
       return (
         <div key={key} style={cellStyle}>
@@ -244,7 +222,6 @@ export default function App() {
       );
     }
 
-    // 부호 + 닫는 따옴표 결합 (부호 x30 y40, 따옴표 x90 y70)
     if (cellData.type === 'punct_quote_final') {
       return (
         <div key={key} style={cellStyle}>
@@ -264,21 +241,9 @@ export default function App() {
     }
 
     const char = cellData.content;
-    
-    // 단독 부호 (x30, y40)
-    if (cellData.type === 'punct_only') {
-        return <div key={key} style={cellStyle}><Punct char={char} x={30} y={40} /></div>;
-    }
-    
-    // 여는 따옴표 (x80, y70)
-    if (cellData.isOpeningQuote) {
-        return <div key={key} style={cellStyle}><Punct char={char} x={80} y={70} /></div>;
-    }
-
-    // 닫는 따옴표 단독 (x20, y70)
-    if (cellData.isClosingQuote) {
-        return <div key={key} style={cellStyle}><Punct char={char} x={20} y={70} /></div>;
-    }
+    if (cellData.type === 'punct_only') return <div key={key} style={cellStyle}><Punct char={char} x={30} y={40} /></div>;
+    if (cellData.isOpeningQuote) return <div key={key} style={cellStyle}><Punct char={char} x={80} y={70} /></div>;
+    if (cellData.isClosingQuote) return <div key={key} style={cellStyle}><Punct char={char} x={20} y={70} /></div>;
 
     return <div key={key} style={{...cellStyle, color: '#0f172a'}}><span>{char}</span></div>;
   }, [lineColor, viewMode, fontFamily]);
@@ -328,7 +293,13 @@ export default function App() {
                 <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={{ ...selectStyle, textAlign: 'center' }} />
                 <button onClick={() => window.print()} style={{ backgroundColor: '#6366f1', color: 'white', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', border: 'none', cursor: 'pointer', marginTop: '5px' }}>인쇄 / PDF 저장</button>
               </div>
-              <textarea value={content} onChange={e => setContent(e.target.value)} style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} placeholder="내용을 입력하세요..." />
+              {/* 내용 입력칸: 3,000자 제한 및 Placeholder 추가 */}
+              <textarea 
+                value={content} 
+                onChange={e => setContent(e.target.value.slice(0, 3000))} 
+                style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} 
+                placeholder="최대 3,000자까지 입력 가능합니다." 
+              />
             </aside>
 
             <main ref={mainRef} className="manuscript-main" style={{ flex: 1, overflow: 'auto', backgroundColor: '#cbd5e1', padding: '20px', position: 'relative' }}>
