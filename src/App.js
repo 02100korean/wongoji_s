@@ -34,9 +34,7 @@ const Home = ({ onNavigate }) => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Noto Sans KR', sans-serif", color: '#1e293b' }}>
       <section style={{ padding: '80px 20px 140px', textAlign: 'center', background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', color: 'white', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '60vh' }}>
-        <h1 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '20px', lineHeight: '1.2' }}>
-          Master Korean <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span>
-        </h1>
+        <h1 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '20px', lineHeight: '1.2' }}>Master Korean <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
         <p style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto' }}>한국어를 원고지에 쓰면서 연습하고,<br/>한국어 필수 패턴을 내 것으로 만드세요.</p>
         <div className="scroll-indicator" style={{ position: 'absolute', bottom: '30px', left: '50%', transform: 'translateX(-50%)', flexDirection: 'column', alignItems: 'center', display: 'none' }}>
           <span style={{ fontSize: '11px', fontWeight: '900', color: '#facc15', marginBottom: '8px', letterSpacing: '1px' }}>SCROLL DOWN</span>
@@ -81,12 +79,12 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
-  // --- [데이터 가공 엔진: 결함 수정 및 규칙 완벽 반영] ---
+  // 원고지 가공 엔진 (무한 루프 방지 및 정석 규칙)
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
     let i = 0;
-    let sQuoteCount = 0; // 작은따옴표 카운트
-    let dQuoteCount = 0; // 큰따옴표 카운트
+    let sQuoteCount = 0;
+    let dQuoteCount = 0;
     const limit = Math.min(text.length, 3000); 
 
     while (i < limit) {
@@ -94,7 +92,6 @@ export default function App() {
       const next = text[i + 1] || "";
       const next2 = text[i + 2] || "";
 
-      // 인용구 상태 판별 (홀수=시작, 짝수=끝)
       let currentType = null;
       if (isSingleQuote(char)) {
         sQuoteCount++;
@@ -103,23 +100,18 @@ export default function App() {
         dQuoteCount++;
         currentType = dQuoteCount % 2 !== 0 ? 'open' : 'close';
       }
-
       const isQuoteActive = (sQuoteCount % 2 !== 0) || (dQuoteCount % 2 !== 0);
 
-      // [규칙 3] 인용구 줄바꿈 인덴트: 줄의 시작점이고 인용 중이라면 빈 칸 추가
-      // ※ 버그 수정: i를 증가시키지 않고 칸만 추가하는 로직이 루프를 꼬이게 하므로, 
-      // 이 조건문은 반드시 현재 문자의 처리 직전에 수행되어야 함.
+      // 인용구 줄바꿈 인덴트
       if (cells.length % cols === 0 && isQuoteActive && currentType !== 'open') {
         cells.push({ type: 'empty' });
       }
 
-      // 말줄임표 처리 (...) -> (35,65), (50,65), (65,65)
       if (char === '.' && next === '.' && next2 === '.') {
         cells.push({ type: 'ellipsis' });
         i += 3; continue;
       }
 
-      // 줄바꿈 처리
       if (char === '\n') {
         const remaining = cols - (cells.length % cols || cols);
         if (cells.length % cols !== 0) { for (let r = 0; r < remaining; r++) cells.push({ type: 'empty' }); }
@@ -127,51 +119,40 @@ export default function App() {
         i++; continue;
       }
 
-      // 공백 처리
       if (char === ' ') {
         if (cells.length % cols === 0) { i++; continue; }
         cells.push({ type: 'default', content: '' });
         i++; continue;
       }
 
-      // 숫자 사이 부호 (1.5 등)
-      if (/[0-9]/.test(char) && isSimplePunct(next) && /[0-9]/.test(next2)) {
+      const isDigit = (c) => /[0-9]/.test(c);
+      if (isDigit(char) && isSimplePunct(next) && isDigit(next2)) {
         cells.push({ type: 'pair', content: [char, next] });
         i += 2; continue;
       }
 
-      // 일반 숫자/영어 페어링
       if (next !== "" && ( (/[0-9]/.test(char) && /[0-9]/.test(next)) || (/[a-zA-Z]/.test(char) && /[a-zA-Z]/.test(next)) )) {
         cells.push({ type: 'pair', content: [char, next] });
         i += 2; continue;
       }
 
-      // 결합 규칙 판별
       const isEndCol = cells.length % cols === cols - 1;
       const nextIsClosingQuote = isSingleQuote(next) ? (sQuoteCount + 1) % 2 === 0 : isDoubleQuote(next) ? (dQuoteCount + 1) % 2 === 0 : false;
 
-      // [규칙 2] 20번째 칸 글자 + 부호 결합 (x80, y30)
       if (isEndCol && isSimplePunct(next)) {
         cells.push({ type: 'combined_end', content: char, punct: next });
         i += 2;
       } 
-      // [규칙 3] 부호 + 닫는 따옴표 결합 (부호 xy25, 따옴표 x90 y70)
       else if (isSimplePunct(char) && nextIsClosingQuote) {
         cells.push({ type: 'punct_quote_final', punct: char, quote: next });
         if (isSingleQuote(next)) sQuoteCount++; else dQuoteCount++;
         i += 2;
       }
       else {
-        // 단독 요소들
-        if (currentType === 'open') {
-          cells.push({ type: 'quote_open', content: char });
-        } else if (currentType === 'close') {
-          cells.push({ type: 'quote_close', content: char });
-        } else if (isSimplePunct(char)) {
-          cells.push({ type: 'punct_alone', content: char });
-        } else {
-          cells.push({ type: 'default', content: char });
-        }
+        if (currentType === 'open') cells.push({ type: 'quote_open', content: char });
+        else if (currentType === 'close') cells.push({ type: 'quote_close', content: char });
+        else if (isSimplePunct(char)) cells.push({ type: 'punct_alone', content: char });
+        else { cells.push({ type: 'default', content: char }); }
         i++;
       }
     }
@@ -184,10 +165,9 @@ export default function App() {
     // 폰트 크기 및 확대 비율
     let baseFontSize = 22;
     if (fontFamily.includes('Gamja') || fontFamily.includes('Poor')) baseFontSize = 23.5;
-    if (fontFamily.includes('Hi Melody')) baseFontSize = 24.675; // 23.5 * 1.05
-    if (fontFamily.includes('Nanum Pen')) baseFontSize = 25.85;  // 23.5 * 1.1
+    if (fontFamily.includes('Hi Melody')) baseFontSize = 24.675;
+    if (fontFamily.includes('Nanum Pen')) baseFontSize = 25.85;
 
-    // 폰트별 위치 조정 (하이멜로디, 감자꽃, 주아체 5% 하향)
     const isShiftDown = ["'Hi Melody', cursive", "'Gamja Flower', cursive", "'Jua', sans-serif"].includes(fontFamily);
     const isMoreShiftDown = ["'Poor Story', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily);
 
@@ -195,9 +175,7 @@ export default function App() {
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
         borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', 
-        fontFamily: fontFamily, fontWeight: 'normal', 
-        paddingTop: isShiftDown ? '2.5px' : isMoreShiftDown ? '4px' : '0px', 
-        position: 'relative'
+        fontFamily: fontFamily, fontWeight: 'normal', paddingTop: isShiftDown ? '2.5px' : isMoreShiftDown ? '4px' : '0px', position: 'relative'
     };
 
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
@@ -209,7 +187,6 @@ export default function App() {
         }}>{char}</span>
     );
 
-    // [규칙 3] 말줄임표
     if (cellData.type === 'ellipsis') {
       return (
         <div key={key} style={cellStyle}>
@@ -218,7 +195,6 @@ export default function App() {
       );
     }
 
-    // [규칙 2] 20번째 칸 결합
     if (cellData.type === 'combined_end') {
       return (
         <div key={key} style={cellStyle}>
@@ -228,29 +204,13 @@ export default function App() {
       );
     }
 
-    // [규칙 3] 부호 + 닫는 따옴표 결합
     if (cellData.type === 'punct_quote_final') {
       return (
         <div key={key} style={cellStyle}>
-          <Punct char={cellData.punct} x={25} y={25} />
+          <Punct char={cellData.punct} x={30} y={40} />
           <Punct char={cellData.quote} x={90} y={70} />
         </div>
       );
-    }
-
-    // [규칙 1] 단독 부호 (x30, y40)
-    if (cellData.type === 'punct_alone') {
-      return <div key={key} style={cellStyle}><Punct char={cellData.content} x={30} y={40} /></div>;
-    }
-
-    // [규칙 1] 여는 따옴표 (x80, y70)
-    if (cellData.type === 'quote_open') {
-      return <div key={key} style={cellStyle}><Punct char={cellData.content} x={80} y={70} /></div>;
-    }
-
-    // [규칙 4] 닫는 따옴표 단독 (x20, y70)
-    if (cellData.type === 'quote_close') {
-      return <div key={key} style={cellStyle}><Punct char={cellData.content} x={20} y={70} /></div>;
     }
 
     if (cellData.type === 'pair') {
@@ -262,6 +222,11 @@ export default function App() {
       );
     }
 
+    const char = cellData.content;
+    if (cellData.type === 'punct_alone') return <div key={key} style={cellStyle}><Punct char={char} x={30} y={40} /></div>;
+    if (cellData.type === 'quote_open') return <div key={key} style={cellStyle}><Punct char={char} x={80} y={70} /></div>;
+    if (cellData.type === 'quote_close') return <div key={key} style={cellStyle}><Punct char={char} x={20} y={70} /></div>;
+
     return <div key={key} style={{...cellStyle, color: '#0f172a'}}><span>{cellData.content}</span></div>;
   }, [lineColor, viewMode, fontFamily]);
 
@@ -269,6 +234,7 @@ export default function App() {
     <div className="app-root">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&family=Hi+Melody&family=Poor+Story&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
+        
         body { margin: 0; padding: 0; overflow-x: hidden; }
         .cards-container { grid-template-columns: 1fr; }
         @media (min-width: 1000px) { .cards-container { grid-template-columns: repeat(4, 1fr) !important; } }
@@ -276,15 +242,52 @@ export default function App() {
         .scroll-indicator { animation: bounceTriangle 2s infinite; }
         @keyframes bounceTriangle { 0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 40% {transform: translate(-50%, -12px);} 60% {transform: translate(-50%, -6px);} }
         .card-item:hover { transform: translateY(-12px) !important; box-shadow: 0 30px 60px rgba(0,0,0,0.1) !important; border-color: #6366f1 !important; }
+        
+        /* [인쇄 최적화 핵심 설정] */
         @media print {
+          @page { 
+            size: auto; 
+            margin: 20mm; /* 요청하신 최소 여백 20mm 설정 */
+          }
           .no-print { display: none !important; }
-          body, html { margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; }
-          .app-root, .manuscript-main, .main-container { display: block !important; background: white !important; height: auto !important; overflow: visible !important; }
-          .manuscript-print-root { display: block !important; }
-          .page-unit { display: block !important; page-break-after: always !important; background: white !important; margin: 0 !important; padding: 0 !important; height: auto !important; }
-          .page-box { box-shadow: none !important; margin: 0 auto !important; padding: 40px 60px !important; }
-          div[style*="transform"] { transform: scale(1) !important; } 
-          @page { size: auto; margin: 10mm; }
+          body, html { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            width: 100% !important; 
+            height: 100% !important; 
+            background: white !important;
+          }
+          .manuscript-main { 
+            padding: 0 !important; 
+            margin: 0 !important; 
+            background: transparent !important; 
+          }
+          .manuscript-print-root {
+            width: 100vw !important;
+            height: auto !important;
+          }
+          .page-unit { 
+            width: 100vw !important; 
+            height: calc(100vh - 40mm) !important; /* 여백을 제외한 가용 높이 */
+            display: flex !important; 
+            justify-content: center !important; 
+            align-items: center !important; 
+            page-break-after: always !important; 
+            break-after: page !important;
+          }
+          .page-box { 
+            box-shadow: none !important; 
+            padding: 0 !important; 
+            margin: 0 !important;
+            /* 용지에 맞게 자동 확대/축소 핵심 로직 */
+            max-width: 100% !important;
+            max-height: 100% !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+            /* transform scale을 제거하고 브라우저 인쇄 맞춤 기능 유도 */
+            transform: scale(1) !important; 
+          }
         }
       `}</style>
 
@@ -338,24 +341,22 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
   const cols = 20; const gridVal = parseInt(gridType); const rows = gridVal / cols;
   const allCells = processToCells(text, cols);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
-  const rowGap = viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px';
 
   return (
     <div className="manuscript-print-root" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       {Array.from({ length: pageCount }).map((_, p) => (
         <div key={p} className="page-unit">
-          <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content', boxShadow: '0 15px 35px rgba(0,0,0,0.1)', marginBottom: '40px' }} className="page-box">
+          <div style={{ backgroundColor: 'white', padding: '40px 60px', width: 'max-content', marginBottom: '40px' }} className="page-box">
             <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
               {p === 0 && name && name.trim() !== '' ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {name}</div>) : (<div style={{ height: '35px' }}></div>)}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
               {Array.from({ length: rows }).map((_, r) => (
                 <div key={r} style={{ display: 'flex', borderRight: viewMode !== 'grid' ? `1.2px solid ${lineColor}` : 'none' }}>
                   {Array.from({ length: cols }).map((_, c) => renderCell(allCells[p * gridVal + r * cols + c], `c-${p}-${r}-${c}`, c === cols - 1))}
                 </div>
               ))}
             </div>
-            <div className="no-print" style={{ marginTop: '20px', textAlign: 'center', fontSize: '10px', color: '#cbd5e1', fontWeight: 'bold', letterSpacing: '2px' }}>PAGE {p + 1}</div>
           </div>
         </div>
       ))}
