@@ -65,7 +65,7 @@ export default function App() {
 
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
-      const containerWidth = mainRef.current.clientWidth - 80; // 패딩 고려
+      const containerWidth = mainRef.current.clientWidth - 80; 
       const manuscriptWidth = 880; 
       setZoom(Math.floor(Math.min(1.0, containerWidth / manuscriptWidth) * 10) / 10);
     }
@@ -79,6 +79,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
+  // 원고지 가공 엔진
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
     let i = 0;
@@ -97,6 +98,7 @@ export default function App() {
 
       const isQuoteActive = (sQuoteCount % 2 !== 0) || (dQuoteCount % 2 !== 0);
 
+      // 인용구 줄바꿈 인덴트
       if (cells.length % cols === 0 && isQuoteActive && currentType !== 'open') {
         cells.push({ type: 'empty' });
       }
@@ -177,35 +179,61 @@ export default function App() {
         @media (min-width: 1000px) { .cards-container { grid-template-columns: repeat(4, 1fr) !important; } }
         .card-item:hover { transform: translateY(-12px) !important; box-shadow: 0 30px 60px rgba(0,0,0,0.1) !important; border-color: #6366f1 !important; }
         
-        /* [인쇄 설정: 가로세로 비율 유지 자동 맞춤] */
+        /* [인쇄 자동 맞춤 엔진 핵심] */
         @media print {
-          @page { size: auto; margin: 20mm !important; }
+          @page { 
+            size: auto; 
+            margin: 20mm !important; /* 20mm 최소 여백 강제 */
+          }
           .no-print { display: none !important; }
-          body, html { margin: 0 !important; padding: 0 !important; background: white !important; height: auto !important; overflow: visible !important; }
-          .manuscript-main { padding: 0 !important; margin: 0 !important; background: white !important; overflow: visible !important; }
-          .manuscript-print-root { display: block !important; width: 100% !important; }
+          body, html { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            background: white !important; 
+            width: 100% !important;
+            height: 100% !important;
+          }
+          .main-container { background: white !important; }
+          .manuscript-main { 
+            padding: 0 !important; 
+            margin: 0 !important; 
+            background: white !important; 
+            overflow: hidden !important; 
+          }
+          .manuscript-print-root {
+            width: 100% !important;
+            height: auto !important;
+          }
           .page-unit { 
-            height: 100vh !important; 
+            /* 가로세로 비율을 유지하며 용지에 꽉 차게 조절 */
+            width: 100vw !important;
+            height: calc(100vh - 40mm) !important; /* 위아래 여백 제외 */
             display: flex !important; 
             justify-content: center !important; 
             align-items: center !important; 
             page-break-after: always !important; 
             break-after: page !important;
             background: white !important;
+            overflow: hidden !important;
           }
           .page-box { 
-            box-shadow: none !important; margin: 0 !important; padding: 0 !important;
-            max-width: 100% !important; 
-            max-height: calc(100vh - 45mm) !important; 
-            display: flex !important; 
-            flex-direction: column !important; 
-            justify-content: center !important; 
-            transform-origin: center center !important;
-            /* 가로세로 비율 유지하며 자동 축소/확대 */
-            width: fit-content !important;
+            box-shadow: none !important; 
+            margin: 0 !important; 
+            padding: 40px 60px !important;
+            background: white !important;
+            /* 핵심: 비율 유지하면서 크기 제한 */
+            max-width: calc(100vw - 40mm) !important;
+            max-height: calc(100vh - 40mm) !important;
+            width: auto !important;
             height: auto !important;
-            zoom: normal !important; 
+            /* 원고지 내용물 비율 유지하며 자동 축소 */
+            transform-origin: center center !important;
+            display: inline-block !important;
+            /* 브라우저가 원고지를 작게 그려서 한 장에 넣도록 유도 */
+            zoom: 0.9; 
           }
+          /* 이름표 위치 보정 */
+          .name-tag { margin-bottom: 25px !important; }
         }
       `}</style>
 
@@ -233,7 +261,6 @@ export default function App() {
               </div>
               <textarea value={content} onChange={e => setContent(e.target.value.slice(0, 3000))} style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} placeholder="내용을 입력하세요... (최대 3,000자)" />
             </aside>
-            {/* 원고지 우측 여백 불균형 해결을 위한 Flex 레이아웃 적용 */}
             <main ref={mainRef} className="manuscript-main" style={{ flex: 1, overflow: 'auto', backgroundColor: '#cbd5e1', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div className="no-print" style={{ marginBottom: '15px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start' }}>
                 <span style={{ fontSize: '10px', fontWeight: '900', color: '#6366f1' }}>ZOOM</span>
