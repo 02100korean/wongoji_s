@@ -25,6 +25,25 @@ const cardDescStyle = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', m
 const cardButtonStyle = { padding: '10px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '12px' };
 const selectStyle = { height: '42px', padding: '0 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '700', backgroundColor: 'white', color: '#334155' };
 
+// 원고지 모양 SVG 아이콘 (1번 카드용)
+const WonjiIcon = () => (
+    <div style={{ marginBottom: '15px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {/* 원고지 격자 배경 */}
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="48" rx="8" fill="#f8fafc"/>
+            <path d="M10 10H38V38H10V10Z" stroke="#cbd5e1" strokeWidth="1"/>
+            <path d="M17 10V38" stroke="#cbd5e1" strokeWidth="1"/>
+            <path d="M24 10V38" stroke="#cbd5e1" strokeWidth="1"/>
+            <path d="M31 10V38" stroke="#cbd5e1" strokeWidth="1"/>
+            <path d="M10 17H38" stroke="#cbd5e1" strokeWidth="1"/>
+            <path d="M10 24H38" stroke="#cbd5e1" strokeWidth="1"/>
+            <path d="M10 31H38" stroke="#cbd5e1" strokeWidth="1"/>
+        </svg>
+        {/* 실제 쓰는 펜 그림 (Emoji 활용하여 Recognizability 높임) */}
+        <span style={{ fontSize: '26px', position: 'absolute', bottom: '-2px', right: '-4px', transform: 'rotate(-15deg)' }}>🖋️</span>
+    </div>
+);
+
 // --- 2. 메인 홈 컴포넌트 (Home) ---
 const Home = ({ onNavigate }) => {
   const bookUrl = "https://search.shopping.naver.com/book/catalog/57751554767?query=%ED%95%9C%20%EA%B6%8C%EC%9C%BC%EB%A1%9C%20%EC%99%84%EC%84%B1%ED%95%98%EB%8A%94%20TOPIK%201%20%EB%8B%A8%EC%96%B4&NaPm=ct%3Dmnjopjs0%7Cci%3D6a138955cd6dd285c04829e367fb31e064b9a774%7Ctr%3Dboksl%7Csn%3D95694%7Chk%3D2fc6442c1e849be84ad7de7e2cbeeabf6ff9c236";
@@ -42,11 +61,10 @@ const Home = ({ onNavigate }) => {
         justifyContent: 'center',
         minHeight: '60vh'
       }}>
-        {/* 메인 타이틀 수정 */}
+        {/* 메인 타이틀 수정: with 레귤러, 02100 Korean 색상 변경 */}
         <h1 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '20px', lineHeight: '1.2' }}>
-          Master Korean with 02100 Korean
+          Master Korean <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span>
         </h1>
-        {/* 메인 설명 수정 */}
         <p style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto' }}>
           한국어를 원고지에 쓰면서 연습하고,<br/>한국어 필수 패턴을 내 것으로 만드세요.
         </p>
@@ -76,15 +94,15 @@ const Home = ({ onNavigate }) => {
         position: 'relative', 
         zIndex: 10 
       }}>
-        {/* 1번 카드: 원고지 연습장 문구 수정 */}
+        {/* 1번 카드: 원고지 연습장 (그림 수정 완료) */}
         <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
-          <div style={{ fontSize: '40px', marginBottom: '15px' }}>✍️</div>
+          <WonjiIcon />
           <h3 style={cardTitleStyle}>원고지 연습장</h3>
           <p style={cardDescStyle}>원고지에 직접 쓰고 인쇄하거나 PDF로 저장하세요. 다양한 폰트로 연습할 수 있어요.</p>
           <button style={cardButtonStyle}>바로 시작하기</button>
         </div>
 
-        {/* 2번 카드: E-book 문구 수정 */}
+        {/* 2번 카드 */}
         <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
           <div style={{ fontSize: '40px', marginBottom: '15px' }}>📚</div>
           <h3 style={cardTitleStyle}>패턴 100 E-book</h3>
@@ -128,7 +146,8 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- 3. 원고지 컨테이너 컴포넌트 ---
+// --- 3. 원고지 컨테이너 컴포넌트 (생략 - 기존 코드와 동일) ---
+// ... (ManuscriptContainer 컴포넌트 소스코드는 그대로 유지)
 const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFamily, processToCells, renderCell }) => {
   const cols = 20; const gridVal = parseInt(gridType); const rows = gridVal / cols;
   const allCells = processToCells(text, cols);
