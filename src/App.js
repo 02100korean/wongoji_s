@@ -27,7 +27,7 @@ const selectStyle = { height: '42px', padding: '0 10px', borderRadius: '8px', bo
 
 // --- 2. 메인 홈 컴포넌트 (Home) ---
 const Home = ({ onNavigate }) => {
-  const bookSearchUrl = "https://search.shopping.naver.com/book/search?bookTabType=ALL&pageIndex=1&pageSize=40&query=%ED%95%9C%20%EA%B6%8C%EC%9C%BC%EB%A1%9C%20%EC%99%84%EC%84%B1%ED%95%98%EB%8A%94%20TOPIK%201%20%EB%8B%A8%EC%96%B4&sort=REL";
+  const bookUrl = "https://search.shopping.naver.com/book/catalog/57751554767?query=%ED%95%9C%20%EA%B6%8C%EC%9C%BC%EB%A1%9C%20%EC%99%84%EC%84%B1%ED%95%98%EB%8A%94%20TOPIK%201%20%EB%8B%A8%EC%96%B4&NaPm=ct%3Dmnjopjs0%7Cci%3D6a138955cd6dd285c04829e367fb31e064b9a774%7Ctr%3Dboksl%7Csn%3D95694%7Chk%3D2fc6442c1e849be84ad7de7e2cbeeabf6ff9c236";
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Noto Sans KR', sans-serif", color: '#1e293b' }}>
@@ -75,7 +75,7 @@ const Home = ({ onNavigate }) => {
         position: 'relative', 
         zIndex: 10 
       }}>
-        {/* 카드 1: 원고지 연습장 */}
+        {/* 카드 1 */}
         <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
           <div style={{ fontSize: '40px', marginBottom: '15px' }}>✍️</div>
           <h3 style={cardTitleStyle}>원고지 연습장</h3>
@@ -83,7 +83,7 @@ const Home = ({ onNavigate }) => {
           <button style={cardButtonStyle}>바로 시작하기</button>
         </div>
 
-        {/* 카드 2: E-book */}
+        {/* 카드 2 */}
         <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" style={cardStyle}>
           <div style={{ fontSize: '40px', marginBottom: '15px' }}>📚</div>
           <h3 style={cardTitleStyle}>패턴 100 E-book</h3>
@@ -91,7 +91,7 @@ const Home = ({ onNavigate }) => {
           <button style={{ ...cardButtonStyle, backgroundColor: '#10b981' }}>다운로드 하기</button>
         </a>
 
-        {/* 카드 3: 영상 */}
+        {/* 카드 3 */}
         <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" style={cardStyle}>
           <div style={{ fontSize: '40px', marginBottom: '15px' }}>📺</div>
           <h3 style={cardTitleStyle}>패턴 100 영상</h3>
@@ -99,10 +99,15 @@ const Home = ({ onNavigate }) => {
           <button style={{ ...cardButtonStyle, backgroundColor: '#f59e0b' }}>강의 시청하기</button>
         </a>
 
-        {/* 카드 4: TOPIK 1 단어장 (전체 클릭 가능) */}
-        <a href={bookSearchUrl} target="_blank" rel="noreferrer" style={{...cardStyle, border: '2.5px solid #6366f1'}}>
-            {/* 더 크고 명확해진 문의 박스 */}
-            <div style={{ 
+        {/* 카드 4: TOPIK 1 단어장 */}
+        <div onClick={() => window.open(bookUrl, '_blank')} className="card-item" style={{...cardStyle, border: '2.5px solid #6366f1'}}>
+            {/* 이메일 발송 박스 (버블링 차단 적용) */}
+            <div 
+              onClick={(e) => {
+                e.stopPropagation(); // 카드 전체 클릭 이벤트가 실행되지 않도록 차단
+                window.location.href = "mailto:02100korean@gmail.com";
+              }}
+              style={{ 
                 backgroundColor: '#eff6ff', 
                 border: '2px dashed #6366f1', 
                 color: '#1e1b4b', 
@@ -114,7 +119,7 @@ const Home = ({ onNavigate }) => {
                 boxSizing: 'border-box'
             }}>
                 <div style={{ fontSize: '11px', fontWeight: '800', color: '#4338ca', marginBottom: '4px' }}>해외 배송 / 10권 이상 구입 문의</div>
-                <div style={{ fontSize: '14px', fontWeight: '900' }}>02100korean@gmail.com</div>
+                <div style={{ fontSize: '14px', fontWeight: '900', textDecoration: 'underline' }}>02100korean@gmail.com</div>
             </div>
             
             <div style={{ fontSize: '40px', marginBottom: '10px' }}>📖</div>
@@ -123,7 +128,7 @@ const Home = ({ onNavigate }) => {
                 한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.
             </p>
             <button style={{ ...cardButtonStyle, width: '100%', backgroundColor: '#6366f1' }}>구입하러 가기</button>
-        </a>
+        </div>
       </div>
     </div>
   );
