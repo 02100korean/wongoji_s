@@ -16,8 +16,8 @@ const cardStyle = {
   boxSizing: 'border-box', 
   border: '1px solid #eee',
   position: 'relative',
-  textDecoration: 'none', // 링크 밑줄 제거
-  color: 'inherit' // 기본 글자색 유지
+  textDecoration: 'none',
+  color: 'inherit'
 };
 
 const cardTitleStyle = { fontSize: '18px', fontWeight: '800', marginBottom: '10px', color: '#1e293b' };
@@ -42,11 +42,13 @@ const Home = ({ onNavigate }) => {
         justifyContent: 'center',
         minHeight: '60vh'
       }}>
+        {/* 메인 타이틀 수정 */}
         <h1 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '20px', lineHeight: '1.2' }}>
-          Master Korean Writing
+          Master Korean with 02100 Korean
         </h1>
+        {/* 메인 설명 수정 */}
         <p style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto' }}>
-          가장 세련된 방법으로 한국어 쓰기를 연습하고,<br/>필수 패턴을 내 것으로 만드세요.
+          한국어를 원고지에 쓰면서 연습하고,<br/>한국어 필수 패턴을 내 것으로 만드세요.
         </p>
         
         <div className="scroll-indicator" style={{ 
@@ -74,23 +76,23 @@ const Home = ({ onNavigate }) => {
         position: 'relative', 
         zIndex: 10 
       }}>
-        {/* 카드 1: 원고지 연습장 */}
+        {/* 1번 카드: 원고지 연습장 문구 수정 */}
         <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
           <div style={{ fontSize: '40px', marginBottom: '15px' }}>✍️</div>
           <h3 style={cardTitleStyle}>원고지 연습장</h3>
-          <p style={cardDescStyle}>온라인 원고지에 직접 쓰고 PDF로 저장하세요. 화면 맞춤 기능이 제공됩니다.</p>
+          <p style={cardDescStyle}>원고지에 직접 쓰고 인쇄하거나 PDF로 저장하세요. 다양한 폰트로 연습할 수 있어요.</p>
           <button style={cardButtonStyle}>바로 시작하기</button>
         </div>
 
-        {/* 카드 2: E-book */}
+        {/* 2번 카드: E-book 문구 수정 */}
         <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
           <div style={{ fontSize: '40px', marginBottom: '15px' }}>📚</div>
           <h3 style={cardTitleStyle}>패턴 100 E-book</h3>
-          <p style={cardDescStyle}>외국인이 가장 많이 틀리는 한국어 문장 패턴 100가지를 담았습니다.</p>
+          <p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p>
           <button style={{ ...cardButtonStyle, backgroundColor: '#10b981' }}>다운로드 하기</button>
         </a>
 
-        {/* 카드 3: 영상 */}
+        {/* 3번 카드 */}
         <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
           <div style={{ fontSize: '40px', marginBottom: '15px' }}>📺</div>
           <h3 style={cardTitleStyle}>패턴 100 영상</h3>
@@ -98,7 +100,7 @@ const Home = ({ onNavigate }) => {
           <button style={{ ...cardButtonStyle, backgroundColor: '#f59e0b' }}>강의 시청하기</button>
         </a>
 
-        {/* 카드 4: TOPIK 1 단어장 */}
+        {/* 4번 카드 */}
         <a href={bookUrl} target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border: '2.5px solid #6366f1'}}>
             <div style={{ 
                 backgroundColor: '#eff6ff', 
@@ -255,7 +257,6 @@ export default function App() {
         .scroll-indicator { animation: bounceTriangle 2s infinite; }
         @keyframes bounceTriangle { 0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 40% {transform: translate(-50%, -12px);} 60% {transform: translate(-50%, -6px);} }
         
-        /* 모든 카드 아이템에 마우스 오버 효과 통일 */
         .card-item:hover { 
           transform: translateY(-12px) !important; 
           box-shadow: 0 30px 60px rgba(0,0,0,0.1) !important; 
