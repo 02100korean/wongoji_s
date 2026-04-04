@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-// --- 1. 스타일 및 상수 정의 ---
+// --- 1. 스타일 및 유틸리티 ---
 const cardStyle = { 
   transition: 'all 0.3s ease', cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
   textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', 
@@ -15,6 +15,7 @@ const selectStyle = { height: '42px', padding: '0 10px', borderRadius: '8px', bo
 
 const isClosingQuote = (c) => /[”’"']/.test(c);
 const isOpeningQuote = (c) => /[“‘"']/.test(c);
+const isSimplePunct = (c) => /[.,]/.test(c);
 
 // --- 2. 메인 홈 컴포넌트 ---
 const Home = ({ onNavigate }) => {
@@ -68,7 +69,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
-  // 원고지 가공 로직 (인용구 인덴트 및 결합 로직 개선)
+  // 원고지 가공 엔진 (부호 및 인용구 로직 최적화)
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
     let i = 0;
@@ -79,14 +80,12 @@ export default function App() {
       const next = text[i + 1] || null;
       const next2 = text[i + 2] || null;
 
-      // 줄의 시작점에서 따옴표 인덴트 처리
-      if (cells.length % cols === 0 && quoteOpen) {
-          if (!isOpeningQuote(char)) {
-            cells.push({ type: 'empty' });
-          }
+      // 줄의 시작점에서 따옴표 인덴트 처리 (강제 첫 칸 비우기)
+      if (cells.length % cols === 0 && quoteOpen && !isOpeningQuote(char)) {
+          cells.push({ type: 'empty' });
       }
 
-      // 3. 말줄임표 처리
+      // 말줄임표 처리 (...)
       if (char === '.' && next === '.' && next2 === '.') {
         cells.push({ type: 'ellipsis' });
         i += 3; continue;
@@ -124,13 +123,14 @@ export default function App() {
         i += 2;
       } else {
         const isEndCol = cells.length % cols === cols - 1;
-        // 행 끝 . , 결합
-        if (isEndCol && (next === '.' || next === ',')) {
+        
+        // 2. 행 끝 . , 결합 (20번째 칸)
+        if (isEndCol && isSimplePunct(next)) {
           cells.push({ type: 'combined_end', content: char, punct: next });
           i += 2;
         } 
-        // 4. . , 와 끝 따옴표 결합 (Noto Sans 유지용 타입 분리)
-        else if ((char === '.' || char === ',') && isClosingQuote(next)) {
+        // 3. . , 와 닫는 따옴표 결합
+        else if (isSimplePunct(char) && isClosingQuote(next)) {
           cells.push({ type: 'punct_quote_final', punct: char, quote: next });
           i += 2;
         }
@@ -146,16 +146,14 @@ export default function App() {
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
     
-    // 폰트 크기 보정 (하이멜로디 +5%, 나눔손글씨 +10%)
+    // 폰트 크기 보정 (요청 사항 반영)
     let baseFontSize = 22;
     if (fontFamily.includes('Gamja') || fontFamily.includes('Poor')) baseFontSize = 23.5;
-    if (fontFamily.includes('Hi Melody')) baseFontSize = 24.7;
-    if (fontFamily.includes('Nanum Pen')) baseFontSize = 25.9;
+    if (fontFamily.includes('Hi Melody')) baseFontSize = 24.7; // +5%
+    if (fontFamily.includes('Nanum Pen')) baseFontSize = 25.9; // +10%
 
     // 1. 하이멜로디, 감자꽃, 주아체 글자 5% 아래로 이동 (약 2px)
     const needsShiftDown = ["'Hi Melody', cursive", "'Gamja Flower', cursive", "'Jua', sans-serif"].includes(fontFamily);
-    
-    // 나눔손글씨와 푸른밤은 기존의 4px 패딩 유지
     const needsOriginalShift = ["'Poor Story', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily);
 
     const cellStyle = { 
@@ -169,7 +167,7 @@ export default function App() {
 
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
 
-    // 공통 문장부호 렌더러 (Noto Sans 고정)
+    // 문장부호 렌더러 (Noto Sans 고정 및 정밀 좌표 적용)
     const Punct = ({ char, x, y, size = baseFontSize }) => (
         <span style={{
             fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`,
@@ -177,7 +175,7 @@ export default function App() {
         }}>{char}</span>
     );
 
-    // 3. 말줄임표 보정 (35,65), (50,65), (65,65)
+    // 말줄임표 보정 (35,65), (50,65), (65,65)
     if (cellData.type === 'ellipsis') {
       return (
         <div key={key} style={cellStyle}>
@@ -186,21 +184,21 @@ export default function App() {
       );
     }
 
-    // 행 끝 결합
+    // 2. 20번째 칸 결합 (punct x80, y30)
     if (cellData.type === 'combined_end') {
       return (
         <div key={key} style={cellStyle}>
           <span>{cellData.content}</span>
-          <Punct char={cellData.punct} x={75} y={30} />
+          <Punct char={cellData.punct} x={80} y={30} />
         </div>
       );
     }
 
-    // 4. . , 와 끝 따옴표 결합 (좌표: 부호 xy25, 따옴표 x90 y70)
+    // 3. 부호(.,) + 닫는 따옴표 결합 (부호 xy30, 따옴표 x90 y70)
     if (cellData.type === 'punct_quote_final') {
       return (
         <div key={key} style={cellStyle}>
-          <Punct char={cellData.punct} x={25} y={25} />
+          <Punct char={cellData.punct} x={30} y={30} />
           <Punct char={cellData.quote} x={90} y={70} />
         </div>
       );
@@ -216,19 +214,23 @@ export default function App() {
     }
 
     const char = cellData.content;
-    const isStart = isOpeningQuote(char);
-    const isEnd = isClosingQuote(char);
-    const isPeriod = /[.,]/.test(char);
+    
+    // 1. 단독 부호 (x30, y40)
+    if (isSimplePunct(char)) {
+        return <div key={key} style={cellStyle}><Punct char={char} x={30} y={40} /></div>;
+    }
+    
+    // 4. 단독 닫는 따옴표 (x20, y70)
+    if (isClosingQuote(char)) {
+        return <div key={key} style={cellStyle}><Punct char={char} x={20} y={70} /></div>;
+    }
 
-    // 2. 부호 좌표 수정 (x30, y70)
-    return (
-        <div key={key} style={{...cellStyle, color: '#0f172a'}}>
-            {isStart ? <Punct char={char} x={75} y={70} /> :
-             isEnd ? <Punct char={char} x={30} y={30} /> :
-             isPeriod ? <Punct char={char} x={30} y={30} /> :
-             <span>{char}</span>}
-        </div>
-    );
+    // 여는 따옴표 (x75, y70 - 이전Establish값 기준)
+    if (isOpeningQuote(char)) {
+        return <div key={key} style={cellStyle}><Punct char={char} x={75} y={70} /></div>;
+    }
+
+    return <div key={key} style={{...cellStyle, color: '#0f172a'}}><span>{char}</span></div>;
   }, [lineColor, viewMode, fontFamily]);
 
   return (
