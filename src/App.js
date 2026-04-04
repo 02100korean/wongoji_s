@@ -11,7 +11,9 @@ const cardStyle = {
 const cardTitleStyle = { fontSize: '18px', fontWeight: '800', marginBottom: '10px', color: '#1e293b' };
 const cardDescStyle = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', marginBottom: '15px', flex: 1 };
 const cardButtonStyle = { padding: '10px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '12px' };
-const selectStyle = { height: '36px', padding: '0 8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: '700', backgroundColor: 'white', color: '#334155' };
+
+// 설정 박스 공통 스타일 (크기 축소 및 통일)
+const selectStyle = { height: '34px', padding: '0 8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '11px', fontWeight: '700', backgroundColor: 'white', color: '#334155', width: '100%', boxSizing: 'border-box' };
 
 const isSimplePunct = (c) => c === '.' || c === ',';
 const isSingleQuote = (c) => /['‘’]/.test(c);
@@ -22,7 +24,6 @@ const WonjiIcon = () => (
         <svg width="60" height="50" viewBox="0 0 60 50" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="0.5" y="0.5" width="59" height="49" rx="3.5" fill="white" stroke="#6366f1" strokeWidth="1"/>
             <line x1="15" y1="0" x2="15" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/><line x1="30" y1="0" x2="30" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/><line x1="45" y1="0" x2="45" y2="50" stroke="#cbd5e1" strokeWidth="0.5"/><line x1="0" y1="16" x2="60" y2="16" stroke="#cbd5e1" strokeWidth="0.5"/><line x1="0" y1="33" x2="60" y2="33" stroke="#cbd5e1" strokeWidth="0.5"/>
-            <rect x="2" y="2" width="11" height="12" stroke="#fecaca" strokeWidth="0.5"/><rect x="17" y="2" width="11" height="12" stroke="#fecaca" strokeWidth="0.5"/>
         </svg>
         <span style={{ fontSize: '28px', position: 'absolute', bottom: '-5px', right: '0px', transform: 'rotate(-10deg)' }}>🖋️</span>
     </div>
@@ -79,7 +80,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
-  // 원고지 데이터 가공 엔진
+  // 원고지 가공 엔진
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
     let i = 0, sQuoteCount = 0, dQuoteCount = 0;
@@ -135,7 +136,7 @@ export default function App() {
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
         borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', 
-        fontFamily: fontFamily, fontWeight: 'normal', paddingTop: isShiftDown ? '2px' : isMoreShiftDown ? '4px' : '0px', position: 'relative'
+        fontFamily: fontFamily, fontWeight: 'normal', paddingTop: isShiftDown ? '2.5px' : isMoreShiftDown ? '4px' : '0px', position: 'relative'
     };
 
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
@@ -143,7 +144,7 @@ export default function App() {
         <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`, position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>
     );
     if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
-    if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{zIndex:2}}>{cellData.content}</span><Punct char={cellData.punct} x={80} y={30} /></div>;
+    if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{position:'relative', zIndex:2}}>{cellData.content}</span><Punct char={cellData.punct} x={80} y={30} /></div>;
     if (cellData.type === 'punct_quote_final') return <div key={key} style={cellStyle}><Punct char={cellData.punct} x={30} y={40} /><Punct char={cellData.quote} x={90} y={70} /></div>;
     if (cellData.type === 'pair') return <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[0]}</div><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[1]}</div></div>;
     const char = cellData.content;
@@ -159,24 +160,20 @@ export default function App() {
         @import url('https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&family=Hi+Melody&family=Poor+Story&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
         body { margin: 0; padding: 0; overflow-x: hidden; }
         
-        /* [핵심 반응형 레이아웃] */
-        .editor-container { display: flex; height: 100vh; background-color: #e2e8f0; overflow: hidden; position: relative; }
+        .editor-container { display: flex; height: 100vh; background-color: #e2e8f0; overflow: hidden; }
         
-        /* 1. 가로 모드 (좌측: 입력/설정, 우측: 원고지) */
+        /* [가로 모드] */
         .sidebar { width: 340px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; }
         .main-preview { flex: 1; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; alignItems: center; }
 
-        /* 2. 세로 모드 (상단: 입력/설정 50%, 하단: 원고지 50%) */
+        /* [세로 모드 최적화] */
         @media (orientation: portrait) {
           .editor-container { flex-direction: column !important; }
           .sidebar { width: 100% !important; height: 50vh !important; border-right: none; border-bottom: 2px solid #ddd; }
-          .main-preview { width: 100% !important; height: 50vh !important; padding: 10px; }
-          .sidebar-settings { padding: 10px !important; gap: 6px !important; }
-          .sidebar-input { flex: 1 !important; height: auto !important; }
+          .main-preview { width: 100% !important; height: 50vh !important; padding: 10px; flex: 1; }
         }
 
-        /* 공통 입력창 스타일 */
-        .sidebar-settings { padding: 15px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 8px; }
+        .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; }
 
         @media print {
@@ -184,7 +181,7 @@ export default function App() {
           .no-print { display: none !important; }
           body, html { background: white !important; }
           .page-unit { height: 100vh !important; display: flex !important; justifyContent: center !important; alignItems: center !important; page-break-after: always !important; }
-          .page-box { box-shadow: none !important; max-width: calc(100vw - 40mm) !important; max-height: calc(100vh - 40mm) !important; transform-origin: center center !important; zoom: 0.9; }
+          .page-box { box-shadow: none !important; max-width: calc(100vw - 40mm) !important; max-height: calc(100vh - 40mm) !important; zoom: 0.9; }
         }
       `}</style>
 
@@ -192,27 +189,28 @@ export default function App() {
         <Home onNavigate={setView} />
       ) : (
         <div className="editor-container">
-          {/* 헤더 */}
-          <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, height: '50px', position: 'fixed', top: 0, left: 0, right: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}><button onClick={() => setView('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>🏠</button><div style={{ fontWeight: '900', color: '#1e293b', fontSize: '15px' }}>원고지 연습장</div></div>
-            <div style={{ display: 'flex', gap: '8px' }}>{['#607d8b', '#ef4444', '#2d6a4f', '#000000'].map(c => (<button key={c} onClick={() => setLineColor(c)} style={{ width: '22px', height: '22px', borderRadius: '50%', border: '2px solid white', backgroundColor: c }} />))}</div>
+          <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, position: 'absolute', top: 0, left: 0, right: 0, height: '50px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}><button onClick={() => setView('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>🏠</button><div style={{ fontWeight: '900', color: '#1e293b', fontSize: '14px' }}>원고지 연습장</div></div>
+            <div style={{ display: 'flex', gap: '8px' }}>{['#607d8b', '#ef4444', '#2d6a4f', '#000000'].map(c => (<button key={c} onClick={() => setLineColor(c)} style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white', backgroundColor: c }} />))}</div>
           </header>
 
           <div style={{ display: 'flex', flex: 1, width: '100%', paddingTop: '50px' }} className="editor-layout">
-            {/* 설정 및 입력창 (가로일 땐 좌측, 세로일 땐 상단) */}
             <aside className="sidebar no-print">
               <div className="sidebar-settings">
+                {/* 1열: 원고지 선택, 유형 */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                   <select value={gridType} onChange={e => setGridType(e.target.value)} style={selectStyle}><option value="200">200자 (가로)</option><option value="400">400자 (세로)</option></select>
                   <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={selectStyle}><option value="traditional">일반형</option><option value="feedback">피드백용</option><option value="grid">격자형</option></select>
                 </div>
-                <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={selectStyle}>
-                  <option value="'Noto Serif KR', serif">바탕체</option><option value="'Noto Sans KR', sans-serif">고딕체</option><option value="'Jua', sans-serif">주아체</option><option value="'Gamja Flower', cursive">감자꽃체</option><option value="'Hi Melody', cursive">하이멜로디</option><option value="'Poor Story', cursive">푸른밤체</option><option value="'Nanum Pen Script', cursive">나눔펜글씨</option>
-                </select>
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '6px' }}>
+                {/* 2열: 폰트, 이름 입력 */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                  <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={selectStyle}>
+                    <option value="'Noto Serif KR', serif">바탕체</option><option value="'Noto Sans KR', sans-serif">고딕체</option><option value="'Jua', sans-serif">주아체</option><option value="'Gamja Flower', cursive">감자꽃체</option><option value="'Hi Melody', cursive">하이멜로디</option><option value="'Poor Story', cursive">푸른밤체</option><option value="'Nanum Pen Script', cursive">나눔펜글씨</option>
+                  </select>
                   <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={selectStyle} />
-                  <button onClick={() => window.print()} style={{ ...selectStyle, backgroundColor: '#6366f1', color: 'white', border: 'none' }}>인쇄/PDF</button>
                 </div>
+                {/* 인쇄 버튼 */}
+                <button onClick={() => window.print()} style={{ height: '34px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>인쇄 / PDF 저장</button>
               </div>
               <textarea 
                 value={content} 
@@ -223,11 +221,10 @@ export default function App() {
               />
             </aside>
 
-            {/* 원고지 미리보기 (가로일 땐 우측, 세로일 땐 하단) */}
             <main ref={mainRef} className="main-preview">
-              <div className="no-print" style={{ marginBottom: '10px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="no-print" style={{ marginBottom: '8px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '10px', fontWeight: '900', color: '#6366f1' }}>ZOOM</span>
-                <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900' }}>{[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}</select>
+                <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900' }}>{[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}</select>
                 <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px' }}>맞춤</button>
               </div>
               <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top center' }}>
@@ -250,7 +247,7 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
       {Array.from({ length: pageCount }).map((_, p) => (
         <div key={p} className="page-unit">
           <div style={{ backgroundColor: 'white', padding: '40px 60px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', marginBottom: '40px' }} className="page-box">
-            <div className="name-tag" style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
               {p === 0 && name && name.trim() !== '' ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {name}</div>) : (<div style={{ height: '35px' }}></div>)}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
