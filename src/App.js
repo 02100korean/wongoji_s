@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-// --- 1. 스타일 및 유틸리티 ---
+// --- 1. 스타일 및 상수 정의 ---
 const cardStyle = { 
   transition: 'all 0.3s ease', cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
   textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', 
@@ -23,7 +23,10 @@ const WonjiIcon = () => (
     </div>
 );
 
+// 문장부호 판단
 const isPunct = (c) => /[.,"'?!~;:‘’“”]/.test(c);
+const isClosingQuote = (c) => /[”’"']/.test(c);
+const isOpeningQuote = (c) => /[“‘"']/.test(c);
 
 // --- 2. 메인 홈 컴포넌트 ---
 const Home = ({ onNavigate }) => {
@@ -31,9 +34,7 @@ const Home = ({ onNavigate }) => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: "'Noto Sans KR', sans-serif", color: '#1e293b' }}>
       <section style={{ padding: '80px 20px 140px', textAlign: 'center', background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', color: 'white', position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: '60vh' }}>
-        <h1 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '20px', lineHeight: '1.2' }}>
-          Master Korean <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span>
-        </h1>
+        <h1 style={{ fontSize: '3rem', fontWeight: '900', marginBottom: '20px', lineHeight: '1.2' }}>Master Korean <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
         <p style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', margin: '0 auto' }}>한국어를 원고지에 쓰면서 연습하고,<br/>한국어 필수 패턴을 내 것으로 만드세요.</p>
         <div className="scroll-indicator" style={{ position: 'absolute', bottom: '30px', left: '50%', transform: 'translateX(-50%)', flexDirection: 'column', alignItems: 'center', display: 'none' }}>
           <span style={{ fontSize: '11px', fontWeight: '900', color: '#facc15', marginBottom: '8px', letterSpacing: '1px' }}>SCROLL DOWN</span>
@@ -79,37 +80,38 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
-  // 원고지 가공 핵심 로직 (새로운 규칙 반영)
+  // 원고지 규칙 가공 엔진
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
     let i = 0;
-    let quoteLevel = 0; // 인용구 중첩 확인
+    let quoteOpen = false;
 
     while (i < text.length) {
       const char = text[i];
-      const nextChar = text[i + 1] || null;
-      const nextNextChar = text[i + 2] || null;
+      const next = text[i + 1] || null;
+      const next2 = text[i + 2] || null;
 
-      // 4. 말줄임표 처리 (...)
-      if (char === '.' && nextChar === '.' && nextNextChar === '.') {
+      // 4. 말줄임표 처리
+      if (char === '.' && next === '.' && next2 === '.') {
         cells.push({ type: 'ellipsis' });
         i += 3; continue;
       }
 
-      // 따옴표 상태 관리
-      if (char === '"' || char === '“' || char === "'" || char === '‘') quoteLevel++;
-      if (char === '"' || char === '”' || char === "'" || char === '’') quoteLevel = Math.max(0, quoteLevel - 1);
+      // 따옴표 상태 추적
+      if (isOpeningQuote(char)) quoteOpen = true;
+      if (isClosingQuote(char)) quoteOpen = false;
 
+      // 줄바꿈 처리
       if (char === '\n') {
         const currentLinePos = cells.length % cols;
         const remaining = cols - (currentLinePos || cols);
         if (currentLinePos !== 0) { for (let r = 0; r < remaining; r++) cells.push({ type: 'empty' }); }
-        cells.push({ type: 'empty' });
+        cells.push({ type: 'empty' }); // 새 문단 들여쓰기
         i++; continue;
       }
 
-      // 2. 인용구 줄바꿈 인덴트: 줄의 첫 칸인데 인용 중이라면 한 칸 비움
-      if (cells.length % cols === 0 && quoteLevel > 0 && !isPunct(char)) {
+      // 2. 인용구 줄바꿈 인덴트 규칙
+      if (cells.length % cols === 0 && quoteOpen && !isOpeningQuote(char)) {
         cells.push({ type: 'empty' });
       }
 
@@ -119,30 +121,31 @@ export default function App() {
         i++; continue;
       }
 
+      // 5. 숫자 사이 부호 결합
       const isDigit = (c) => /[0-9]/.test(c);
-      const isSmallChar = (c) => /[a-zA-Z]/.test(c);
-
-      // 5. 숫자 사이 . , 처리
-      if (isDigit(char) && (nextChar === '.' || nextChar === ',') && isDigit(nextNextChar)) {
-        cells.push({ type: 'pair', content: [char, nextChar] });
+      if (isDigit(char) && (next === '.' || next === ',') && isDigit(next2)) {
+        cells.push({ type: 'pair', content: [char, next] });
         i += 2; continue;
       }
 
-      const canPair = nextChar && ((isDigit(char) && isDigit(nextChar)) || (isSmallChar(char) && isSmallChar(nextChar)));
+      // 일반 숫자/영어 페어링
+      const isSmallChar = (c) => /[a-zA-Z]/.test(c);
+      const canPair = next && ((isDigit(char) && isDigit(next)) || (isSmallChar(char) && isSmallChar(next)));
+
       if (canPair) {
-        cells.push({ type: 'pair', content: [char, nextChar] });
+        cells.push({ type: 'pair', content: [char, next] });
         i += 2;
       } else {
         const isEndCol = cells.length % cols === cols - 1;
         
-        // 1 & 3. 문장 끝 결합 처리 (20번째 칸)
-        if (isEndCol && (nextChar === '.' || nextChar === ',')) {
-          cells.push({ type: 'combined', content: char, punct: nextChar });
+        // 1. 행 끝 . , 결합 규칙
+        if (isEndCol && (next === '.' || next === ',')) {
+          cells.push({ type: 'combined_end', content: char, punct: next });
           i += 2;
         } 
-        // 3. 따옴표 + 문장부호 결합 처리
-        else if ((char === '"' || char === '”' || char === "'" || char === '’') && (nextChar === '.' || nextChar === ',')) {
-          cells.push({ type: 'quote_punct', content: nextChar, quote: char });
+        // 4. . , 와 끝 따옴표 결합 규칙
+        else if ((char === '.' || char === ',') && isClosingQuote(next)) {
+          cells.push({ type: 'punct_quote', punct: char, quote: next });
           i += 2;
         }
         else {
@@ -169,7 +172,7 @@ export default function App() {
 
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
 
-    // 문장부호 렌더링 엔진 (Noto Sans 고정 및 위치 제어)
+    // 문장부호 렌더링 (사용자 정의 좌표 시스템: 왼쪽 아래 0,0 기준)
     const Punct = ({ char, x, y, size = baseFontSize }) => (
         <span style={{
             fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`,
@@ -177,18 +180,17 @@ export default function App() {
         }}>{char}</span>
     );
 
-    // 4. 말줄임표 전용 렌더링
+    // 4. 말줄임표 전용
     if (cellData.type === 'ellipsis') {
       return (
         <div key={key} style={cellStyle}>
-          <Punct char="." x={40} y={50} />
-          <Punct char="." x={50} y={50} />
-          <Punct char="." x={60} y={50} />
+          <Punct char="." x={40} y={50} /><Punct char="." x={50} y={50} /><Punct char="." x={60} y={50} />
         </div>
       );
     }
 
-    if (cellData.type === 'combined') {
+    // 1. 20번째 칸 결합 (글자 + 부호)
+    if (cellData.type === 'combined_end') {
       return (
         <div key={key} style={cellStyle}>
           <span>{cellData.content}</span>
@@ -197,10 +199,11 @@ export default function App() {
       );
     }
 
-    if (cellData.type === 'quote_punct') {
+    // 4. 부호(.,) + 끝 따옴표 결합
+    if (cellData.type === 'punct_quote') {
       return (
         <div key={key} style={cellStyle}>
-          <Punct char={cellData.content} x={10} y={10} />
+          <Punct char={cellData.punct} x={10} y={10} />
           <Punct char={cellData.quote} x={90} y={10} />
         </div>
       );
@@ -215,23 +218,21 @@ export default function App() {
       );
     }
 
-    // 기본 문자 처리 및 단독 문장부호 위치 처리
     const char = cellData.content;
-    const isStartQuote = /["'“‘]/.test(char);
-    const isEndQuote = /["'”’]/.test(char);
+    const isStart = isOpeningQuote(char);
+    const isEnd = isClosingQuote(char);
     const isPeriod = /[.,]/.test(char);
 
     return (
         <div key={key} style={{...cellStyle, color: '#0f172a'}}>
-            {isStartQuote ? <Punct char={char} x={90} y={90} /> :
-             isEndQuote ? <Punct char={char} x={10} y={0} /> :
+            {isStart ? <Punct char={char} x={90} y={90} /> :
+             isEnd ? <Punct char={char} x={10} y={10} /> :
              isPeriod ? <Punct char={char} x={10} y={10} /> :
              <span>{char}</span>}
         </div>
     );
   }, [lineColor, viewMode, fontFamily]);
 
-  // --- 이하 렌더링 구조는 동일 ---
   return (
     <div className="app-root">
       <style>{`
