@@ -13,9 +13,30 @@ const cardDescStyle = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', m
 const cardButtonStyle = { padding: '10px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '12px' };
 const selectStyle = { height: '42px', padding: '0 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '700', backgroundColor: 'white', color: '#334155' };
 
-const isClosingQuote = (c) => /[”’"']/.test(c);
-const isOpeningQuote = (c) => /[“‘"']/.test(c);
+// 부호 판단 유틸리티
 const isSimplePunct = (c) => /[.,]/.test(c);
+const isSingleQuote = (c) => /['‘’]/.test(c);
+const isDoubleQuote = (c) => /["“”]/.test(c);
+
+// 강화된 원고지 아이콘 (1번 카드용)
+const WonjiIcon = () => (
+    <div style={{ marginBottom: '15px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {/* 원고지 격자 배경 */}
+        <svg width="60" height="50" viewBox="0 0 60 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0.5" y="0.5" width="59" height="49" rx="3.5" fill="white" stroke="#6366f1" strokeWidth="1"/>
+            <line x1="15" y1="0" x2="15" y2="50" stroke="#e2e8f0" strokeWidth="1"/>
+            <line x1="30" y1="0" x2="30" y2="50" stroke="#e2e8f0" strokeWidth="1"/>
+            <line x1="45" y1="0" x2="45" y2="50" stroke="#e2e8f0" strokeWidth="1"/>
+            <line x1="0" y1="16" x2="60" y2="16" stroke="#e2e8f0" strokeWidth="1"/>
+            <line x1="0" y1="33" x2="60" y2="33" stroke="#e2e8f0" strokeWidth="1"/>
+            {/* 원고지 느낌을 주는 빨간색 포인트 선 (선택사항) */}
+            <rect x="3" y="3" width="10" height="10" stroke="#fca5a5" strokeWidth="0.5"/>
+            <rect x="18" y="3" width="10" height="10" stroke="#fca5a5" strokeWidth="0.5"/>
+        </svg>
+        {/* 실제 쓰는 펜 */}
+        <span style={{ fontSize: '28px', position: 'absolute', bottom: '-5px', right: '0px', transform: 'rotate(-10deg)', filter: 'drop-shadow(2px 2px 2px rgba(0,0,0,0.1))' }}>🖋️</span>
+    </div>
+);
 
 // --- 2. 메인 홈 컴포넌트 ---
 const Home = ({ onNavigate }) => {
@@ -31,7 +52,7 @@ const Home = ({ onNavigate }) => {
         </div>
       </section>
       <div className="cards-container" style={{ maxWidth: '1350px', margin: '-50px auto 80px', padding: '0 20px', display: 'grid', gap: '20px', position: 'relative', zIndex: 10 }}>
-        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}><div style={{marginBottom:'15px', fontSize:'24px'}}>🖋️ 원고지</div><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>원고지에 직접 쓰고 인쇄하거나 PDF로 저장하세요. 다양한 폰트로 연습할 수 있어요.</p><button style={cardButtonStyle}>바로 시작하기</button></div>
+        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}><WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>원고지에 직접 쓰고 인쇄하거나 PDF로 저장하세요. 다양한 폰트로 연습할 수 있어요.</p><button style={cardButtonStyle}>바로 시작하기</button></div>
         <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{ fontSize: '40px', marginBottom: '15px' }}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p><button style={{ ...cardButtonStyle, backgroundColor: '#10b981' }}>다운로드 하기</button></a>
         <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{ fontSize: '40px', marginBottom: '15px' }}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p><button style={{ ...cardButtonStyle, backgroundColor: '#f59e0b' }}>강의 시청하기</button></a>
         <a href={bookUrl} target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border: '2.5px solid #6366f1'}}><div style={{ backgroundColor: '#eff6ff', border: '2px dashed #6366f1', color: '#1e1b4b', width: '100%', padding: '12px 10px', borderRadius: '16px', marginBottom: '15px', lineHeight: '1.4', boxSizing: 'border-box' }}><div style={{ fontSize: '11px', fontWeight: '800', color: '#4338ca', marginBottom: '4px' }}>해외 배송 / 10권 이상 구입 문의</div><div style={{ fontSize: '14px', fontWeight: '900' }}>02100korean@gmail.com</div></div><div style={{ fontSize: '40px', marginBottom: '10px' }}>📖</div><h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3><p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p><button style={{ ...cardButtonStyle, width: '100%', backgroundColor: '#6366f1' }}>구입하러 가기</button></a>
@@ -69,31 +90,44 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
-  // 원고지 가공 엔진 (부호 및 인용구 로직 최적화)
+  // 원고지 가공 엔진 (따옴표 카운팅 및 인덴트 로직 강화)
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
     let i = 0;
-    let quoteOpen = false;
+    let singleQuoteCount = 0;
+    let doubleQuoteCount = 0;
 
     while (i < text.length) {
       const char = text[i];
       const next = text[i + 1] || null;
       const next2 = text[i + 2] || null;
 
-      // 줄의 시작점에서 따옴표 인덴트 처리 (강제 첫 칸 비우기)
-      if (cells.length % cols === 0 && quoteOpen && !isOpeningQuote(char)) {
+      // 1. 따옴표 성격 판별 (홀수=여는, 짝수=닫는)
+      let isOpening = false;
+      let isClosing = false;
+      if (isSingleQuote(char)) {
+        singleQuoteCount++;
+        isOpening = singleQuoteCount % 2 !== 0;
+        isClosing = !isOpening;
+      } else if (isDoubleQuote(char)) {
+        doubleQuoteCount++;
+        isOpening = doubleQuoteCount % 2 !== 0;
+        isClosing = !isOpening;
+      }
+
+      // 인용 중 여부 (하나라도 열려 있으면 인용 중으로 판단)
+      const isInsideQuote = (singleQuoteCount % 2 !== 0) || (doubleQuoteCount % 2 !== 0);
+
+      // 2. 인용구 줄바꿈 인덴트 처리 (강력 수정)
+      if (cells.length % cols === 0 && isInsideQuote && !isOpening) {
           cells.push({ type: 'empty' });
       }
 
-      // 말줄임표 처리 (...)
+      // 말줄임표 처리
       if (char === '.' && next === '.' && next2 === '.') {
         cells.push({ type: 'ellipsis' });
         i += 3; continue;
       }
-
-      // 따옴표 상태 추적
-      if (isOpeningQuote(char)) quoteOpen = true;
-      if (isClosingQuote(char)) quoteOpen = false;
 
       if (char === '\n') {
         const currentLinePos = cells.length % cols;
@@ -110,12 +144,14 @@ export default function App() {
       }
 
       const isDigit = (c) => /[0-9]/.test(c);
-      if (isDigit(char) && (next === '.' || next === ',') && isDigit(next2)) {
+      const isSmallChar = (c) => /[a-zA-Z]/.test(c);
+
+      // 숫자 사이 . , 처리
+      if (isDigit(char) && isSimplePunct(next) && isDigit(next2)) {
         cells.push({ type: 'pair', content: [char, next] });
         i += 2; continue;
       }
 
-      const isSmallChar = (c) => /[a-zA-Z]/.test(c);
       const canPair = next && ((isDigit(char) && isDigit(next)) || (isSmallChar(char) && isSmallChar(next)));
 
       if (canPair) {
@@ -124,18 +160,32 @@ export default function App() {
       } else {
         const isEndCol = cells.length % cols === cols - 1;
         
-        // 2. 행 끝 . , 결합 (20번째 칸)
+        // 20번째 칸 글자 + 부호 결합
         if (isEndCol && isSimplePunct(next)) {
           cells.push({ type: 'combined_end', content: char, punct: next });
           i += 2;
         } 
-        // 3. . , 와 닫는 따옴표 결합
+        // 부호(.,) + 닫는 따옴표 결합 (요청 좌표 반영)
         else if (isSimplePunct(char) && isClosingQuote(next)) {
-          cells.push({ type: 'punct_quote_final', punct: char, quote: next });
-          i += 2;
+          // 다음이 닫는 따옴표인지 한 번 더 검증 (카운트 기준)
+          const nextIsTrulyClosing = (isSingleQuote(next) && (singleQuoteCount + 1) % 2 === 0) || 
+                                     (isDoubleQuote(next) && (doubleQuoteCount + 1) % 2 === 0);
+          
+          if (nextIsTrulyClosing) {
+            cells.push({ type: 'punct_quote_final', punct: char, quote: next });
+            if (isSingleQuote(next)) singleQuoteCount++; else doubleQuoteCount++;
+            i += 2;
+          } else {
+            cells.push({ type: 'punct_only', content: char });
+            i++;
+          }
+        }
+        else if (isSimplePunct(char)) {
+            cells.push({ type: 'punct_only', content: char });
+            i++;
         }
         else {
-          cells.push({ type: 'default', content: char });
+          cells.push({ type: 'default', content: char, isOpeningQuote: isOpening, isClosingQuote: isClosing });
           i++;
         }
       }
@@ -146,28 +196,28 @@ export default function App() {
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
     
-    // 폰트 크기 보정 (요청 사항 반영)
+    // 폰트 크기 및 위치 보정
     let baseFontSize = 22;
     if (fontFamily.includes('Gamja') || fontFamily.includes('Poor')) baseFontSize = 23.5;
     if (fontFamily.includes('Hi Melody')) baseFontSize = 24.7; // +5%
     if (fontFamily.includes('Nanum Pen')) baseFontSize = 25.9; // +10%
 
-    // 1. 하이멜로디, 감자꽃, 주아체 글자 5% 아래로 이동 (약 2px)
-    const needsShiftDown = ["'Hi Melody', cursive", "'Gamja Flower', cursive", "'Jua', sans-serif"].includes(fontFamily);
-    const needsOriginalShift = ["'Poor Story', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily);
+    // 폰트별 미세 위치 보정
+    const isShiftDown = ["'Hi Melody', cursive", "'Gamja Flower', cursive", "'Jua', sans-serif"].includes(fontFamily);
+    const isMoreShiftDown = ["'Poor Story', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily);
 
     const cellStyle = { 
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
         borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGridMode) ? `1.2px solid ${lineColor}` : 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseFontSize}px`, backgroundColor: 'white', boxSizing: 'border-box', 
         fontFamily: fontFamily, fontWeight: 'normal', 
-        paddingTop: needsShiftDown ? '2px' : needsOriginalShift ? '4px' : '0px', 
+        paddingTop: isShiftDown ? '2px' : isMoreShiftDown ? '4px' : '0px', 
         position: 'relative'
     };
 
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
 
-    // 문장부호 렌더러 (Noto Sans 고정 및 정밀 좌표 적용)
+    // 문장부호 렌더러 (Noto Sans 고정)
     const Punct = ({ char, x, y, size = baseFontSize }) => (
         <span style={{
             fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`,
@@ -175,7 +225,7 @@ export default function App() {
         }}>{char}</span>
     );
 
-    // 말줄임표 보정 (35,65), (50,65), (65,65)
+    // 말줄임표 보정: (35,65), (50,65), (65,65)
     if (cellData.type === 'ellipsis') {
       return (
         <div key={key} style={cellStyle}>
@@ -184,7 +234,7 @@ export default function App() {
       );
     }
 
-    // 2. 20번째 칸 결합 (punct x80, y30)
+    // 20번째 칸 결합 (x80, y30)
     if (cellData.type === 'combined_end') {
       return (
         <div key={key} style={cellStyle}>
@@ -194,11 +244,11 @@ export default function App() {
       );
     }
 
-    // 3. 부호(.,) + 닫는 따옴표 결합 (부호 xy30, 따옴표 x90 y70)
+    // 부호 + 닫는 따옴표 결합 (부호 x30 y40, 따옴표 x90 y70)
     if (cellData.type === 'punct_quote_final') {
       return (
         <div key={key} style={cellStyle}>
-          <Punct char={cellData.punct} x={30} y={30} />
+          <Punct char={cellData.punct} x={30} y={40} />
           <Punct char={cellData.quote} x={90} y={70} />
         </div>
       );
@@ -215,19 +265,19 @@ export default function App() {
 
     const char = cellData.content;
     
-    // 1. 단독 부호 (x30, y40)
-    if (isSimplePunct(char)) {
+    // 단독 부호 (x30, y40)
+    if (cellData.type === 'punct_only') {
         return <div key={key} style={cellStyle}><Punct char={char} x={30} y={40} /></div>;
     }
     
-    // 4. 단독 닫는 따옴표 (x20, y70)
-    if (isClosingQuote(char)) {
-        return <div key={key} style={cellStyle}><Punct char={char} x={20} y={70} /></div>;
+    // 여는 따옴표 (x80, y70)
+    if (cellData.isOpeningQuote) {
+        return <div key={key} style={cellStyle}><Punct char={char} x={80} y={70} /></div>;
     }
 
-    // 여는 따옴표 (x75, y70 - 이전Establish값 기준)
-    if (isOpeningQuote(char)) {
-        return <div key={key} style={cellStyle}><Punct char={char} x={75} y={70} /></div>;
+    // 닫는 따옴표 단독 (x20, y70)
+    if (cellData.isClosingQuote) {
+        return <div key={key} style={cellStyle}><Punct char={char} x={20} y={70} /></div>;
     }
 
     return <div key={key} style={{...cellStyle, color: '#0f172a'}}><span>{char}</span></div>;
