@@ -17,6 +17,7 @@ const isSimplePunct = (c) => c === '.' || c === ',';
 const isSingleQuote = (c) => /['‘’]/.test(c);
 const isDoubleQuote = (c) => /["“”]/.test(c);
 
+// 강화된 원고지 아이콘
 const WonjiIcon = () => (
     <div style={{ marginBottom: '15px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <svg width="60" height="50" viewBox="0 0 60 50" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -79,6 +80,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
+  // [핵심 엔진] 데이터 가공 로직
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
     let i = 0;
@@ -97,6 +99,7 @@ export default function App() {
 
       const isQuoteActive = (sQuoteCount % 2 !== 0) || (dQuoteCount % 2 !== 0);
 
+      // 인용구 줄바꿈 인덴트: 줄의 시작점이고 인용 중이며, 방금 연 따옴표가 아닐 때
       if (cells.length % cols === 0 && isQuoteActive && currentType !== 'open') {
         cells.push({ type: 'empty' });
       }
@@ -105,14 +108,9 @@ export default function App() {
       if (char === '\n') {
         const remaining = cols - (cells.length % cols || cols);
         if (cells.length % cols !== 0) { for (let r = 0; r < remaining; r++) cells.push({ type: 'empty' }); }
-        cells.push({ type: 'empty' });
-        i++; continue;
+        cells.push({ type: 'empty' }); i++; continue;
       }
-      if (char === ' ') {
-        if (cells.length % cols === 0) { i++; continue; }
-        cells.push({ type: 'default', content: '' });
-        i++; continue;
-      }
+      if (char === ' ') { if (cells.length % cols === 0) { i++; continue; } cells.push({ type: 'default', content: '' }); i++; continue; }
 
       const isDigit = (c) => /[0-9]/.test(c);
       if (isDigit(char) && isSimplePunct(next) && isDigit(next2)) { cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; }
@@ -124,8 +122,7 @@ export default function App() {
       if (isEndCol && isSimplePunct(next)) { cells.push({ type: 'combined_end', content: char, punct: next }); i += 2; } 
       else if (isSimplePunct(char) && nextIsClosingQuote) {
         cells.push({ type: 'punct_quote_final', punct: char, quote: next });
-        if (isSingleQuote(next)) sQuoteCount++; else dQuoteCount++;
-        i += 2;
+        if (isSingleQuote(next)) sQuoteCount++; else dQuoteCount++; i += 2;
       }
       else {
         if (currentType === 'open') cells.push({ type: 'quote_open', content: char });
@@ -158,15 +155,12 @@ export default function App() {
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
 
     const Punct = ({ char, x, y, size = baseFontSize }) => (
-        <span style={{
-            fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`,
-            position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)'
-        }}>{char}</span>
+        <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`, position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>
     );
 
     if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
     if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{position:'relative', zIndex:2}}>{cellData.content}</span><Punct char={cellData.punct} x={80} y={30} /></div>;
-    if (cellData.type === 'punct_quote_final') return <div key={key} style={cellStyle}><Punct char={cellData.punct} x={25} y={25} /><Punct char={cellData.quote} x={90} y={70} /></div>;
+    if (cellData.type === 'punct_quote_final') return <div key={key} style={cellStyle}><Punct char={cellData.punct} x={30} y={40} /><Punct char={cellData.quote} x={90} y={70} /></div>;
     if (cellData.type === 'pair') return <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[0]}</div><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[1]}</div></div>;
 
     const char = cellData.content;
@@ -180,67 +174,20 @@ export default function App() {
     <div className="app-root">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&family=Hi+Melody&family=Poor+Story&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
-        
         body { margin: 0; padding: 0; overflow-x: hidden; }
         .cards-container { grid-template-columns: 1fr; }
         @media (min-width: 1000px) { .cards-container { grid-template-columns: repeat(4, 1fr) !important; } }
-        @media (orientation: portrait) { .scroll-indicator { display: flex !important; } }
-        .scroll-indicator { animation: bounceTriangle 2s infinite; }
-        @keyframes bounceTriangle { 0%, 20%, 50%, 80%, 100% {transform: translate(-50%, 0);} 40% {transform: translate(-50%, -12px);} 60% {transform: translate(-50%, -6px);} }
         .card-item:hover { transform: translateY(-12px) !important; box-shadow: 0 30px 60px rgba(0,0,0,0.1) !important; border-color: #6366f1 !important; }
-        
-        /* [인쇄 최적화 엔진] */
         @media print {
-          @page { 
-            size: auto; 
-            margin: 20mm !important; /* 최소 여백 20mm 강제 */
-          }
+          @page { size: auto; margin: 20mm !important; }
           .no-print { display: none !important; }
-          body, html { 
-            margin: 0 !important; 
-            padding: 0 !important; 
-            background: white !important; 
-            height: auto !important; 
-            overflow: visible !important; 
-          }
-          .app-root, .main-container {
-            background: white !important;
-            height: auto !important;
-          }
-          .manuscript-main { 
-            padding: 0 !important; 
-            margin: 0 !important; 
-            background: white !important;
-            overflow: visible !important;
-          }
-          .manuscript-print-root {
-            display: block !important;
-            width: 100% !important;
-          }
-          .page-unit { 
-            /* 한 페이지에 원고지 한 페이지를 꽉 채우고 정중앙 배치 */
-            height: 100vh !important;
-            page-break-after: always !important;
-            break-after: page !important;
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
-            background: white !important;
-            overflow: hidden !important; /* 스크롤바 절대 방지 */
-          }
-          .page-box { 
-            box-shadow: none !important; 
-            padding: 0 !important;
-            margin: 0 !important;
-            background: white !important;
-            /* 용지 크기에 따른 자동 축소/확대(Auto-fit) */
-            max-width: 100% !important;
-            max-height: 100% !important;
-            transform-origin: center center !important;
-            zoom: 1 !important; /* 브라우저 인쇄 자동 맞춤 유도 */
-          }
-          /* 인쇄물에서 배경색이나 그림자 제거 */
-          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          body, html { margin: 0 !important; padding: 0 !important; background: white !important; height: auto !important; overflow: visible !important; }
+          .main-container { background: white !important; height: auto !important; overflow: visible !important; }
+          .manuscript-main { padding: 0 !important; margin: 0 !important; background: white !important; overflow: visible !important; }
+          .manuscript-print-root { display: block !important; width: 100% !important; }
+          .page-unit { height: 100vh !important; display: flex !important; justify-content: center !important; align-items: center !important; page-break-after: always !important; break-after: page !important; background: white !important; overflow: hidden !important; }
+          .page-box { box-shadow: none !important; margin: 0 !important; padding: 0 !important; background: white !important; max-width: calc(100vw - 40mm) !important; max-height: calc(100vh - 45mm) !important; width: auto !important; height: auto !important; display: flex !important; flex-direction: column !important; justify-content: center !important; zoom: 0.95; }
+          .name-tag { margin-bottom: 15px !important; }
         }
       `}</style>
 
@@ -268,11 +215,11 @@ export default function App() {
               </div>
               <textarea value={content} onChange={e => setContent(e.target.value.slice(0, 3000))} style={{ flex: 1, padding: '15px', border: 'none', outline: 'none', resize: 'none', fontSize: '15px', lineHeight: '1.6', fontFamily }} placeholder="내용을 입력하세요... (최대 3,000자)" />
             </aside>
-            <main ref={mainRef} className="manuscript-main" style={{ flex: 1, overflow: 'auto', backgroundColor: '#cbd5e1', padding: '20px', position: 'relative' }}>
-              <div className="no-print" style={{ marginBottom: '15px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', width: 'fit-content', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+            <main ref={mainRef} className="manuscript-main" style={{ flex: 1, overflow: 'auto', backgroundColor: '#cbd5e1', padding: '20px' }}>
+              <div className="no-print" style={{ marginBottom: '15px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', width: 'fit-content' }}>
                 <span style={{ fontSize: '10px', fontWeight: '900', color: '#6366f1' }}>ZOOM</span>
-                <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900', cursor: 'pointer' }}>{[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}</select>
-                <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>화면맞춤</button>
+                <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900' }}>{[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}</select>
+                <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px', cursor: 'pointer' }}>화면맞춤</button>
               </div>
               <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
                 <ManuscriptContainer text={content} gridType={gridType} viewMode={viewMode} lineColor={lineColor} name={studentName} fontFamily={fontFamily} processToCells={processToCells} renderCell={renderCell} />
@@ -295,8 +242,8 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
     <div className="manuscript-print-root">
       {Array.from({ length: pageCount }).map((_, p) => (
         <div key={p} className="page-unit">
-          <div className="page-box">
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
+          <div style={{ backgroundColor: 'white', padding: '40px 60px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', marginBottom: '40px' }} className="page-box">
+            <div className="name-tag" style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
               {p === 0 && name && name.trim() !== '' ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {name}</div>) : (<div style={{ height: '35px' }}></div>)}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: rowGap }}>
@@ -306,6 +253,7 @@ const ManuscriptContainer = ({ text, gridType, viewMode, lineColor, name, fontFa
                 </div>
               ))}
             </div>
+            <div className="no-print" style={{ marginTop: '20px', textAlign: 'center', fontSize: '10px', color: '#94a3b8', fontWeight: 'bold' }}>PAGE {p + 1}</div>
           </div>
         </div>
       ))}
