@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 
-// --- 1. 스타일 및 상수 정의 ---
+// --- 1. 스타일 정의 ---
 const cardStyle = { 
   transition: 'all 0.3s ease', cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
   textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', 
@@ -13,18 +13,6 @@ const cardDescStyle = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', m
 const cardButtonStyle = { padding: '10px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '12px' };
 const selectStyle = { height: '42px', padding: '0 10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', fontWeight: '700', backgroundColor: 'white', color: '#334155' };
 
-const WonjiIcon = () => (
-    <div style={{ marginBottom: '15px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="48" height="48" rx="8" fill="#f8fafc"/>
-            <path d="M10 10H38V38H10V10Z" stroke="#cbd5e1" strokeWidth="1"/><path d="M17 10V38" stroke="#cbd5e1" strokeWidth="1"/><path d="M24 10V38" stroke="#cbd5e1" strokeWidth="1"/><path d="M31 10V38" stroke="#cbd5e1" strokeWidth="1"/><path d="M10 17H38" stroke="#cbd5e1" strokeWidth="1"/><path d="M10 24H38" stroke="#cbd5e1" strokeWidth="1"/><path d="M10 31H38" stroke="#cbd5e1" strokeWidth="1"/>
-        </svg>
-        <span style={{ fontSize: '26px', position: 'absolute', bottom: '-2px', right: '-4px', transform: 'rotate(-15deg)' }}>🖋️</span>
-    </div>
-);
-
-// 문장부호 판단
-const isPunct = (c) => /[.,"'?!~;:‘’“”]/.test(c);
 const isClosingQuote = (c) => /[”’"']/.test(c);
 const isOpeningQuote = (c) => /[“‘"']/.test(c);
 
@@ -42,7 +30,7 @@ const Home = ({ onNavigate }) => {
         </div>
       </section>
       <div className="cards-container" style={{ maxWidth: '1350px', margin: '-50px auto 80px', padding: '0 20px', display: 'grid', gap: '20px', position: 'relative', zIndex: 10 }}>
-        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}><WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>원고지에 직접 쓰고 인쇄하거나 PDF로 저장하세요. 다양한 폰트로 연습할 수 있어요.</p><button style={cardButtonStyle}>바로 시작하기</button></div>
+        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}><div style={{marginBottom:'15px', position:'relative'}}>🖋️ 원고지</div><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>원고지에 직접 쓰고 인쇄하거나 PDF로 저장하세요. 다양한 폰트로 연습할 수 있어요.</p><button style={cardButtonStyle}>바로 시작하기</button></div>
         <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{ fontSize: '40px', marginBottom: '15px' }}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p><button style={{ ...cardButtonStyle, backgroundColor: '#10b981' }}>다운로드 하기</button></a>
         <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{ fontSize: '40px', marginBottom: '15px' }}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p><button style={{ ...cardButtonStyle, backgroundColor: '#f59e0b' }}>강의 시청하기</button></a>
         <a href={bookUrl} target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border: '2.5px solid #6366f1'}}><div style={{ backgroundColor: '#eff6ff', border: '2px dashed #6366f1', color: '#1e1b4b', width: '100%', padding: '12px 10px', borderRadius: '16px', marginBottom: '15px', lineHeight: '1.4', boxSizing: 'border-box' }}><div style={{ fontSize: '11px', fontWeight: '800', color: '#4338ca', marginBottom: '4px' }}>해외 배송 / 10권 이상 구입 문의</div><div style={{ fontSize: '14px', fontWeight: '900' }}>02100korean@gmail.com</div></div><div style={{ fontSize: '40px', marginBottom: '10px' }}>📖</div><h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3><p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p><button style={{ ...cardButtonStyle, width: '100%', backgroundColor: '#6366f1' }}>구입하러 가기</button></a>
@@ -80,7 +68,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen]);
 
-  // 원고지 규칙 가공 엔진
+  // 원고지 가공 핵심 로직 (인용구 인덴트 개선)
   const processToCells = useCallback((text, cols) => {
     const cells = [{ type: 'empty' }]; 
     let i = 0;
@@ -91,28 +79,30 @@ export default function App() {
       const next = text[i + 1] || null;
       const next2 = text[i + 2] || null;
 
-      // 4. 말줄임표 처리
+      // 줄의 시작점 체크 (따옴표 인덴트)
+      if (cells.length % cols === 0 && quoteOpen) {
+          // 현재 글자가 여는 따옴표가 아닐 때만 한 칸 비움
+          if (!isOpeningQuote(char)) {
+            cells.push({ type: 'empty' });
+          }
+      }
+
+      // 말줄임표 처리 (...)
       if (char === '.' && next === '.' && next2 === '.') {
         cells.push({ type: 'ellipsis' });
         i += 3; continue;
       }
 
-      // 따옴표 상태 추적
+      // 따옴표 상태 업데이트
       if (isOpeningQuote(char)) quoteOpen = true;
       if (isClosingQuote(char)) quoteOpen = false;
 
-      // 줄바꿈 처리
       if (char === '\n') {
         const currentLinePos = cells.length % cols;
         const remaining = cols - (currentLinePos || cols);
         if (currentLinePos !== 0) { for (let r = 0; r < remaining; r++) cells.push({ type: 'empty' }); }
-        cells.push({ type: 'empty' }); // 새 문단 들여쓰기
-        i++; continue;
-      }
-
-      // 2. 인용구 줄바꿈 인덴트 규칙
-      if (cells.length % cols === 0 && quoteOpen && !isOpeningQuote(char)) {
         cells.push({ type: 'empty' });
+        i++; continue;
       }
 
       if (char === ' ') {
@@ -121,29 +111,27 @@ export default function App() {
         i++; continue;
       }
 
-      // 5. 숫자 사이 부호 결합
       const isDigit = (c) => /[0-9]/.test(c);
+      const isSmallChar = (c) => /[a-zA-Z]/.test(c);
+
+      // 숫자 사이 . , 처리
       if (isDigit(char) && (next === '.' || next === ',') && isDigit(next2)) {
         cells.push({ type: 'pair', content: [char, next] });
         i += 2; continue;
       }
 
-      // 일반 숫자/영어 페어링
-      const isSmallChar = (c) => /[a-zA-Z]/.test(c);
       const canPair = next && ((isDigit(char) && isDigit(next)) || (isSmallChar(char) && isSmallChar(next)));
-
       if (canPair) {
         cells.push({ type: 'pair', content: [char, next] });
         i += 2;
       } else {
         const isEndCol = cells.length % cols === cols - 1;
-        
-        // 1. 행 끝 . , 결합 규칙
+        // 20번째 칸 행 끝 결합
         if (isEndCol && (next === '.' || next === ',')) {
           cells.push({ type: 'combined_end', content: char, punct: next });
           i += 2;
         } 
-        // 4. . , 와 끝 따옴표 결합 규칙
+        // . , 와 끝 따옴표 결합
         else if ((char === '.' || char === ',') && isClosingQuote(next)) {
           cells.push({ type: 'punct_quote', punct: char, quote: next });
           i += 2;
@@ -159,9 +147,14 @@ export default function App() {
 
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGridMode = viewMode === 'grid';
-    const isSmallSet = ["'Gamja Flower', cursive", "'Hi Melody', cursive", "'Poor Story', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily);
+    
+    // 폰트 크기 보정 로직 (하이멜로디 +5%, 나눔손글씨 +10%)
+    let baseFontSize = 22;
+    if (fontFamily.includes('Gamja') || fontFamily.includes('Poor')) baseFontSize = 23.5;
+    if (fontFamily.includes('Hi Melody')) baseFontSize = 24.7; // 23.5 * 1.05
+    if (fontFamily.includes('Nanum Pen')) baseFontSize = 25.9; // 23.5 * 1.1
+
     const isShiftSet = ["'Hi Melody', cursive", "'Poor Story', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily);
-    const baseFontSize = isSmallSet ? 23.5 : 22;
 
     const cellStyle = { 
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
@@ -172,7 +165,6 @@ export default function App() {
 
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
 
-    // 문장부호 렌더링 (사용자 정의 좌표 시스템: 왼쪽 아래 0,0 기준)
     const Punct = ({ char, x, y, size = baseFontSize }) => (
         <span style={{
             fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`,
@@ -180,31 +172,31 @@ export default function App() {
         }}>{char}</span>
     );
 
-    // 4. 말줄임표 전용
+    // 말줄임표 (...) (35,60), (50,60), (65,60)
     if (cellData.type === 'ellipsis') {
       return (
         <div key={key} style={cellStyle}>
-          <Punct char="." x={40} y={50} /><Punct char="." x={50} y={50} /><Punct char="." x={60} y={50} />
+          <Punct char="." x={35} y={60} /><Punct char="." x={50} y={60} /><Punct char="." x={65} y={60} />
         </div>
       );
     }
 
-    // 1. 20번째 칸 결합 (글자 + 부호)
+    // 20번째 칸 결합 (punct x75, y25)
     if (cellData.type === 'combined_end') {
       return (
         <div key={key} style={cellStyle}>
           <span>{cellData.content}</span>
-          <Punct char={cellData.punct} x={90} y={10} />
+          <Punct char={cellData.punct} x={75} y={25} />
         </div>
       );
     }
 
-    // 4. 부호(.,) + 끝 따옴표 결합
+    // . , 와 끝 따옴표 결합 (punct xy20, quote x75 y75)
     if (cellData.type === 'punct_quote') {
       return (
         <div key={key} style={cellStyle}>
-          <Punct char={cellData.punct} x={10} y={10} />
-          <Punct char={cellData.quote} x={90} y={10} />
+          <Punct char={cellData.punct} x={20} y={20} />
+          <Punct char={cellData.quote} x={75} y={75} />
         </div>
       );
     }
@@ -225,9 +217,9 @@ export default function App() {
 
     return (
         <div key={key} style={{...cellStyle, color: '#0f172a'}}>
-            {isStart ? <Punct char={char} x={90} y={90} /> :
-             isEnd ? <Punct char={char} x={10} y={10} /> :
-             isPeriod ? <Punct char={char} x={10} y={10} /> :
+            {isStart ? <Punct char={char} x={75} y={75} /> :
+             isEnd ? <Punct char={char} x={25} y={25} /> :
+             isPeriod ? <Punct char={char} x={25} y={25} /> :
              <span>{char}</span>}
         </div>
     );
