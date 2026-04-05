@@ -59,7 +59,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 모든 로직 보존 및 인쇄 영역 완성] ---
+// --- [3. 메인 앱 컴포넌트: 모든 로직 보존 및 인쇄 버그 수정] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -189,39 +189,51 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [인쇄 엔진: 요청 사항 정밀 반영] */
+        /* [인쇄 엔진 핵심 수정: 여백 20mm 기준 자동 맞춤] */
         @media print {
-          @page { size: ${gridType === '200' ? 'A4 landscape' : 'A4 portrait'}; margin: 0; }
+          @page { 
+            size: ${gridType === '200' ? 'A4 landscape' : 'A4 portrait'}; 
+            margin: 0; /* 브라우저 기본 마진 제거 */
+          }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
           body, html { background: white !important; overflow: visible !important; height: auto !important; width: auto !important; }
           
-          .editor-container, .editor-body { display: block !important; height: auto !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-          .main-preview { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; height: auto !important; overflow: visible !important; }
+          .editor-container, .editor-body { display: block !important; width: 100% !important; }
+          .main-preview { 
+            display: block !important; padding: 0 !important; margin: 0 !important; 
+            background: white !important; width: 100% !important; overflow: visible !important; 
+          }
           
-          /* 한 페이지 당 원고지 한 장 고정 및 중앙 정렬 */
+          /* 한 페이지 고정 및 중앙 정렬 */
           .page-unit { 
             height: 100vh !important; 
             width: 100vw !important; 
             display: flex !important; 
             justify-content: center !important; 
             align-items: center !important; 
-            padding: 20mm !important; /* 최소 여백 20mm 강제 설정 */
+            padding: 20mm !important; /* 요청하신 20mm 정밀 여백 */
             box-sizing: border-box !important;
             page-break-after: always !important; 
             break-after: page !important;
             overflow: hidden !important;
+            position: relative !important;
           }
 
-          /* 가로세로 비율 유지 및 자동 확대/축소 */
+          /* 비율 유지 자동 확대/축소 핵심 로직 */
           .page-box { 
             box-shadow: none !important; margin: 0 !important; padding: 0 !important; 
-            width: 880px !important; /* 원고지 기준 가로폭 고정 */
+            width: 880px !important; /* 원고지 원본 가로폭 */
             height: auto !important;
             display: flex !important; flex-direction: column !important; justify-content: center !important;
-            /* 비율 유지하며 용지 크기에 맞게 자동 스케일링 (Contain 방식) */
-            transform: scale(calc((min(100vw - 40mm, (100vh - 40mm) * (880 / ${gridType === '200' ? '500' : '950'}))) / 880)) !important;
+            /* A4 가로/세로 영역(패딩 제외)에 맞게 비율 유지 스케일링 */
+            transform: scale(min(
+              (100vw - 40mm) / 880, 
+              (100vh - 40mm) / ${gridType === '200' ? '600' : '1100'} 
+            )) !important;
             transform-origin: center center !important;
           }
+          
+          .manuscript-print-root { width: 100% !important; }
         }
       `}</style>
 
