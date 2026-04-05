@@ -42,7 +42,7 @@ const Home = ({ onNavigate }) => {
         @media (max-width: 1000px) { .cards-grid { grid-template-columns: 1fr; } }
         .card-item:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); }
         .scroll-indicator { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); cursor: pointer; animation: bounce 2s infinite; display: flex; flex-direction: column; align-items: center; z-index: 10; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-8px); } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-8px); } 60% { transform: translateX(-50%) translateY(-4px); } }
       `}</style>
       <section className="hero-section">
         <h1 style={{ fontSize: '2.8rem', fontWeight: '900', marginBottom: '15px', lineHeight: 1.2 }}>Master Korean <br/> <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
@@ -59,7 +59,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 레이아웃 고도화] ---
+// --- [3. 메인 앱 컴포넌트: 가로 모드 4:6 비율 적용] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -71,19 +71,18 @@ export default function App() {
   const [zoom, setZoom] = useState(1.0);
   const mainRef = useRef(null);
 
-  // 너비에 딱 맞게 줌 조절 (Fit to Width)
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
-      const containerWidth = mainRef.current.clientWidth - 40; // 좌우 패딩 제외
-      const manuscriptWidth = 880; // 원고지의 고정 가로폭 (38*20 + padding)
+      const containerWidth = mainRef.current.clientWidth - 40;
+      const manuscriptWidth = 880; 
       const calculatedZoom = Math.floor((containerWidth / manuscriptWidth) * 100) / 100;
-      setZoom(Math.min(1.5, Math.max(0.3, calculatedZoom))); // 최대 1.5배, 최소 0.3배 제한
+      setZoom(Math.min(1.5, Math.max(0.3, calculatedZoom))); 
     }
   }, []);
 
   useEffect(() => {
     if (view === 'editor') { 
-        setTimeout(fitToScreen, 300); // 레이아웃 렌더링 후 실행
+        setTimeout(fitToScreen, 300);
         window.addEventListener('resize', fitToScreen); 
     }
     return () => window.removeEventListener('resize', fitToScreen);
@@ -164,11 +163,11 @@ export default function App() {
         .editor-container { display: flex; width: 100vw; height: 100vh; background-color: #e2e8f0; overflow: hidden; }
         .editor-body { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); margin-top: 50px; }
 
-        /* 가로 모드: 50% 분할 및 좌상단 정렬 */
-        .sidebar { width: 50%; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
-        .main-preview { width: 50%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
+        /* [가로 모드: 요청 사항 반영 40:60 비율] */
+        .sidebar { width: 40%; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
+        .main-preview { width: 60%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
 
-        /* 세로 모드: 상하 50:50 고정 및 상단 여백 제거 */
+        /* [세로 모드: 기존 완벽한 50:50 보존] */
         @media (orientation: portrait), (max-width: 900px) {
           .editor-body { flex-direction: column !important; }
           .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none; border-bottom: 2px solid #ddd; }
@@ -177,7 +176,6 @@ export default function App() {
         }
 
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
-        /* 내용 입력창을 버튼 바로 아래로 밀착 */
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
         @media print {
