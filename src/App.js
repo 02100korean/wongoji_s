@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.3 엔진 보존 및 인쇄 정밀 수정] ---
+// --- [3. 메인 앱 컴포넌트: v.12 엔진 보존 및 다중 페이지 인쇄 구조 혁신] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -178,7 +178,7 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [인쇄 설정: 상하 여백 정중앙 보정 및 다중 인쇄 수정] */
+        /* [인쇄 설정: 상하 여백 정중앙 보정 및 다중 인쇄 혁신] */
         @media print {
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
