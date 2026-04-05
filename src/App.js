@@ -1,26 +1,26 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react'; [cite: 14]
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: 완벽 보존] --- [cite: 15]
+// --- [1. 스타일 및 디자인: v.11 완벽 보존] ---
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
   textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', 
   alignItems: 'center', height: '100%', boxSizing: 'border-box', border: '1px solid #eee', position: 'relative', 
   textDecoration: 'none', color: 'inherit'
-}; [cite: 15]
+};
 const cardTitleStyle = { fontSize: '18px', fontWeight: '800', marginBottom: '10px', color: '#1e293b' }; [cite: 16]
 const cardDescStyle = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', marginBottom: '15px', flex: 1 }; [cite: 17]
 const cardButtonStyle = { padding: '10px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }; [cite: 18]
 
-// 메뉴 박스 안 글자 크기를 기존 11px에서 10% 키운 12.1px로 수정 [cite: 19]
-const selectStyle = { height: '34px', padding: '0 8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.1px', fontWeight: '700', backgroundColor: 'white', color: '#334155', width: '100%', boxSizing: 'border-box' }; [cite: 19]
+// 메뉴 박스 안 글자 크기를 기존 11px에서 10% 키운 12px로 수정 (요청사항 2번)
+const selectStyle = { height: '34px', padding: '0 8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', fontWeight: '700', backgroundColor: 'white', color: '#334155', width: '100%', boxSizing: 'border-box' }; [cite: 19]
 
 const isSimplePunct = (c) => c === '.' || c === ','; [cite: 20]
-const isSingleQuote = (c) => /['‘’]/.test(c); [cite: 20]
+const isSingleQuote = (c) => /['‘’]/.test(c);
 const isDoubleQuote = (c) => /["“”]/.test(c); [cite: 21]
-const isDigit = (c) => /[0-9]/.test(c); [cite: 21]
-const isAlpha = (c) => /[a-zA-Z]/.test(c); [cite: 21]
-const isAlphaLower = (c) => /[a-z]/.test(c); // 영어 소문자 판별을 위한 함수 추가 [cite: 21]
+const isDigit = (c) => /[0-9]/.test(c);
+const isAlpha = (c) => /[a-zA-Z]/.test(c);
+const isAlphaLower = (c) => /[a-z]/.test(c); // 영어 소문자 판별 함수 추가
 
 const WonjiIcon = () => (
     <div style={{ marginBottom: '15px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '60px', height: '50px' }}>
@@ -32,9 +32,9 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: 완벽한 레이아웃 및 문구] ---
+// --- [2. 홈 화면: v.11 완벽한 레이아웃 및 4개 카드] ---
 const Home = ({ onNavigate }) => {
-  const cardsRef = useRef(null); [cite: 22]
+  const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
   return (
     <div className="home-root">
@@ -42,10 +42,8 @@ const Home = ({ onNavigate }) => {
         .home-root { width: 100%; height: 100vh; overflow-y: auto !important; background-color: #f8fafc; font-family: 'Noto Sans KR', sans-serif; color: #1e293b; -webkit-overflow-scrolling: touch; } [cite: 23, 24]
         .hero-section { height: 50vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 20px; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; position: relative; } [cite: 25, 26]
         .cards-grid { max-width: 1300px; margin: 40px auto 100px; padding: 0 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; } [cite: 27]
-        
         @media screen and (orientation: portrait) { .cards-grid { grid-template-columns: 1fr; } } [cite: 28]
         @media screen and (orientation: landscape) and (max-width: 900px) { .cards-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; } .hero-section { height: 70vh; } } [cite: 29]
-
         .card-item:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); } [cite: 30]
         .scroll-indicator { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); cursor: pointer; animation: bounce 2s infinite; display: flex; flex-direction: column; align-items: center; z-index: 10; } [cite: 31, 32]
         @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-10px); } } [cite: 33]
@@ -61,28 +59,28 @@ const Home = ({ onNavigate }) => {
         </div>
         <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
           <div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p><button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button>
-        </a>
+        </a> [cite: 35]
         <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
-          <div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p><button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button> [cite: 35, 36]
-        </a>
-        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}>
-          <div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div><h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3><p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p><button style={{...cardButtonStyle, width:'100%'}}>구입하기</button> [cite: 37]
-        </a>
+          <div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p><button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button>
+        </a> [cite: 36]
+        <a href="https://search.shopping.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}>
+          <div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div><h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3><p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p><button style={{...cardButtonStyle, width:'100%'}}>구입하기</button>
+        </a> [cite: 37]
       </div>
     </div>
   );
 }; [cite: 38]
 
-// --- [3. 메인 앱 컴포넌트: 완벽한 엔진 및 반응형 시스템] ---
+// --- [3. 메인 앱 컴포넌트: v.11 엔진 + 요청 수정 사항] ---
 export default function App() {
-  const [view, setView] = useState('home'); [cite: 38]
-  const [content, setContent] = useState(''); [cite: 39]
-  const [studentName, setStudentName] = useState(''); [cite: 39]
-  const [gridType, setGridType] = useState('200');  [cite: 39]
-  const [viewMode, setViewMode] = useState('traditional'); [cite: 39]
+  const [view, setView] = useState('home'); [cite: 39]
+  const [content, setContent] = useState('');
+  const [studentName, setStudentName] = useState('');
+  const [gridType, setGridType] = useState('200'); 
+  const [viewMode, setViewMode] = useState('traditional');
   const [lineColor, setLineColor] = useState('#607d8b'); [cite: 40]
-  const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif"); [cite: 40]
-  const [zoom, setZoom] = useState(1.0); [cite: 40]
+  const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
+  const [zoom, setZoom] = useState(1.0);
   const mainRef = useRef(null); [cite: 41]
 
   const fitToScreen = useCallback(() => {
@@ -92,75 +90,74 @@ export default function App() {
       const calculatedZoom = Math.floor((containerWidth / manuscriptWidth) * 100) / 100;
       setZoom(Math.min(1.5, Math.max(0.3, calculatedZoom))); 
     }
-  }, []); [cite: 41]
+  }, []);
 
   useEffect(() => {
-    if (view === 'editor') { setTimeout(fitToScreen, 300); window.addEventListener('resize', fitToScreen); }
+    if (view === 'editor') { setTimeout(fitToScreen, 300); window.addEventListener('resize', fitToScreen); } [cite: 42]
     return () => window.removeEventListener('resize', fitToScreen);
-  }, [view, fitToScreen, gridType]); [cite: 42]
+  }, [view, fitToScreen, gridType]);
 
-  const allCells = useMemo(() => {
+  const allCells = useMemo(() => { [cite: 43]
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
     while (i < Math.min(content.length, 3000)) {
       const char = content[i], next = content[i+1] || "", next2 = content[i+2] || "";
       let qType = null;
       if (isSingleQuote(char)) { sCount++; qType = sCount % 2 !== 0 ? 'open' : 'close'; }
-      else if (isDoubleQuote(char)) { dCount++; qType = dCount % 2 !== 0 ? 'open' : 'close'; } [cite: 43, 44]
+      else if (isDoubleQuote(char)) { dCount++; qType = dCount % 2 !== 0 ? 'open' : 'close'; } [cite: 44]
       
-      if (cells.length % cols === 0 && ((sCount%2!==0) || (dCount%2!==0)) && qType !== 'open') cells.push({ type: 'empty' }); [cite: 44]
-      if (char === '.' && next === '.' && next2 === '.') { cells.push({ type: 'ellipsis' }); i += 3; continue; } [cite: 44]
-      if (char === '\n') { const rem = cols - (cells.length % cols || cols); for(let r=0; r<rem; r++) cells.push({ type: 'empty' }); cells.push({ type: 'empty' }); i++; continue; } [cite: 44]
+      if (cells.length % cols === 0 && ((sCount%2!==0) || (dCount%2!==0)) && qType !== 'open') cells.push({ type: 'empty' });
+      if (char === '.' && next === '.' && next2 === '.') { cells.push({ type: 'ellipsis' }); i += 3; continue; }
+      if (char === '\n') { const rem = cols - (cells.length % cols || cols); for(let r=0; r<rem; r++) cells.push({ type: 'empty' }); cells.push({ type: 'empty' }); i++; continue; }
       if (char === ' ') { if (cells.length % cols !== 0) cells.push({ type: 'default', content: '' }); i++; continue; } [cite: 45, 46]
       
-      // 영어 소문자는 두 글자씩 묶고, 대문자는 한 칸에 한 글자만 들어가도록 수정 [cite: 46]
-      if ((isDigit(char) && isSimplePunct(next) && isDigit(next2)) || (isSimplePunct(char) && isDigit(next)) || (next !== "" && ((isDigit(char) && isDigit(next)) || (isAlphaLower(char) && isAlphaLower(next))))) { 
-        cells.push({ type: 'pair', content: [char, next] });
+      // 영어 소문자(pair)와 대문자(single) 구분 로직 수정 (요청사항 1번)
+      if ((isDigit(char) && isDigit(next)) || (isAlphaLower(char) && isAlphaLower(next)) || (isDigit(char) && isSimplePunct(next) && isDigit(next2)) || (isSimplePunct(char) && isDigit(next))) { 
+        cells.push({ type: 'pair', content: [char, next] }); [cite: 47]
         i += 2; continue; 
-      } [cite: 46, 47]
+      }
       
-      const isEnd = cells.length % cols === cols - 1; [cite: 47]
-      const nextIsClosing = isSingleQuote(next) ? (sCount+1)%2===0 : (isDoubleQuote(next) ? (dCount+1)%2===0 : false); [cite: 48]
-      
+      const isEnd = cells.length % cols === cols - 1; [cite: 48]
+      const nextIsClosing = isSingleQuote(next) ? (sCount+1)%2===0 : (isDoubleQuote(next) ? (dCount+1)%2===0 : false);
       if (isEnd && isSimplePunct(next)) { cells.push({ type: 'combined_end', content: char, punct: next }); i += 2; } [cite: 49, 50]
-      else if (isSimplePunct(char) && nextIsClosing) { cells.push({ type: 'punct_quote_final', punct: char, quote: next }); if (isSingleQuote(next)) sCount++; else dCount++; i += 2; } [cite: 50, 51]
+      else if (isSimplePunct(char) && nextIsClosing) { cells.push({ type: 'punct_quote_final', punct: char, quote: next }); [cite: 51]
+        if (isSingleQuote(next)) sCount++; else dCount++; i += 2; }
       else { 
-        if (qType === 'open') cells.push({ type: 'quote_open', content: char });
+        if (qType === 'open') cells.push({ type: 'quote_open', content: char }); [cite: 52]
         else if (qType === 'close') cells.push({ type: 'quote_close', content: char }); 
-        else if (isSimplePunct(char)) cells.push({ type: 'punct_alone', content: char });
-        else cells.push({ type: 'default', content: char }); 
-        i++; 
-      } [cite: 52, 53]
+        else if (isSimplePunct(char)) cells.push({ type: 'punct_alone', content: char }); [cite: 53]
+        else cells.push({ type: 'default', content: char }); i++; 
+      }
     }
     return cells;
-  }, [content]); [cite: 53]
+  }, [content]);
 
-  const renderCell = useCallback((cellData, key, isLastCol) => {
-    const isGrid = viewMode === 'grid'; [cite: 54]
+  const renderCell = useCallback((cellData, key, isLastCol) => { [cite: 54]
+    const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
     if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) verticalShift = '3.8px';
-    else if (fontFamily === "'Poor Story', cursive") verticalShift = '1.9px'; [cite: 54]
+    else if (fontFamily === "'Poor Story', cursive") verticalShift = '1.9px';
 
-    const cellStyle = { width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`, borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGrid) ? `1.2px solid ${lineColor}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, position: 'relative' }; [cite: 54, 55]
-    if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>; [cite: 55]
+    const cellStyle = { width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`, borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGrid) ? `1.2px solid ${lineColor}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, position: 'relative' }; [cite: 55]
+    if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
 
-    const Punct = ({ char, x, y }) => <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: '22px', position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>; [cite: 55]
+    const Punct = ({ char, x, y }) => <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: '22px', position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>;
     if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>; [cite: 56]
     if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{zIndex:2, transform: `translateY(${verticalShift})` }}>{cellData.content}</span><Punct char={cellData.punct} x={85} y={40} /></div>; [cite: 57]
     if (cellData.type === 'punct_quote_final') return <div key={key} style={cellStyle}><Punct char={cellData.punct} x={30} y={40} /><Punct char={cellData.quote} x={90} y={70} /></div>; [cite: 58]
-    if (cellData.type === 'pair') return (
+    if (cellData.type === 'pair') return ( [cite: 59]
         <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}>
           <div style={{width: '50%', display: 'flex', justifyContent: 'center', transform: isSimplePunct(cellData.content[0]) ? 'none' : `translateY(${verticalShift})`, fontFamily: isSimplePunct(cellData.content[0]) ? "'Noto Sans KR', sans-serif" : fontFamily }}>{cellData.content[0]}</div>
           <div style={{width: '50%', display: 'flex', justifyContent: 'center', transform: isSimplePunct(cellData.content[1]) ? 'none' : `translateY(${verticalShift})`, fontFamily: isSimplePunct(cellData.content[1]) ? "'Noto Sans KR', sans-serif" : fontFamily }}>{cellData.content[1]}</div>
         </div>
-      ); [cite: 59]
+      );
     if (cellData.type === 'punct_alone') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={30} y={40} /></div>; [cite: 60]
     if (cellData.type === 'quote_open') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={75} y={65} /></div>; [cite: 61]
     if (cellData.type === 'quote_close') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={25} y={65} /></div>; [cite: 62]
     return <div key={key} style={{...cellStyle, color: '#0f172a'}}><span style={{ transform: `translateY(${verticalShift})` }}>{cellData.content}</span></div>; [cite: 63]
-  }, [lineColor, viewMode, fontFamily]); [cite: 63]
+  }, [lineColor, viewMode, fontFamily]);
 
-  const gridVal = parseInt(gridType); [cite: 63]
+  const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal)); [cite: 64]
 
   return (
@@ -172,14 +169,12 @@ export default function App() {
         .editor-body { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); margin-top: 50px; flex-direction: row; }
         .sidebar { width: 40%; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; } [cite: 65]
         .main-preview { width: 60%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; } [cite: 66]
-
         @media screen and (orientation: portrait) {
           .editor-body { flex-direction: column !important; } [cite: 67]
           .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none !important; border-bottom: 2px solid #ddd !important; } [cite: 68, 69]
           .main-preview { width: 100% !important; height: 50% !important; flex-basis: 50% !important; padding: 10px !important; } [cite: 70]
         }
         @media screen and (max-width: 600px) { .editor-body { flex-direction: column !important; } .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; } .main-preview { width: 100% !important; height: 50% !important; } } [cite: 71, 72]
-
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; } [cite: 73, 74]
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; } [cite: 75, 76]
 
@@ -218,7 +213,7 @@ export default function App() {
                 </div> [cite: 93]
                 <button onClick={() => window.print()} style={{ height: '34px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>인쇄 / PDF 저장</button>
               </div>
-              <textarea value={content} onChange={e => setContent(e.target.value.slice(0, 3000))} className="sidebar-input" placeholder="내용을 입력하세요..." /> [cite: 93]
+              <textarea value={content} onChange={e => setContent(e.target.value.slice(0, 3000))} className="sidebar-input" placeholder="내용을 입력하세요..." />
             </aside>
             <main ref={mainRef} className="main-preview"> [cite: 94]
               <div className="no-print zoom-controls" style={{ marginBottom: '8px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', flexShrink: 0 }}>
@@ -237,8 +232,8 @@ export default function App() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? [cite_start]'15px' : '0px' }}> [cite: 99]
                           {Array.from({ length: gridVal/20 }).map((_, r) => (
                             <div key={r} style={{ display: 'flex', borderRight: viewMode !== 'grid' ? `1.2px solid ${lineColor}` : 'none' }}>
-                              {Array.from({ length: 20 }).map((_, c) => renderCell(allCells[p * gridVal + r * 20 + c], `c-${p}-${r}-${c}`, c === 19))}
-                            </div> [cite: 100]
+                              {Array.from({ length: 20 }).map((_, c) => renderCell(allCells[p * gridVal + r * 20 + c], `c-${p}-${r}-${c}`, c === 19))} [cite: 100]
+                            </div>
                           ))}
                         </div> [cite: 101]
                         <div className="no-print" style={{ marginTop: '20px', textAlign: 'center', fontSize: '10px', color: '#94a3b8', fontWeight: 'bold' }}>PAGE {p + 1}</div>
