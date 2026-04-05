@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.11 완벽 보존 및 메뉴 글자 크기 보정] ---
+// --- [1. 스타일 및 디자인: v.11/v.12 완벽 보존] ---
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -11,8 +11,7 @@ const cardStyle = {
 const cardTitleStyle = { fontSize: '18px', fontWeight: '800', marginBottom: '10px', color: '#1e293b' };
 const cardDescStyle = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', marginBottom: '15px', flex: 1 };
 const cardButtonStyle = { padding: '10px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '12px' };
-
-// 메뉴 박스 안 글자 크기를 기존 11px에서 10% 키운 12.1px로 유지
+// 메뉴 박스 안 글자 크기 12.1px 유지 [cite: 109]
 const selectStyle = { height: '34px', padding: '0 8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.1px', fontWeight: '700', backgroundColor: 'white', color: '#334155', width: '100%', boxSizing: 'border-box' };
 
 const isSimplePunct = (c) => c === '.' || c === ',';
@@ -31,7 +30,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.11 완벽한 레이아웃 및 4개 카드] ---
+// --- [2. 홈 화면: v.11/v.12 레이아웃 유지] [cite: 112-127] ---
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -70,7 +69,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.11 엔진 + 따옴표 규칙 추가] ---
+// --- [3. 메인 앱 컴포넌트: 모든 로직 보존 및 인쇄 최적화] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -85,60 +84,50 @@ export default function App() {
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
       const containerWidth = mainRef.current.clientWidth - 40;
-      const manuscriptWidth = 880; 
-      const calculatedZoom = Math.floor((containerWidth / manuscriptWidth) * 100) / 100;
+      // 피드백형일 경우 너비 기준값(880px + 30mm 박스) 조정
+      const baseWidth = viewMode === 'feedback' ? 1000 : 880; 
+      const calculatedZoom = Math.floor((containerWidth / baseWidth) * 100) / 100;
       setZoom(Math.min(1.5, Math.max(0.3, calculatedZoom))); 
     }
-  }, []);
+  }, [viewMode]);
 
   useEffect(() => {
     if (view === 'editor') { setTimeout(fitToScreen, 300); window.addEventListener('resize', fitToScreen); }
     return () => window.removeEventListener('resize', fitToScreen);
-  }, [view, fitToScreen, gridType]);
+  }, [view, fitToScreen, gridType, viewMode]);
 
+  // [v.12 텍스트 처리 엔진 완벽 보존] 
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
     const limit = Math.min(content.length, 3000);
-
-    // [닫는 따옴표 시 행 채우기 및 들여쓰기 공통 함수]
     const fillAndIndent = () => {
       const rem = cols - (cells.length % cols || cols);
       for (let r = 0; r < rem; r++) cells.push({ type: 'empty' });
-      cells.push({ type: 'empty' }); // 다음 줄 두 번째 칸부터 시작하기 위해 한 칸 비움
+      cells.push({ type: 'empty' });
     };
-
     while (i < limit) {
       const char = content[i], next = content[i+1] || "", next2 = content[i+2] || "";
       let qType = null;
       if (isSingleQuote(char)) { sCount++; qType = sCount % 2 !== 0 ? 'open' : 'close'; }
       else if (isDoubleQuote(char)) { dCount++; qType = dCount % 2 !== 0 ? 'open' : 'close'; }
-      
       if (cells.length % cols === 0 && ((sCount%2!==0) || (dCount%2!==0)) && qType !== 'open') cells.push({ type: 'empty' });
       if (char === '.' && next === '.' && next2 === '.') { cells.push({ type: 'ellipsis' }); i += 3; continue; }
       if (char === '\n') { const rem = cols - (cells.length % cols || cols); for(let r=0; r<rem; r++) cells.push({ type: 'empty' }); cells.push({ type: 'empty' }); i++; continue; }
       if (char === ' ') { if (cells.length % cols !== 0) cells.push({ type: 'default', content: '' }); i++; continue; }
-      
-      // 영어 소문자 2글자 / 대문자 1글자 처리 유지
       if ((isDigit(char) && isDigit(next)) || (isAlphaLower(char) && isAlphaLower(next)) || (isDigit(char) && isSimplePunct(next) && isDigit(next2)) || (isSimplePunct(char) && isDigit(next))) { 
         cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; 
       }
-      
       const isEnd = cells.length % cols === cols - 1;
       const nextIsClosing = isSingleQuote(next) ? (sCount+1)%2===0 : (isDoubleQuote(next) ? (dCount+1)%2===0 : false);
-      
       if (isEnd && isSimplePunct(next)) { cells.push({ type: 'combined_end', content: char, punct: next }); i += 2; }
       else if (isSimplePunct(char) && nextIsClosing) { 
         cells.push({ type: 'punct_quote_final', punct: char, quote: next }); 
         if (isSingleQuote(next)) sCount++; else dCount++; i += 2; 
-        fillAndIndent(); // 규칙 반영: 닫는 따옴표 후 줄 바꿈 및 들여쓰기
-      }
-      else { 
+        fillAndIndent();
+      } else { 
         if (qType === 'open') { cells.push({ type: 'quote_open', content: char }); i++; }
-        else if (qType === 'close') { 
-          cells.push({ type: 'quote_close', content: char }); i++; 
-          fillAndIndent(); // 규칙 반영: 닫는 따옴표 후 줄 바꿈 및 들여쓰기
-        }
+        else if (qType === 'close') { cells.push({ type: 'quote_close', content: char }); i++; fillAndIndent(); }
         else if (isSimplePunct(char)) { cells.push({ type: 'punct_alone', content: char }); i++; }
         else { cells.push({ type: 'default', content: char }); i++; }
       }
@@ -189,14 +178,29 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
+        /* [6가지 원고지 유형별 인쇄 설정 매핑] */
         @media print {
-          @page { size: ${gridType === '200' ? 'A4 landscape' : 'A4 portrait'}; margin: 0; }
+          @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
           body, html { background: white !important; overflow: visible !important; height: auto !important; width: auto !important; }
           .editor-container, .editor-body { display: block !important; width: 100% !important; }
           .main-preview { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; overflow: visible !important; }
-          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; padding: 20mm !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; overflow: hidden !important; position: relative !important; }
-          .page-box { box-shadow: none !important; margin: 0 !important; padding: 0 !important; width: 880px !important; height: auto !important; display: flex !important; flex-direction: column !important; justify-content: center !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / ${gridType === '200' ? '600' : '1100'})) !important; transform-origin: center center !important; }
+          
+          /* 공통 페이지 단위: 중앙 정렬 및 사방 20mm 여백 보장 */
+          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; padding: 20mm !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; }
+          
+          /* 6가지 유형별 정밀 스케일링 (분모값 조정으로 상하좌우 여백 완벽 제어) */
+          /* 200자 시리즈 */
+          .type-200-traditional { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 580)) !important; }
+          .type-200-feedback { transform: scale(min((100vw - 40mm) / 1000, (100vh - 40mm) / 680)) !important; }
+          .type-200-grid { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 580)) !important; }
+          
+          /* 400자 시리즈 */
+          .type-400-traditional { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1050)) !important; }
+          .type-400-feedback { transform: scale(min((100vw - 40mm) / 1000, (100vh - 40mm) / 1150)) !important; }
+          .type-400-grid { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1050)) !important; }
+          
+          .page-box { box-shadow: none !important; margin: 0 !important; padding: 0 !important; height: auto !important; transform-origin: center center !important; }
         }
       `}</style>
       {view === 'home' ? <Home onNavigate={setView} /> : (
@@ -235,14 +239,22 @@ export default function App() {
                 <div className="manuscript-print-root">
                   {Array.from({ length: pageCount }).map((_, p) => (
                     <div key={p} className="page-unit">
-                      <div style={{ backgroundColor: 'white', padding: '40px 60px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', width: 'max-content' }} className="page-box">
+                      {/* 6가지 인쇄 프리셋 클래스 동적 할당 */}
+                      <div style={{ backgroundColor: 'white', padding: '40px 60px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', width: 'max-content' }} className={`page-box type-${gridType}-${viewMode}`}>
                         <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
                           {p === 0 && studentName ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {studentName}</div>) : (<div style={{ height: '35px' }}></div>)}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
                           {Array.from({ length: gridVal/20 }).map((_, r) => (
-                            <div key={r} style={{ display: 'flex', borderRight: viewMode !== 'grid' ? `1.2px solid ${lineColor}` : 'none' }}>
-                              {Array.from({ length: 20 }).map((_, c) => renderCell(allCells[p * gridVal + r * 20 + c], `c-${p}-${r}-${c}`, c === 19))}
+                            <div key={r} style={{ display: 'flex' }}>
+                              {/* 실제 원고지 칸 렌더링 */}
+                              <div style={{ display: 'flex', borderRight: viewMode !== 'grid' ? `1.2px solid ${lineColor}` : 'none' }}>
+                                {Array.from({ length: 20 }).map((_, c) => renderCell(allCells[p * gridVal + r * 20 + c], `c-${p}-${r}-${c}`, c === 19))}
+                              </div>
+                              {/* 피드백 전용 우측 30mm 박스 추가 */}
+                              {viewMode === 'feedback' && (
+                                <div style={{ width: '113px', height: '38px', border: `1.2px solid ${lineColor}`, marginLeft: '10px', borderRadius: '4px' }}></div>
+                              )}
                             </div>
                           ))}
                         </div>
