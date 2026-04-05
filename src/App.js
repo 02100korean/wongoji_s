@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.11 완벽 보존 및 메뉴 글자 크기 조정] ---
+// --- [1. 스타일 및 디자인: v.11 완벽 보존 및 메뉴 글자 크기 보정] ---
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -12,14 +12,14 @@ const cardTitleStyle = { fontSize: '18px', fontWeight: '800', marginBottom: '10p
 const cardDescStyle = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', marginBottom: '15px', flex: 1 };
 const cardButtonStyle = { padding: '10px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '12px' };
 
-// 메뉴 박스 안 글자 크기를 기존 11px에서 10% 키운 12.1px로 수정 
+// 메뉴 박스 안 글자 크기를 기존 11px에서 10% 키운 12.1px로 유지
 const selectStyle = { height: '34px', padding: '0 8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.1px', fontWeight: '700', backgroundColor: 'white', color: '#334155', width: '100%', boxSizing: 'border-box' };
 
 const isSimplePunct = (c) => c === '.' || c === ',';
 const isSingleQuote = (c) => /['‘’]/.test(c);
 const isDoubleQuote = (c) => /["“”]/.test(c);
 const isDigit = (c) => /[0-9]/.test(c);
-const isAlphaLower = (c) => /[a-z]/.test(c); // 영어 소문자 판별 [cite: 20]
+const isAlphaLower = (c) => /[a-z]/.test(c); 
 
 const WonjiIcon = () => (
     <div style={{ marginBottom: '15px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '60px', height: '50px' }}>
@@ -70,7 +70,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.11 엔진 + 인쇄 오류 수정 반영] ---
+// --- [3. 메인 앱 컴포넌트: v.11 엔진 + 따옴표 규칙 추가] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -99,34 +99,48 @@ export default function App() {
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
-    while (i < Math.min(content.length, 3000)) {
+    const limit = Math.min(content.length, 3000);
+
+    // [닫는 따옴표 시 행 채우기 및 들여쓰기 공통 함수]
+    const fillAndIndent = () => {
+      const rem = cols - (cells.length % cols || cols);
+      for (let r = 0; r < rem; r++) cells.push({ type: 'empty' });
+      cells.push({ type: 'empty' }); // 다음 줄 두 번째 칸부터 시작하기 위해 한 칸 비움
+    };
+
+    while (i < limit) {
       const char = content[i], next = content[i+1] || "", next2 = content[i+2] || "";
       let qType = null;
       if (isSingleQuote(char)) { sCount++; qType = sCount % 2 !== 0 ? 'open' : 'close'; }
       else if (isDoubleQuote(char)) { dCount++; qType = dCount % 2 !== 0 ? 'open' : 'close'; }
+      
       if (cells.length % cols === 0 && ((sCount%2!==0) || (dCount%2!==0)) && qType !== 'open') cells.push({ type: 'empty' });
       if (char === '.' && next === '.' && next2 === '.') { cells.push({ type: 'ellipsis' }); i += 3; continue; }
       if (char === '\n') { const rem = cols - (cells.length % cols || cols); for(let r=0; r<rem; r++) cells.push({ type: 'empty' }); cells.push({ type: 'empty' }); i++; continue; }
       if (char === ' ') { if (cells.length % cols !== 0) cells.push({ type: 'default', content: '' }); i++; continue; }
       
-      // 영어 소문자 및 숫자는 2글자 묶음 유지, 대문자는 1칸 1글자로 수정 
-      if ((isDigit(char) && isSimplePunct(next) && isDigit(next2)) || 
-          (isSimplePunct(char) && isDigit(next)) || 
-          (next !== "" && ((isDigit(char) && isDigit(next)) || (isAlphaLower(char) && isAlphaLower(next))))) { 
-        cells.push({ type: 'pair', content: [char, next] }); 
-        i += 2; continue; 
+      // 영어 소문자 2글자 / 대문자 1글자 처리 유지
+      if ((isDigit(char) && isDigit(next)) || (isAlphaLower(char) && isAlphaLower(next)) || (isDigit(char) && isSimplePunct(next) && isDigit(next2)) || (isSimplePunct(char) && isDigit(next))) { 
+        cells.push({ type: 'pair', content: [char, next] }); i += 2; continue; 
       }
       
       const isEnd = cells.length % cols === cols - 1;
       const nextIsClosing = isSingleQuote(next) ? (sCount+1)%2===0 : (isDoubleQuote(next) ? (dCount+1)%2===0 : false);
+      
       if (isEnd && isSimplePunct(next)) { cells.push({ type: 'combined_end', content: char, punct: next }); i += 2; }
-      else if (isSimplePunct(char) && nextIsClosing) { cells.push({ type: 'punct_quote_final', punct: char, quote: next }); if (isSingleQuote(next)) sCount++; else dCount++; i += 2; }
+      else if (isSimplePunct(char) && nextIsClosing) { 
+        cells.push({ type: 'punct_quote_final', punct: char, quote: next }); 
+        if (isSingleQuote(next)) sCount++; else dCount++; i += 2; 
+        fillAndIndent(); // 규칙 반영: 닫는 따옴표 후 줄 바꿈 및 들여쓰기
+      }
       else { 
-        if (qType === 'open') cells.push({ type: 'quote_open', content: char }); 
-        else if (qType === 'close') cells.push({ type: 'quote_close', content: char }); 
-        else if (isSimplePunct(char)) cells.push({ type: 'punct_alone', content: char }); 
-        else cells.push({ type: 'default', content: char }); 
-        i++; 
+        if (qType === 'open') { cells.push({ type: 'quote_open', content: char }); i++; }
+        else if (qType === 'close') { 
+          cells.push({ type: 'quote_close', content: char }); i++; 
+          fillAndIndent(); // 규칙 반영: 닫는 따옴표 후 줄 바꿈 및 들여쓰기
+        }
+        else if (isSimplePunct(char)) { cells.push({ type: 'punct_alone', content: char }); i++; }
+        else { cells.push({ type: 'default', content: char }); i++; }
       }
     }
     return cells;
@@ -137,10 +151,8 @@ export default function App() {
     let verticalShift = '0px';
     if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) verticalShift = '3.8px';
     else if (fontFamily === "'Poor Story', cursive") verticalShift = '1.9px';
-
     const cellStyle = { width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`, borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGrid) ? `1.2px solid ${lineColor}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, position: 'relative' };
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
-
     const Punct = ({ char, x, y }) => <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: '22px', position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>;
     if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
     if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{zIndex:2, transform: `translateY(${verticalShift})` }}>{cellData.content}</span><Punct char={cellData.punct} x={85} y={40} /></div>;
@@ -169,7 +181,6 @@ export default function App() {
         .editor-body { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); margin-top: 50px; flex-direction: row; }
         .sidebar { width: 40%; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
         .main-preview { width: 60%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
-
         @media screen and (orientation: portrait) {
           .editor-body { flex-direction: column !important; }
           .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none !important; border-bottom: 2px solid #ddd !important; }
@@ -178,7 +189,6 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [인쇄 설정: v.11-1의 정교한 수정 사항 반영] */
         @media print {
           @page { size: ${gridType === '200' ? 'A4 landscape' : 'A4 portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
@@ -186,10 +196,9 @@ export default function App() {
           .editor-container, .editor-body { display: block !important; width: 100% !important; }
           .main-preview { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; overflow: visible !important; }
           .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; padding: 20mm !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; overflow: hidden !important; position: relative !important; }
-          .page-box { box-shadow: none !important; margin: 0 !important; padding: 0 !important; width: 880px !important; height: auto !important; display: flex !important; flex-direction: column !important; justify-content: center !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / ${gridType === '200' ? (viewMode === 'feedback' ? '850' : '600') : '1100'})) !important; transform-origin: center center !important; }
+          .page-box { box-shadow: none !important; margin: 0 !important; padding: 0 !important; width: 880px !important; height: auto !important; display: flex !important; flex-direction: column !important; justify-content: center !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / ${gridType === '200' ? '600' : '1100'})) !important; transform-origin: center center !important; }
         }
       `}</style>
-
       {view === 'home' ? <Home onNavigate={setView} /> : (
         <div className="editor-container">
           <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, height: '50px', position: 'fixed', top: 0, left: 0, right: 0 }}>
