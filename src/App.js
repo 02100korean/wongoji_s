@@ -29,89 +29,45 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: 요청 사항 반영 수정] ---
+// --- [2. 홈 화면: 가로/세로 레이아웃 및 스크롤 완벽 복구] ---
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => {
-    cardsRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (cardsRef.current) {
+      cardsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   return (
     <div className="home-root">
       <style>{`
-        .home-root { min-height: 100vh; background-color: #f8fafc; font-family: 'Noto Sans KR', sans-serif; color: #1e293b; overflow-y: auto; }
-        
-        /* Top 섹션: 화면의 정확히 50%로 설정 */
-        .hero-section { 
-          height: 50vh; 
-          display: flex; 
-          flex-direction: column; 
-          justify-content: center; 
-          align-items: center; 
-          padding: 0 20px; 
-          text-align: center; 
-          background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); 
-          color: white; 
-          position: relative; 
-        }
-        
-        /* 카드 섹션: 가로 모드 대응 */
-        .cards-grid { 
-          max-width: 1200px; 
-          margin: 40px auto 80px; 
-          padding: 0 20px; 
-          display: grid; 
-          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
-          gap: 25px; 
-        }
-
+        .home-root { min-height: 100vh; background-color: #f8fafc; font-family: 'Noto Sans KR', sans-serif; color: #1e293b; overflow-y: auto !important; }
+        .hero-section { height: 50vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 20px; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; position: relative; }
+        .cards-grid { max-width: 1200px; margin: 40px auto 80px; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 25px; }
         .card-item:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); }
-        
-        /* 스크롤 인디케이터 */
-        .scroll-indicator { 
-          position: absolute; 
-          bottom: 15px; 
-          left: 50%; 
-          transform: translateX(-50%); 
-          display: flex; 
-          flex-direction: column; 
-          align-items: center; 
-          cursor: pointer; 
-          animation: bounce 2s infinite;
-        }
-        .scroll-text { font-size: 11px; font-weight: 900; color: #facc15; letter-spacing: 1px; }
-
-        @keyframes bounce { 
-          0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 
-          40% { transform: translateX(-50%) translateY(-8px); } 
-          60% { transform: translateX(-50%) translateY(-4px); } 
-        }
+        .fade-in { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .scroll-indicator { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; animation: bounce 2s infinite; z-index: 10; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-8px); } 60% { transform: translateX(-50%) translateY(-4px); } }
       `}</style>
-      
       <section className="hero-section">
-        <h1 style={{ fontSize: '2.8rem', fontWeight: '900', marginBottom: '15px', lineHeight: 1.2 }}>Master Korean <br/> <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
-        {/* 복구된 문구 */}
-        <p style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px' }}>
-          한국어를 원고지에 쓰면서 연습하고,<br/>한국어 필수 패턴을 내 것으로 만드세요.
-        </p>
-        
-        {/* 명시적인 스크롤 다운 표시 (▼ 포함) */}
+        <h1 className="fade-in" style={{ fontSize: '2.8rem', fontWeight: '900', marginBottom: '15px', lineHeight: 1.2 }}>Master Korean <br/> <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
+        <p className="fade-in" style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', animationDelay: '0.2s' }}>한국어를 원고지에 쓰면서 연습하고,<br/>한국어 필수 패턴을 내 것으로 만드세요.</p>
         <div className="scroll-indicator" onClick={handleScroll}>
-          <span className="scroll-text">SCROLL DOWN ▼</span>
+          <span style={{fontSize:'11px', fontWay:900, color:'#facc15', letterSpacing:'1px'}}>SCROLL DOWN ▼</span>
         </div>
       </section>
-
       <div className="cards-grid" ref={cardsRef}>
-        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}><WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>정석 규칙이 적용된 쓰기 연습.</p><button style={cardButtonStyle}>시작하기</button></div>
-        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>초급 필수 패턴 100가지.</p><button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button></a>
-        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>생생한 패턴 학습 강의.</p><button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button></a>
-        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}><div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div><h3 style={cardTitleStyle}>TOPIK 1 단어장</h3><p style={cardDescStyle}>한 권으로 끝내는 필수 어휘.</p><button style={{...cardButtonStyle, width:'100%'}}>구입하기</button></a>
+        <div className="card-item fade-in" onClick={() => onNavigate('editor')} style={{...cardStyle, animationDelay: '0.4s'}}><WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>정석 규칙이 적용된 쓰기 연습.</p><button style={cardButtonStyle}>시작하기</button></div>
+        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item fade-in" style={{...cardStyle, animationDelay: '0.5s'}}><div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>초급 필수 패턴 100가지.</p><button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button></a>
+        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item fade-in" style={{...cardStyle, animationDelay: '0.6s'}}><div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>생생한 패턴 학습 강의.</p><button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button></a>
+        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item fade-in" style={{...cardStyle, border:'2.5px solid #6366f1', animationDelay: '0.7s'}}><div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div><h3 style={cardTitleStyle}>TOPIK 1 단어장</h3><p style={cardDescStyle}>한 권으로 끝내는 필수 어휘.</p><button style={{...cardButtonStyle, width:'100%'}}>구입하기</button></a>
       </div>
     </div>
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 기능 보존] ---
+// --- [3. 메인 앱 컴포넌트: 반응형 전환 정밀 검수] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -213,22 +169,22 @@ export default function App() {
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
         .editor-container { display: flex; width: 100vw; height: 100vh; background-color: #e2e8f0; position: relative; overflow: hidden; }
         
-        /* 가로 모드 (Default) */
+        /* [가로 모드 기본 설정] */
         .sidebar { width: 340px; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
-        .main-preview { flex: 1; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; }
+        .main-preview { flex: 1; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
 
-        /* 세로 모드 (Portrait) - 50:50 분할 및 독립 스크롤 */
+        /* [세로 모드 반응형 전환 - 임계값 보강] */
         @media (orientation: portrait), (max-width: 900px) {
           .editor-container { flex-direction: column !important; }
           .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none; border-bottom: 2px solid #ddd; overflow-y: auto !important; }
-          .main-preview { width: 100% !important; height: 50% !important; flex-basis: 50% !important; padding: 10px; align-items: center; overflow-y: auto !important; }
+          .main-preview { width: 100% !important; height: 50% !important; flex-basis: 50% !important; padding: 10px; align-items: flex-start !important; justify-content: flex-start !important; overflow: auto !important; }
           .sidebar-input { min-height: 150px !important; }
         }
 
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; }
 
-        /* 인쇄 최적화: 20mm 여백 + 좌상단 정렬 보존 */
+        /* [인쇄 설정 보존] */
         @media print {
           @page { size: auto; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator { display: none !important; }
