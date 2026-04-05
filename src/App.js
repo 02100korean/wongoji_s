@@ -59,7 +59,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 모든 로직 보존 및 인쇄 버그 수정] ---
+// --- [3. 메인 앱 컴포넌트: 반응형 간섭 해결] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -127,6 +127,7 @@ export default function App() {
     return cells;
   }, [content]);
 
+  // [렌더링: 모든 폰트 보정 및 정밀 좌표 보존]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let baseSize = 22;
@@ -174,66 +175,43 @@ export default function App() {
         
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
         .editor-container { display: flex; width: 100vw; height: 100vh; background-color: #e2e8f0; overflow: hidden; }
-        .editor-body { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); margin-top: 50px; }
-
+        
+        /* [가로 모드 기본 설정: 40:60 비율] */
+        .editor-body { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); margin-top: 50px; flex-direction: row; }
         .sidebar { width: 40%; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
         .main-preview { width: 60%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
 
-        @media (orientation: portrait), (max-width: 900px) {
+        /* [세로 모드 반응형: 간섭 방지를 위해 orientation과 width 결합] */
+        @media screen and (orientation: portrait), screen and (max-width: 900px) {
           .editor-body { flex-direction: column !important; }
-          .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none; border-bottom: 2px solid #ddd; }
-          .main-preview { width: 100% !important; height: 50% !important; flex-basis: 50% !important; padding: 10px; align-items: flex-start !important; }
-          .sidebar-input { flex: 1 !important; height: auto !important; margin-top: 0 !important; }
+          .sidebar { 
+            width: 100% !important; 
+            height: 50% !important; 
+            flex-basis: 50% !important; 
+            border-right: none !important; 
+            border-bottom: 2px solid #ddd !important; 
+          }
+          .main-preview { 
+            width: 100% !important; 
+            height: 50% !important; 
+            flex-basis: 50% !important; 
+            padding: 10px !important; 
+            align-items: flex-start !important; 
+          }
+          .sidebar-input { flex: 1 !important; height: auto !important; }
         }
 
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [인쇄 엔진 핵심 수정: 여백 20mm 기준 자동 맞춤] */
         @media print {
-          @page { 
-            size: ${gridType === '200' ? 'A4 landscape' : 'A4 portrait'}; 
-            margin: 0; /* 브라우저 기본 마진 제거 */
-          }
+          @page { size: ${gridType === '200' ? 'A4 landscape' : 'A4 portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
           body, html { background: white !important; overflow: visible !important; height: auto !important; width: auto !important; }
-          
           .editor-container, .editor-body { display: block !important; width: 100% !important; }
-          .main-preview { 
-            display: block !important; padding: 0 !important; margin: 0 !important; 
-            background: white !important; width: 100% !important; overflow: visible !important; 
-          }
-          
-          /* 한 페이지 고정 및 중앙 정렬 */
-          .page-unit { 
-            height: 100vh !important; 
-            width: 100vw !important; 
-            display: flex !important; 
-            justify-content: center !important; 
-            align-items: center !important; 
-            padding: 20mm !important; /* 요청하신 20mm 정밀 여백 */
-            box-sizing: border-box !important;
-            page-break-after: always !important; 
-            break-after: page !important;
-            overflow: hidden !important;
-            position: relative !important;
-          }
-
-          /* 비율 유지 자동 확대/축소 핵심 로직 */
-          .page-box { 
-            box-shadow: none !important; margin: 0 !important; padding: 0 !important; 
-            width: 880px !important; /* 원고지 원본 가로폭 */
-            height: auto !important;
-            display: flex !important; flex-direction: column !important; justify-content: center !important;
-            /* A4 가로/세로 영역(패딩 제외)에 맞게 비율 유지 스케일링 */
-            transform: scale(min(
-              (100vw - 40mm) / 880, 
-              (100vh - 40mm) / ${gridType === '200' ? '600' : '1100'} 
-            )) !important;
-            transform-origin: center center !important;
-          }
-          
-          .manuscript-print-root { width: 100% !important; }
+          .main-preview { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; overflow: visible !important; }
+          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; padding: 20mm !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; overflow: hidden !important; }
+          .page-box { box-shadow: none !important; margin: 0 !important; padding: 0 !important; width: 880px !important; height: auto !important; display: flex !important; flex-direction: column !important; justify-content: center !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / ${gridType === '200' ? '600' : '1100'})) !important; transform-origin: center center !important; }
         }
       `}</style>
 
