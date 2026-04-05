@@ -42,7 +42,7 @@ const Home = ({ onNavigate }) => {
         @media (max-width: 1000px) { .cards-grid { grid-template-columns: 1fr; } }
         .card-item:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); }
         .scroll-indicator { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); cursor: pointer; animation: bounce 2s infinite; display: flex; flex-direction: column; align-items: center; z-index: 10; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-10px); } 60% { transform: translateX(-50%) translateY(-4px); } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-8px); } 60% { transform: translateX(-50%) translateY(-4px); } }
       `}</style>
       <section className="hero-section">
         <h1 style={{ fontSize: '2.8rem', fontWeight: '900', marginBottom: '15px', lineHeight: 1.2 }}>Master Korean <br/> <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
@@ -50,16 +50,33 @@ const Home = ({ onNavigate }) => {
         <div className="scroll-indicator" onClick={handleScroll}><span style={{ fontSize: '11px', fontWeight: 900, color: '#facc15' }}>SCROLL DOWN ▼</span></div>
       </section>
       <div className="cards-grid" ref={cardsRef}>
-        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}><WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>다양한 폰트로 원고지 쓰기를 연습하고 인쇄하세요.</p><button style={cardButtonStyle}>시작하기</button></div>
-        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p><button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button></a>
-        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p><button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button></a>
-        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}><div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div><h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3><p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p><button style={{...cardButtonStyle, width:'100%'}}>구입하기</button></a>
+        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
+          <WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3>
+          <p style={cardDescStyle}>다양한 폰트로 원고지 쓰기를 연습하고 인쇄하세요.</p>
+          <button style={cardButtonStyle}>시작하기</button>
+        </div>
+        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
+          <div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3>
+          <p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p>
+          <button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button>
+        </a>
+        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
+          <div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3>
+          <p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p>
+          <button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button>
+        </a>
+        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}>
+          <div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div>
+          <h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3>
+          <p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p>
+          <button style={{...cardButtonStyle, width:'100%'}}>구입하기</button>
+        </a>
       </div>
     </div>
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 반응형 간섭 해결] ---
+// --- [3. 메인 앱 컴포넌트: 모든 로직 보존 및 모바일 가로 모드 해결] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -127,7 +144,6 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [렌더링: 모든 폰트 보정 및 정밀 좌표 보존]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let baseSize = 22;
@@ -181,24 +197,20 @@ export default function App() {
         .sidebar { width: 40%; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
         .main-preview { width: 60%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
 
-        /* [세로 모드 반응형: 간섭 방지를 위해 orientation과 width 결합] */
-        @media screen and (orientation: portrait), screen and (max-width: 900px) {
+        /* [반응형 레이아웃 간섭 해결 핵심 수정] */
+        /* 오직 세로 방향(Portrait)일 때만 세로 레이아웃 적용 */
+        @media screen and (orientation: portrait) {
           .editor-body { flex-direction: column !important; }
-          .sidebar { 
-            width: 100% !important; 
-            height: 50% !important; 
-            flex-basis: 50% !important; 
-            border-right: none !important; 
-            border-bottom: 2px solid #ddd !important; 
-          }
-          .main-preview { 
-            width: 100% !important; 
-            height: 50% !important; 
-            flex-basis: 50% !important; 
-            padding: 10px !important; 
-            align-items: flex-start !important; 
-          }
+          .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none !important; border-bottom: 2px solid #ddd !important; }
+          .main-preview { width: 100% !important; height: 50% !important; flex-basis: 50% !important; padding: 10px !important; align-items: flex-start !important; }
           .sidebar-input { flex: 1 !important; height: auto !important; }
+        }
+
+        /* PC에서 창을 아주 좁게 줄였을 때(너비 600px 미만)만 세로 레이아웃 허용 */
+        @media screen and (max-width: 600px) {
+          .editor-body { flex-direction: column !important; }
+          .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none !important; border-bottom: 2px solid #ddd !important; }
+          .main-preview { width: 100% !important; height: 50% !important; flex-basis: 50% !important; padding: 10px !important; }
         }
 
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
@@ -210,7 +222,7 @@ export default function App() {
           body, html { background: white !important; overflow: visible !important; height: auto !important; width: auto !important; }
           .editor-container, .editor-body { display: block !important; width: 100% !important; }
           .main-preview { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; overflow: visible !important; }
-          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; padding: 20mm !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; overflow: hidden !important; }
+          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; padding: 20mm !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; overflow: hidden !important; position: relative !important; }
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 0 !important; width: 880px !important; height: auto !important; display: flex !important; flex-direction: column !important; justify-content: center !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / ${gridType === '200' ? '600' : '1100'})) !important; transform-origin: center center !important; }
         }
       `}</style>
