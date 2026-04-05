@@ -178,14 +178,14 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [인쇄 설정: 200자 정중앙 보정 및 다중 인쇄 수정] */
+        /* [인쇄 설정: 상하 여백 정중앙 보정 및 다중 인쇄 수정] */
         @media print {
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
           body, html { background: white !important; overflow: visible !important; height: auto !important; width: auto !important; }
           .editor-container, .editor-body { display: block !important; width: 100% !important; }
           
-          /* 다중 인쇄를 위한 블록 레벨 강제 및 흐름 허용 */
+          /* 다중 인쇄를 위해 부모 컨테이너의 flex 해제 및 흐름 허용 */
           .main-preview { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; overflow: visible !important; }
           .zoom-wrapper { transform: none !important; width: auto !important; height: auto !important; display: block !important; }
           .manuscript-print-root { display: block !important; width: 100% !important; }
@@ -198,7 +198,7 @@ export default function App() {
             break-after: page !important; position: relative !important; overflow: hidden !important;
           }
           
-          /* [200자 일반형 정중앙 보정]: scale 계산 시 높이 기준을 실제 높이(~650px)로 수정하여 상하 여백 균등화 */
+          /* [200자 정중앙 보정]: scale 계산 시 높이 기준을 실제 높이(~650px)로 수정하여 상하 여백 균등화 */
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 650)) !important; }
           .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 630)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 480)) !important; }
