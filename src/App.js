@@ -42,7 +42,7 @@ const Home = ({ onNavigate }) => {
         @media (max-width: 1000px) { .cards-grid { grid-template-columns: 1fr; } }
         .card-item:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); }
         .scroll-indicator { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); cursor: pointer; animation: bounce 2s infinite; display: flex; flex-direction: column; align-items: center; z-index: 10; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-8px); } 60% { transform: translateX(-50%) translateY(-4px); } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-10px); } 60% { transform: translateX(-50%) translateY(-4px); } }
       `}</style>
       <section className="hero-section">
         <h1 style={{ fontSize: '2.8rem', fontWeight: '900', marginBottom: '15px', lineHeight: 1.2 }}>Master Korean <br/> <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
@@ -50,16 +50,33 @@ const Home = ({ onNavigate }) => {
         <div className="scroll-indicator" onClick={handleScroll}><span style={{ fontSize: '11px', fontWeight: 900, color: '#facc15' }}>SCROLL DOWN ▼</span></div>
       </section>
       <div className="cards-grid" ref={cardsRef}>
-        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}><WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>다양한 폰트로 원고지 쓰기를 연습하고 인쇄하세요.</p><button style={cardButtonStyle}>시작하기</button></div>
-        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p><button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button></a>
-        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p><button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button></a>
-        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}><div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div><h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3><p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p><button style={{...cardButtonStyle, width:'100%'}}>구입하기</button></a>
+        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
+          <WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3>
+          <p style={cardDescStyle}>다양한 폰트로 원고지 쓰기를 연습하고 인쇄하세요.</p>
+          <button style={cardButtonStyle}>시작하기</button>
+        </div>
+        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
+          <div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3>
+          <p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p>
+          <button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button>
+        </a>
+        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
+          <div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3>
+          <p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p>
+          <button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button>
+        </a>
+        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}>
+          <div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div>
+          <h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3>
+          <p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p>
+          <button style={{...cardButtonStyle, width:'100%'}}>구입하기</button>
+        </a>
       </div>
     </div>
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 인쇄 시스템 전면 개편] ---
+// --- [3. 메인 앱 컴포넌트: 모든 로직 보존 및 인쇄 영역 수정] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -127,7 +144,7 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [렌더링: 폰트별 하향 조정 로직 완벽 유지]
+  // [렌더링: 폰트 위치 로직 완벽 유지]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let baseSize = 22;
@@ -194,7 +211,7 @@ export default function App() {
         @media print {
           @page { 
             size: ${gridType === '200' ? 'A4 landscape' : 'A4 portrait'}; 
-            margin: 20mm; /* 최소 여백 20mm 강제 설정 */
+            margin: 0; /* 물리적 마진 제거 후 내부 패딩으로 제어 */
           }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
           body, html { background: white !important; overflow: visible !important; height: auto !important; width: auto !important; }
@@ -204,28 +221,36 @@ export default function App() {
             background: white !important; width: 100% !important; height: auto !important; 
             overflow: visible !important; 
           }
+          
+          /* 한 페이지 당 원고지 한 장 고정 및 중앙 정렬 */
           .page-unit { 
-            height: calc(100vh - 40mm) !important; /* A4에서 상하 20mm씩 제외한 높이 */
-            width: calc(100vw - 40mm) !important;  /* A4에서 좌우 20mm씩 제외한 너비 */
+            height: 100vh !important; 
+            width: 100vw !important; 
             display: flex !important; 
-            justify-content: center !important; /* 가로 중앙 정렬 */
-            align-items: center !important;     /* 세로 중앙 정렬 */
+            justify-content: center !important; 
+            align-items: center !important; 
+            padding: 20mm !important; /* 최소 여백 20mm 보장 */
+            box-sizing: border-box !important;
             page-break-after: always !important; 
             break-after: page !important;
-            margin: 0 auto !important;
+            overflow: hidden !important;
           }
+
+          /* 가로세로 비율 유지 자동 확대/축소 */
           .page-box { 
             box-shadow: none !important; margin: 0 !important; padding: 0 !important; 
             max-width: 100% !important; 
             max-height: 100% !important;
-            width: auto !important; height: auto !important;
-            display: flex !important; flex-direction: column !important; justify-content: center !important;
-            /* 비율 유지하며 용지 여백에 딱 맞춰 자동 축소/확대 */
-            object-fit: contain !important;
-            zoom: 1 !important; 
+            width: auto !important; 
+            height: auto !important;
+            display: flex !important; 
+            flex-direction: column !important; 
+            justify-content: center !important;
+            transform: scale(1) !important; /* 브라우저가 max-width에 맞춰 자동 스케일링하게 유도 */
           }
-          /* 이름 표기 등 정렬 보존 */
-          .page-box > div { width: 100% !important; }
+          
+          /* 잘림 방지를 위한 가로축 보정 */
+          .manuscript-print-root { width: 100% !important; }
         }
       `}</style>
 
@@ -266,7 +291,7 @@ export default function App() {
                 <div className="manuscript-print-root">
                   {Array.from({ length: pageCount }).map((_, p) => (
                     <div key={p} className="page-unit">
-                      <div style={{ backgroundColor: 'white', padding: '40px 60px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', marginBottom: '40px', width: 'max-content' }} className="page-box">
+                      <div style={{ backgroundColor: 'white', padding: '40px 60px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', width: 'max-content' }} className="page-box">
                         <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
                           {p === 0 && studentName ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {studentName}</div>) : (<div style={{ height: '35px' }}></div>)}
                         </div>
