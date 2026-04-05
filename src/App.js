@@ -42,7 +42,7 @@ const Home = ({ onNavigate }) => {
         @media (max-width: 1000px) { .cards-grid { grid-template-columns: 1fr; } }
         .card-item:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); }
         .scroll-indicator { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); cursor: pointer; animation: bounce 2s infinite; display: flex; flex-direction: column; align-items: center; z-index: 10; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-8px); } 60% { transform: translateX(-50%) translateY(-4px); } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-8px); } }
       `}</style>
       <section className="hero-section">
         <h1 style={{ fontSize: '2.8rem', fontWeight: '900', marginBottom: '15px', lineHeight: 1.2 }}>Master Korean <br/> <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
@@ -50,16 +50,33 @@ const Home = ({ onNavigate }) => {
         <div className="scroll-indicator" onClick={handleScroll}><span style={{ fontSize: '11px', fontWeight: 900, color: '#facc15' }}>SCROLL DOWN ▼</span></div>
       </section>
       <div className="cards-grid" ref={cardsRef}>
-        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}><WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>다양한 폰트로 원고지 쓰기를 연습하고 인쇄하세요.</p><button style={cardButtonStyle}>시작하기</button></div>
-        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p><button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button></a>
-        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p><button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button></a>
-        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}><div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div><h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3><p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p><button style={{...cardButtonStyle, width:'100%'}}>구입하기</button></a>
+        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
+          <WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3>
+          <p style={cardDescStyle}>다양한 폰트로 원고지 쓰기를 연습하고 인쇄하세요.</p>
+          <button style={cardButtonStyle}>시작하기</button>
+        </div>
+        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
+          <div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3>
+          <p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p>
+          <button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button>
+        </a>
+        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
+          <div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3>
+          <p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p>
+          <button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button>
+        </a>
+        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}>
+          <div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div>
+          <h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3>
+          <p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p>
+          <button style={{...cardButtonStyle, width:'100%'}}>구입하기</button>
+        </a>
       </div>
     </div>
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 가로 모드 4:6 비율 적용] ---
+// --- [3. 메인 앱 컴포넌트: 폰트 위치 및 온점 디자인 수정] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -130,24 +147,47 @@ export default function App() {
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let baseSize = 22;
+
+    // 폰트별 위치 이동값 계산 (상단 여백을 주어 아래로 밀어냄)
+    let verticalShift = '0px';
+    const fonts10 = ["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"];
+    const fonts5 = ["'Poor Story', cursive"];
+    
+    if (fonts10.includes(fontFamily)) verticalShift = '3.8px'; // 10%
+    else if (fonts5.includes(fontFamily)) verticalShift = '1.9px'; // 5%
+
     const cellStyle = { 
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
         borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGrid) ? `1.2px solid ${lineColor}` : 'none',
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseSize}px`, backgroundColor: 'white', boxSizing: 'border-box', 
         fontFamily: fontFamily, fontWeight: 'normal', position: 'relative'
     };
+
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
+
+    // 문장부호 컴포넌트: Noto Sans KR 강제 적용으로 온점 디자인 고정 (위치 이동 안함)
     const Punct = ({ char, x, y, size = baseSize }) => (
         <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`, position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>
     );
+
     if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
-    if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{zIndex:2}}>{cellData.content}</span><Punct char={cellData.punct} x={85} y={40} /></div>;
+    if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{zIndex:2, transform: `translateY(${verticalShift})` }}>{cellData.content}</span><Punct char={cellData.punct} x={85} y={40} /></div>;
     if (cellData.type === 'punct_quote_final') return <div key={key} style={cellStyle}><Punct char={cellData.punct} x={30} y={40} /><Punct char={cellData.quote} x={90} y={70} /></div>;
-    if (cellData.type === 'pair') return <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[0]}</div><div style={{width: '50%', display: 'flex', justifyContent: 'center'}}>{cellData.content[1]}</div></div>;
+    
+    // 숫자/영어 페어링: 부호는 폰트 고정 및 위치 유지, 글자만 위치 이동
+    if (cellData.type === 'pair') return (
+      <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}>
+        <div style={{width: '50%', display: 'flex', justifyContent: 'center', transform: isSimplePunct(cellData.content[0]) ? 'none' : `translateY(${verticalShift})`, fontFamily: isSimplePunct(cellData.content[0]) ? "'Noto Sans KR', sans-serif" : fontFamily }}>{cellData.content[0]}</div>
+        <div style={{width: '50%', display: 'flex', justifyContent: 'center', transform: isSimplePunct(cellData.content[1]) ? 'none' : `translateY(${verticalShift})`, fontFamily: isSimplePunct(cellData.content[1]) ? "'Noto Sans KR', sans-serif" : fontFamily }}>{cellData.content[1]}</div>
+      </div>
+    );
+
     if (cellData.type === 'punct_alone') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={30} y={40} /></div>;
     if (cellData.type === 'quote_open') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={75} y={65} /></div>;
     if (cellData.type === 'quote_close') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={25} y={65} /></div>;
-    return <div key={key} style={{...cellStyle, color: '#0f172a'}}><span>{cellData.content}</span></div>;
+
+    // 일반 글자: 위치 하단 이동 적용
+    return <div key={key} style={{...cellStyle, color: '#0f172a'}}><span style={{ transform: `translateY(${verticalShift})` }}>{cellData.content}</span></div>;
   }, [lineColor, viewMode, fontFamily]);
 
   const gridVal = parseInt(gridType);
@@ -163,11 +203,9 @@ export default function App() {
         .editor-container { display: flex; width: 100vw; height: 100vh; background-color: #e2e8f0; overflow: hidden; }
         .editor-body { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); margin-top: 50px; }
 
-        /* [가로 모드: 요청 사항 반영 40:60 비율] */
         .sidebar { width: 40%; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
         .main-preview { width: 60%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
 
-        /* [세로 모드: 기존 완벽한 50:50 보존] */
         @media (orientation: portrait), (max-width: 900px) {
           .editor-body { flex-direction: column !important; }
           .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none; border-bottom: 2px solid #ddd; }
