@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: 완벽 보존] ---
+// --- [2. 홈 화면: 모바일 가로 모드 4열 배치 해결] ---
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -38,11 +38,29 @@ const Home = ({ onNavigate }) => {
       <style>{`
         .home-root { width: 100%; height: 100vh; overflow-y: auto !important; background-color: #f8fafc; font-family: 'Noto Sans KR', sans-serif; color: #1e293b; -webkit-overflow-scrolling: touch; }
         .hero-section { height: 50vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 20px; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; position: relative; }
-        .cards-grid { max-width: 1300px; margin: 40px auto 100px; padding: 0 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        @media (max-width: 1000px) { .cards-grid { grid-template-columns: 1fr; } }
+        
+        /* 홈 화면 카드 배치 엔진 */
+        .cards-grid { 
+          max-width: 1300px; margin: 40px auto 100px; padding: 0 20px; 
+          display: grid; 
+          grid-template-columns: repeat(4, 1fr); /* 가로 모드에서 기본 4열 배치 */
+          gap: 20px; 
+        }
+
+        /* [핵심 수정] 오직 세로 방향(Portrait)일 때만 카드를 1열로 쌓음 */
+        @media screen and (orientation: portrait) {
+          .cards-grid { grid-template-columns: 1fr; }
+        }
+
+        /* 모바일 가로(Landscape) 상태에서는 강제로 4열 혹은 최소 2열 이상 유지 */
+        @media screen and (orientation: landscape) and (max-width: 900px) {
+          .cards-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+          .hero-section { height: 70vh; } /* 폰 가로에서는 히어로 영역을 조금 더 확보 */
+        }
+
         .card-item:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); }
         .scroll-indicator { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); cursor: pointer; animation: bounce 2s infinite; display: flex; flex-direction: column; align-items: center; z-index: 10; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-8px); } 60% { transform: translateX(-50%) translateY(-4px); } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-10px); } }
       `}</style>
       <section className="hero-section">
         <h1 style={{ fontSize: '2.8rem', fontWeight: '900', marginBottom: '15px', lineHeight: 1.2 }}>Master Korean <br/> <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
@@ -76,7 +94,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 모든 로직 보존 및 모바일 가로 모드 해결] ---
+// --- [3. 메인 앱 컴포넌트: 모든 로직 보존] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -144,6 +162,7 @@ export default function App() {
     return cells;
   }, [content]);
 
+  // [렌더링: 폰트 위치 및 정밀 좌표 보존]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let baseSize = 22;
@@ -197,8 +216,7 @@ export default function App() {
         .sidebar { width: 40%; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
         .main-preview { width: 60%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
 
-        /* [반응형 레이아웃 간섭 해결 핵심 수정] */
-        /* 오직 세로 방향(Portrait)일 때만 세로 레이아웃 적용 */
+        /* [연습장 세로 모드 반응형] */
         @media screen and (orientation: portrait) {
           .editor-body { flex-direction: column !important; }
           .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none !important; border-bottom: 2px solid #ddd !important; }
@@ -206,10 +224,10 @@ export default function App() {
           .sidebar-input { flex: 1 !important; height: auto !important; }
         }
 
-        /* PC에서 창을 아주 좁게 줄였을 때(너비 600px 미만)만 세로 레이아웃 허용 */
+        /* PC 창 아주 좁게 줄였을 때 대응 */
         @media screen and (max-width: 600px) {
           .editor-body { flex-direction: column !important; }
-          .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none !important; border-bottom: 2px solid #ddd !important; }
+          .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none; border-bottom: 2px solid #ddd; }
           .main-preview { width: 100% !important; height: 50% !important; flex-basis: 50% !important; padding: 10px !important; }
         }
 
