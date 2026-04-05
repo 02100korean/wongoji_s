@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.11/v.12 완벽 보존] ---
+// --- [1. 스타일 및 디자인: v.12 완벽 보존] --- [cite: 105-111]
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -11,7 +11,6 @@ const cardStyle = {
 const cardTitleStyle = { fontSize: '18px', fontWeight: '800', marginBottom: '10px', color: '#1e293b' };
 const cardDescStyle = { fontSize: '13px', color: '#64748b', lineHeight: '1.5', marginBottom: '15px', flex: 1 };
 const cardButtonStyle = { padding: '10px 18px', borderRadius: '10px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: '700', cursor: 'pointer', fontSize: '12px' };
-// 메뉴 박스 안 글자 크기 12.1px 유지 [cite: 109]
 const selectStyle = { height: '34px', padding: '0 8px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12.1px', fontWeight: '700', backgroundColor: 'white', color: '#334155', width: '100%', boxSizing: 'border-box' };
 
 const isSimplePunct = (c) => c === '.' || c === ',';
@@ -30,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.11/v.12 레이아웃 유지] [cite: 112-127] ---
+// --- [2. 홈 화면: v.12 완벽 보존] --- [cite: 112-127]
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -69,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 모든 로직 보존 및 인쇄 최적화] ---
+// --- [3. 메인 앱 컴포넌트: v.12 엔진 보존 및 인쇄 최적화] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -84,7 +83,6 @@ export default function App() {
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
       const containerWidth = mainRef.current.clientWidth - 40;
-      // 피드백형일 경우 너비 기준값(880px + 30mm 박스) 조정
       const baseWidth = viewMode === 'feedback' ? 1000 : 880; 
       const calculatedZoom = Math.floor((containerWidth / baseWidth) * 100) / 100;
       setZoom(Math.min(1.5, Math.max(0.3, calculatedZoom))); 
@@ -96,7 +94,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12 텍스트 처리 엔진 완벽 보존] 
+  // [v.12 텍스트 처리 엔진 완벽 보존] [cite: 133-148]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -178,27 +176,27 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [6가지 원고지 유형별 인쇄 설정 매핑] */
+        /* [요청 사항 2, 3, 4: 인쇄 최적화 및 다중 페이지 지원] */
         @media print {
-          @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
+          @page { size: auto; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
           body, html { background: white !important; overflow: visible !important; height: auto !important; width: auto !important; }
           .editor-container, .editor-body { display: block !important; width: 100% !important; }
           .main-preview { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; overflow: visible !important; }
+          .zoom-wrapper { transform: none !important; width: auto !important; height: auto !important; }
           
-          /* 공통 페이지 단위: 중앙 정렬 및 사방 20mm 여백 보장 */
-          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; padding: 20mm !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; }
+          /* 다중 페이지를 위한 개별 용지 설정 */
+          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; padding: 20mm !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
           
-          /* 6가지 유형별 정밀 스케일링 (분모값 조정으로 상하좌우 여백 완벽 제어) */
-          /* 200자 시리즈 */
+          /* 6가지 유형별 정밀 스케일링 설정 */
           .type-200-traditional { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 580)) !important; }
           .type-200-feedback { transform: scale(min((100vw - 40mm) / 1000, (100vh - 40mm) / 680)) !important; }
           .type-200-grid { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 580)) !important; }
           
-          /* 400자 시리즈 */
-          .type-400-traditional { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1050)) !important; }
-          .type-400-feedback { transform: scale(min((100vw - 40mm) / 1000, (100vh - 40mm) / 1150)) !important; }
-          .type-400-grid { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1050)) !important; }
+          /* 400자 시리즈: 최소 여백 20mm 확보를 위해 분모값 상향 조정 (요청 3, 4) */
+          .type-400-traditional { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1200)) !important; }
+          .type-400-feedback { transform: scale(min((100vw - 40mm) / 1000, (100vh - 40mm) / 1350)) !important; }
+          .type-400-grid { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1150)) !important; }
           
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 0 !important; height: auto !important; transform-origin: center center !important; }
         }
@@ -235,28 +233,26 @@ export default function App() {
                 <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900' }}>{[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}</select>
                 <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px' }}>맞춤</button>
               </div>
-              <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', display: 'inline-block' }}>
+              <div className="zoom-wrapper" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', display: 'inline-block' }}>
                 <div className="manuscript-print-root">
                   {Array.from({ length: pageCount }).map((_, p) => (
                     <div key={p} className="page-unit">
-                      {/* 6가지 인쇄 프리셋 클래스 동적 할당 */}
                       <div style={{ backgroundColor: 'white', padding: '40px 60px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', width: 'max-content' }} className={`page-box type-${gridType}-${viewMode}`}>
                         <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
                           {p === 0 && studentName ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {studentName}</div>) : (<div style={{ height: '35px' }}></div>)}
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
-                          {Array.from({ length: gridVal/20 }).map((_, r) => (
-                            <div key={r} style={{ display: 'flex' }}>
-                              {/* 실제 원고지 칸 렌더링 */}
-                              <div style={{ display: 'flex', borderRight: viewMode !== 'grid' ? `1.2px solid ${lineColor}` : 'none' }}>
+                        {/* [요청 사항 1: 피드백용 우측 세로 긴 단일 직사각형 구현] */}
+                        <div style={{ display: 'flex' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
+                            {Array.from({ length: gridVal/20 }).map((_, r) => (
+                              <div key={r} style={{ display: 'flex', borderRight: (viewMode !== 'grid' && viewMode !== 'feedback') ? `1.2px solid ${lineColor}` : 'none' }}>
                                 {Array.from({ length: 20 }).map((_, c) => renderCell(allCells[p * gridVal + r * 20 + c], `c-${p}-${r}-${c}`, c === 19))}
                               </div>
-                              {/* 피드백 전용 우측 30mm 박스 추가 */}
-                              {viewMode === 'feedback' && (
-                                <div style={{ width: '113px', height: '38px', border: `1.2px solid ${lineColor}`, marginLeft: '10px', borderRadius: '4px' }}></div>
-                              )}
-                            </div>
-                          ))}
+                            ))}
+                          </div>
+                          {viewMode === 'feedback' && (
+                            <div style={{ width: '113px', marginLeft: '10px', border: `1.2px solid ${lineColor}`, borderRadius: '4px' }}></div>
+                          )}
                         </div>
                         <div className="no-print" style={{ marginTop: '20px', textAlign: 'center', fontSize: '10px', color: '#94a3b8', fontWeight: 'bold' }}>PAGE {p + 1}</div>
                       </div>
