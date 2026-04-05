@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: 완벽한 상태 유지 (변경 금지 구역)] ---
+// --- [2. 홈 화면: 완벽 보존] ---
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -59,7 +59,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 세로 모드 레이아웃 엔진 복구] ---
+// --- [3. 메인 앱 컴포넌트: 세로 모드 시각화 오류 수정] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -158,12 +158,12 @@ export default function App() {
         
         .editor-container { display: flex; width: 100vw; height: 100vh; background-color: #e2e8f0; overflow: hidden; position: relative; }
         
-        /* [가로 모드] */
+        /* 가로 모드 레이아웃 */
         .sidebar { width: 340px; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
         .main-preview { flex: 1; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
 
-        /* [세로 모드 복구: 상단 60% / 하단 40%] */
-        @media (orientation: portrait), (max-aspect-ratio: 1/1) {
+        /* [세로 모드 복구 및 원고지 노출 수정 핵심] */
+        @media (orientation: portrait), (max-width: 900px) {
           .editor-container { flex-direction: column !important; }
           .sidebar { 
             width: 100% !important; 
@@ -171,25 +171,28 @@ export default function App() {
             flex-basis: 60vh !important; 
             border-right: none; 
             border-bottom: 2px solid #ddd; 
+            overflow-y: auto !important;
           }
           .main-preview { 
             width: 100% !important; 
             height: 40vh !important; 
             flex-basis: 40vh !important; 
             padding: 10px; 
+            background-color: #cbd5e1;
+            /* 원고지가 상단에 딱 붙어서 보이도록 설정 */
+            display: flex !important;
+            flex-direction: column !important;
             align-items: flex-start !important; 
             justify-content: flex-start !important; 
             overflow: auto !important; 
+            flex: none !important; /* 높이 고정 유지 */
           }
-          /* 60% 상단 영역 내에서 입력창을 하단 30% 정도로 배치 */
           .sidebar-input { height: 30vh !important; flex: none !important; }
-          .sidebar-settings { height: auto; }
         }
 
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; }
 
-        /* [인쇄 설정 보존] */
         @media print {
           @page { size: auto; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator { display: none !important; }
@@ -229,12 +232,8 @@ export default function App() {
               <textarea value={content} onChange={e => setContent(e.target.value.slice(0, 3000))} className="sidebar-input" style={{ fontFamily }} placeholder="내용을 입력하세요..." />
             </aside>
             <main ref={mainRef} className="main-preview">
-              <div className="no-print" style={{ marginBottom: '8px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start' }}>
-                <span style={{ fontSize: '10px', fontWeight: '900', color: '#6366f1' }}>ZOOM</span>
-                <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900' }}>{[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}</select>
-                <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px' }}>맞춤</button>
-              </div>
-              <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
+              {/* 원고지가 스케일링 되어도 상단 왼쪽을 기준으로 정렬되도록 감싸는 div 추가 */}
+              <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', display: 'inline-block' }}>
                 <div className="manuscript-print-root">
                   {Array.from({ length: pageCount }).map((_, p) => (
                     <div key={p} className="page-unit">
