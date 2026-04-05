@@ -42,7 +42,7 @@ const Home = ({ onNavigate }) => {
         @media (max-width: 1000px) { .cards-grid { grid-template-columns: 1fr; } }
         .card-item:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); }
         .scroll-indicator { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); cursor: pointer; animation: bounce 2s infinite; display: flex; flex-direction: column; align-items: center; z-index: 10; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-8px); } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-8px); } 60% { transform: translateX(-50%) translateY(-4px); } }
       `}</style>
       <section className="hero-section">
         <h1 style={{ fontSize: '2.8rem', fontWeight: '900', marginBottom: '15px', lineHeight: 1.2 }}>Master Korean <br/> <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
@@ -50,33 +50,16 @@ const Home = ({ onNavigate }) => {
         <div className="scroll-indicator" onClick={handleScroll}><span style={{ fontSize: '11px', fontWeight: 900, color: '#facc15' }}>SCROLL DOWN ▼</span></div>
       </section>
       <div className="cards-grid" ref={cardsRef}>
-        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
-          <WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3>
-          <p style={cardDescStyle}>다양한 폰트로 원고지 쓰기를 연습하고 인쇄하세요.</p>
-          <button style={cardButtonStyle}>시작하기</button>
-        </div>
-        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
-          <div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3>
-          <p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p>
-          <button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button>
-        </a>
-        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
-          <div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3>
-          <p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p>
-          <button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button>
-        </a>
-        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}>
-          <div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div>
-          <h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3>
-          <p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p>
-          <button style={{...cardButtonStyle, width:'100%'}}>구입하기</button>
-        </a>
+        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}><WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>다양한 폰트로 원고지 쓰기를 연습하고 인쇄하세요.</p><button style={cardButtonStyle}>시작하기</button></div>
+        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p><button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button></a>
+        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p><button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button></a>
+        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}><div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div><h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3><p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p><button style={{...cardButtonStyle, width:'100%'}}>구입하기</button></a>
       </div>
     </div>
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 폰트 위치 및 온점 디자인 수정] ---
+// --- [3. 메인 앱 컴포넌트: 인쇄 시스템 전면 개편] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -144,17 +127,15 @@ export default function App() {
     return cells;
   }, [content]);
 
+  // [렌더링: 폰트별 하향 조정 로직 완벽 유지]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let baseSize = 22;
-
-    // 폰트별 위치 이동값 계산 (상단 여백을 주어 아래로 밀어냄)
     let verticalShift = '0px';
     const fonts10 = ["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"];
     const fonts5 = ["'Poor Story', cursive"];
-    
-    if (fonts10.includes(fontFamily)) verticalShift = '3.8px'; // 10%
-    else if (fonts5.includes(fontFamily)) verticalShift = '1.9px'; // 5%
+    if (fonts10.includes(fontFamily)) verticalShift = '3.8px';
+    else if (fonts5.includes(fontFamily)) verticalShift = '1.9px';
 
     const cellStyle = { 
         width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`,
@@ -162,10 +143,8 @@ export default function App() {
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: `${baseSize}px`, backgroundColor: 'white', boxSizing: 'border-box', 
         fontFamily: fontFamily, fontWeight: 'normal', position: 'relative'
     };
-
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
 
-    // 문장부호 컴포넌트: Noto Sans KR 강제 적용으로 온점 디자인 고정 (위치 이동 안함)
     const Punct = ({ char, x, y, size = baseSize }) => (
         <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: `${size}px`, position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>
     );
@@ -173,20 +152,15 @@ export default function App() {
     if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
     if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{zIndex:2, transform: `translateY(${verticalShift})` }}>{cellData.content}</span><Punct char={cellData.punct} x={85} y={40} /></div>;
     if (cellData.type === 'punct_quote_final') return <div key={key} style={cellStyle}><Punct char={cellData.punct} x={30} y={40} /><Punct char={cellData.quote} x={90} y={70} /></div>;
-    
-    // 숫자/영어 페어링: 부호는 폰트 고정 및 위치 유지, 글자만 위치 이동
     if (cellData.type === 'pair') return (
-      <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}>
-        <div style={{width: '50%', display: 'flex', justifyContent: 'center', transform: isSimplePunct(cellData.content[0]) ? 'none' : `translateY(${verticalShift})`, fontFamily: isSimplePunct(cellData.content[0]) ? "'Noto Sans KR', sans-serif" : fontFamily }}>{cellData.content[0]}</div>
-        <div style={{width: '50%', display: 'flex', justifyContent: 'center', transform: isSimplePunct(cellData.content[1]) ? 'none' : `translateY(${verticalShift})`, fontFamily: isSimplePunct(cellData.content[1]) ? "'Noto Sans KR', sans-serif" : fontFamily }}>{cellData.content[1]}</div>
-      </div>
-    );
-
+        <div key={key} style={{...cellStyle, display: 'flex', fontSize: '20px'}}>
+          <div style={{width: '50%', display: 'flex', justifyContent: 'center', transform: isSimplePunct(cellData.content[0]) ? 'none' : `translateY(${verticalShift})`, fontFamily: isSimplePunct(cellData.content[0]) ? "'Noto Sans KR', sans-serif" : fontFamily }}>{cellData.content[0]}</div>
+          <div style={{width: '50%', display: 'flex', justifyContent: 'center', transform: isSimplePunct(cellData.content[1]) ? 'none' : `translateY(${verticalShift})`, fontFamily: isSimplePunct(cellData.content[1]) ? "'Noto Sans KR', sans-serif" : fontFamily }}>{cellData.content[1]}</div>
+        </div>
+      );
     if (cellData.type === 'punct_alone') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={30} y={40} /></div>;
     if (cellData.type === 'quote_open') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={75} y={65} /></div>;
     if (cellData.type === 'quote_close') return <div key={key} style={cellStyle}><Punct char={cellData.content} x={25} y={65} /></div>;
-
-    // 일반 글자: 위치 하단 이동 적용
     return <div key={key} style={{...cellStyle, color: '#0f172a'}}><span style={{ transform: `translateY(${verticalShift})` }}>{cellData.content}</span></div>;
   }, [lineColor, viewMode, fontFamily]);
 
@@ -216,14 +190,42 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
+        /* [인쇄 엔진: 요청 사항 완벽 반영] */
         @media print {
-          @page { size: auto; margin: 0; }
-          .no-print, header, .sidebar, .scroll-indicator { display: none !important; }
+          @page { 
+            size: ${gridType === '200' ? 'A4 landscape' : 'A4 portrait'}; 
+            margin: 20mm; /* 최소 여백 20mm 강제 설정 */
+          }
+          .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
           body, html { background: white !important; overflow: visible !important; height: auto !important; width: auto !important; }
-          .editor-container { display: block !important; height: auto !important; width: auto !important; }
-          .main-preview { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; height: auto !important; overflow: visible !important; }
-          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: flex-start !important; align-items: flex-start !important; padding: 20mm !important; box-sizing: border-box !important; page-break-after: always !important; }
-          .page-box { box-shadow: none !important; margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important; display: flex !important; flex-direction: column !important; }
+          .editor-container, .editor-body { display: block !important; height: auto !important; width: auto !important; margin: 0 !important; padding: 0 !important; }
+          .main-preview { 
+            display: block !important; padding: 0 !important; margin: 0 !important; 
+            background: white !important; width: 100% !important; height: auto !important; 
+            overflow: visible !important; 
+          }
+          .page-unit { 
+            height: calc(100vh - 40mm) !important; /* A4에서 상하 20mm씩 제외한 높이 */
+            width: calc(100vw - 40mm) !important;  /* A4에서 좌우 20mm씩 제외한 너비 */
+            display: flex !important; 
+            justify-content: center !important; /* 가로 중앙 정렬 */
+            align-items: center !important;     /* 세로 중앙 정렬 */
+            page-break-after: always !important; 
+            break-after: page !important;
+            margin: 0 auto !important;
+          }
+          .page-box { 
+            box-shadow: none !important; margin: 0 !important; padding: 0 !important; 
+            max-width: 100% !important; 
+            max-height: 100% !important;
+            width: auto !important; height: auto !important;
+            display: flex !important; flex-direction: column !important; justify-content: center !important;
+            /* 비율 유지하며 용지 여백에 딱 맞춰 자동 축소/확대 */
+            object-fit: contain !important;
+            zoom: 1 !important; 
+          }
+          /* 이름 표기 등 정렬 보존 */
+          .page-box > div { width: 100% !important; }
         }
       `}</style>
 
@@ -255,7 +257,7 @@ export default function App() {
               <textarea value={content} onChange={e => setContent(e.target.value.slice(0, 3000))} className="sidebar-input" placeholder="내용을 입력하세요..." />
             </aside>
             <main ref={mainRef} className="main-preview">
-              <div className="no-print" style={{ marginBottom: '8px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', flexShrink: 0 }}>
+              <div className="no-print zoom-controls" style={{ marginBottom: '8px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start', flexShrink: 0 }}>
                 <span style={{ fontSize: '10px', fontWeight: '900', color: '#6366f1' }}>ZOOM</span>
                 <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900' }}>{[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}</select>
                 <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px' }}>맞춤</button>
