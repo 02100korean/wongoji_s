@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12 엔진 보존 및 인쇄 최적화] ---
+// --- [3. 메인 앱 컴포넌트: v.12 엔진 보존 및 인쇄 정밀 수정] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -83,7 +83,7 @@ export default function App() {
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
       const containerWidth = mainRef.current.clientWidth - 40;
-      const baseWidth = viewMode === 'feedback' ? 1000 : 880; 
+      const baseWidth = viewMode === 'feedback' ? 1010 : 880; 
       const calculatedZoom = Math.floor((containerWidth / baseWidth) * 100) / 100;
       setZoom(Math.min(1.5, Math.max(0.3, calculatedZoom))); 
     }
@@ -176,27 +176,33 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [요청 사항 2, 3, 4: 인쇄 최적화 및 다중 페이지 지원] */
+        /* [수정 요청 사항 반영: 인쇄 전용 고도화 스타일] */
         @media print {
-          @page { size: auto; margin: 0; }
+          /* 3. 400자 원고지 세로형 기본 설정 */
+          @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
           body, html { background: white !important; overflow: visible !important; height: auto !important; width: auto !important; }
           .editor-container, .editor-body { display: block !important; width: 100% !important; }
           .main-preview { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; overflow: visible !important; }
           .zoom-wrapper { transform: none !important; width: auto !important; height: auto !important; }
           
-          /* 다중 페이지를 위한 개별 용지 설정 */
-          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; padding: 20mm !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
+          /* 2. 다중 페이지 각각 인쇄 설정 */
+          .page-unit { 
+            height: 100vh !important; width: 100vw !important; display: flex !important; 
+            justify-content: center !important; align-items: center !important; 
+            padding: 15mm !important; /* 4. 15mm 최소 여백 설정 */
+            box-sizing: border-box !important; page-break-after: always !important; 
+            break-after: page !important; position: relative !important; overflow: hidden !important; 
+          }
           
-          /* 6가지 유형별 정밀 스케일링 설정 */
-          .type-200-traditional { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 580)) !important; }
-          .type-200-feedback { transform: scale(min((100vw - 40mm) / 1000, (100vh - 40mm) / 680)) !important; }
-          .type-200-grid { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 580)) !important; }
+          /* 1, 4, 5. 6종 유형별 정밀 비율 및 중앙 정렬 스케일링 */
+          /* 200자 시리즈 (상하 여백 동일 보정) */
+          .type-200-traditional, .type-200-grid { transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 530)) !important; }
+          .type-200-feedback { transform: scale(min((100vw - 30mm) / 1000, (100vh - 30mm) / 630)) !important; }
           
-          /* 400자 시리즈: 최소 여백 20mm 확보를 위해 분모값 상향 조정 (요청 3, 4) */
-          .type-400-traditional { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1200)) !important; }
-          .type-400-feedback { transform: scale(min((100vw - 40mm) / 1000, (100vh - 40mm) / 1350)) !important; }
-          .type-400-grid { transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1150)) !important; }
+          /* 400자 시리즈 (비율 축소 및 15mm 여백 보장) */
+          .type-400-traditional, .type-400-grid { transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1150)) !important; }
+          .type-400-feedback { transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 1380)) !important; }
           
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 0 !important; height: auto !important; transform-origin: center center !important; }
         }
@@ -241,7 +247,7 @@ export default function App() {
                         <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
                           {p === 0 && studentName ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {studentName}</div>) : (<div style={{ height: '35px' }}></div>)}
                         </div>
-                        {/* [요청 사항 1: 피드백용 우측 세로 긴 단일 직사각형 구현] */}
+                        {/* 원고지 + 단일 피드백 박스 구조 */}
                         <div style={{ display: 'flex' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
                             {Array.from({ length: gridVal/20 }).map((_, r) => (
@@ -250,6 +256,7 @@ export default function App() {
                               </div>
                             ))}
                           </div>
+                          {/* 1. 세로로 긴 단일 피드백 박스 구현 */}
                           {viewMode === 'feedback' && (
                             <div style={{ width: '113px', marginLeft: '10px', border: `1.2px solid ${lineColor}`, borderRadius: '4px' }}></div>
                           )}
