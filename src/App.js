@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12 완벽 보존] --- [cite: 105-111]
+// --- [1. 스타일 및 디자인: v.12 완벽 보존] --- [cite: 198-204]
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12 완벽 보존] --- [cite: 112-127]
+// --- [2. 홈 화면: v.12 완벽 보존] --- [cite: 205-221]
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12 엔진 보존 및 인쇄 정밀 수정] ---
+// --- [3. 메인 앱 컴포넌트: v.12.3 엔진 보존 및 인쇄 6종 케이스 분리] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -83,18 +83,19 @@ export default function App() {
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
       const containerWidth = mainRef.current.clientWidth - 40;
-      const baseWidth = viewMode === 'feedback' ? 1010 : 880; 
+      // 피드백형의 우측 영역(30mm/40mm)을 고려한 미리보기 너비 계산
+      const baseWidth = viewMode === 'feedback' ? (gridType === '200' ? 1010 : 1050) : 880; 
       const calculatedZoom = Math.floor((containerWidth / baseWidth) * 100) / 100;
       setZoom(Math.min(1.5, Math.max(0.3, calculatedZoom))); 
     }
-  }, [viewMode]);
+  }, [viewMode, gridType]);
 
   useEffect(() => {
     if (view === 'editor') { setTimeout(fitToScreen, 300); window.addEventListener('resize', fitToScreen); }
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12 텍스트 처리 엔진 완벽 보존] [cite: 133-148]
+  // [v.12 텍스트 처리 엔진: 대문자 1칸, 닫는 따옴표 줄바꿈 완벽 보존] [cite: 226-240]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -176,9 +177,9 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [수정 요청 사항 반영: 인쇄 전용 고도화 스타일] */
+        /* [인쇄 설정: 6종 독립 케이스 완벽 반영] */
         @media print {
-          /* 3. 400자 원고지 세로형 기본 설정 */
+          /* 용지 방향 자동 전환 (200 가로, 400 세로) */
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
           body, html { background: white !important; overflow: visible !important; height: auto !important; width: auto !important; }
@@ -186,27 +187,29 @@ export default function App() {
           .main-preview { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; overflow: visible !important; }
           .zoom-wrapper { transform: none !important; width: auto !important; height: auto !important; }
           
-          /* 2. 다중 페이지 각각 인쇄 설정 */
+          /* 다중 페이지 개별 용지 할당 및 정중앙 배치 */
           .page-unit { 
             height: 100vh !important; width: 100vw !important; display: flex !important; 
             justify-content: center !important; align-items: center !important; 
-            padding: 15mm !important; /* 4. 15mm 최소 여백 설정 */
             box-sizing: border-box !important; page-break-after: always !important; 
-            break-after: page !important; position: relative !important; overflow: hidden !important; 
+            break-after: page !important; position: relative !important; overflow: hidden !important;
           }
           
-          /* 1, 4, 5. 6종 유형별 정밀 비율 및 중앙 정렬 스케일링 */
-          /* 200자 시리즈 (상하 여백 동일 보정) */
-          .type-200-traditional, .type-200-grid { transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 530)) !important; }
-          .type-200-feedback { transform: scale(min((100vw - 30mm) / 1000, (100vh - 30mm) / 630)) !important; }
+          /* [표 기준 6종 독립 스케일링 로직] */
+          /* 200자 시리즈 (A4 가로 297x210 기준) */
+          .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 480)) !important; }
+          .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 630)) !important; }
+          .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 480)) !important; }
           
-          /* 400자 시리즈 (비율 축소 및 15mm 여백 보장) */
-          .type-400-traditional, .type-400-grid { transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1150)) !important; }
-          .type-400-feedback { transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 1380)) !important; }
+          /* 400자 시리즈 (A4 세로 210x297 기준) */
+          .case-400-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 980)) !important; }
+          .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1050, (100vh - 30mm) / 1380)) !important; }
+          .case-400-grid { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 980)) !important; }
           
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 0 !important; height: auto !important; transform-origin: center center !important; }
         }
       `}</style>
+
       {view === 'home' ? <Home onNavigate={setView} /> : (
         <div className="editor-container">
           <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, height: '50px', position: 'fixed', top: 0, left: 0, right: 0 }}>
@@ -243,11 +246,10 @@ export default function App() {
                 <div className="manuscript-print-root">
                   {Array.from({ length: pageCount }).map((_, p) => (
                     <div key={p} className="page-unit">
-                      <div style={{ backgroundColor: 'white', padding: '40px 60px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', width: 'max-content' }} className={`page-box type-${gridType}-${viewMode}`}>
+                      <div style={{ backgroundColor: 'white', padding: '40px 60px', boxShadow: '0 10px 30px rgba(0,0,0,0.1)', width: 'max-content' }} className={`page-box case-${gridType}-${viewMode}`}>
                         <div style={{ width: '100%', display: 'flex', justifyContent: 'end', marginBottom: '25px', height: '35px', alignItems: 'end' }}>
                           {p === 0 && studentName ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {studentName}</div>) : (<div style={{ height: '35px' }}></div>)}
                         </div>
-                        {/* 원고지 + 단일 피드백 박스 구조 */}
                         <div style={{ display: 'flex' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
                             {Array.from({ length: gridVal/20 }).map((_, r) => (
@@ -256,9 +258,9 @@ export default function App() {
                               </div>
                             ))}
                           </div>
-                          {/* 1. 세로로 긴 단일 피드백 박스 구현 */}
+                          {/* [표 기준 피드백 영역: 200자 30mm(113px), 400자 40mm(151px) 반영] */}
                           {viewMode === 'feedback' && (
-                            <div style={{ width: '113px', marginLeft: '10px', border: `1.2px solid ${lineColor}`, borderRadius: '4px' }}></div>
+                            <div style={{ width: gridType === '200' ? '113px' : '151px', marginLeft: '10px', border: `1.2px solid ${lineColor}`, borderRadius: '4px' }}></div>
                           )}
                         </div>
                         <div className="no-print" style={{ marginTop: '20px', textAlign: 'center', fontSize: '10px', color: '#94a3b8', fontWeight: 'bold' }}>PAGE {p + 1}</div>
