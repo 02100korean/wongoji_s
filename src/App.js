@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: 완벽 보존] ---
+// --- [2. 홈 화면: 완벽 보존 (스크롤 및 문구 고정)] ---
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -41,8 +41,8 @@ const Home = ({ onNavigate }) => {
         .cards-grid { max-width: 1300px; margin: 40px auto 100px; padding: 0 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         @media (max-width: 1000px) { .cards-grid { grid-template-columns: 1fr; } }
         .card-item:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); }
-        .scroll-indicator { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); cursor: pointer; animation: bounce 2s infinite; display: flex; flex-direction: column; align-items: center; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-10px); } }
+        .scroll-indicator { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); cursor: pointer; animation: bounce 2s infinite; display: flex; flex-direction: column; align-items: center; z-index: 10; }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-8px); } }
       `}</style>
       <section className="hero-section">
         <h1 style={{ fontSize: '2.8rem', fontWeight: '900', marginBottom: '15px', lineHeight: 1.2 }}>Master Korean <br/> <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
@@ -50,16 +50,33 @@ const Home = ({ onNavigate }) => {
         <div className="scroll-indicator" onClick={handleScroll}><span style={{ fontSize: '11px', fontWeight: 900, color: '#facc15' }}>SCROLL DOWN ▼</span></div>
       </section>
       <div className="cards-grid" ref={cardsRef}>
-        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}><WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>다양한 폰트로 원고지 쓰기를 연습하고 인쇄하세요.</p><button style={cardButtonStyle}>시작하기</button></div>
-        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p><button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button></a>
-        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p><button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button></a>
-        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}><div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div><h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3><p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p><button style={{...cardButtonStyle, width:'100%'}}>구입하기</button></a>
+        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
+          <WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3>
+          <p style={cardDescStyle}>다양한 폰트로 원고지 쓰기를 연습하고 인쇄하세요.</p>
+          <button style={cardButtonStyle}>시작하기</button>
+        </div>
+        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
+          <div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3>
+          <p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p>
+          <button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button>
+        </a>
+        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
+          <div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3>
+          <p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p>
+          <button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button>
+        </a>
+        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}>
+          <div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div>
+          <h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3>
+          <p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p>
+          <button style={{...cardButtonStyle, width:'100%'}}>구입하기</button>
+        </a>
       </div>
     </div>
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 세로 모드 시각화 오류 수정] ---
+// --- [3. 메인 앱 컴포넌트: 가로/세로 반응형 완벽 검수] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -156,15 +173,21 @@ export default function App() {
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
         .app-root-container { width: 100%; height: 100%; }
         
-        .editor-container { display: flex; width: 100vw; height: 100vh; background-color: #e2e8f0; overflow: hidden; position: relative; }
+        /* 연습장 레이아웃 핵심 엔진 */
+        .editor-container { display: flex; width: 100vw; height: 100vh; background-color: #e2e8f0; overflow: hidden; flex-direction: row; }
         
-        /* 가로 모드 레이아웃 */
+        .editor-body { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); margin-top: 50px; flex-direction: row; }
+
+        /* 가로 모드 사이드바 */
         .sidebar { width: 340px; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
+        /* 가로 모드 원고지 영역 */
         .main-preview { flex: 1; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
 
-        /* [세로 모드 복구 및 원고지 노출 수정 핵심] */
+        /* [세로 모드 해결: 방향 및 넓이 기준 강제 전환] */
         @media (orientation: portrait), (max-width: 900px) {
-          .editor-container { flex-direction: column !important; }
+          .editor-body { flex-direction: column !important; overflow: hidden !important; }
+          
+          /* 상단 60% 영역 (설정 30% + 입력 30%) */
           .sidebar { 
             width: 100% !important; 
             height: 60vh !important; 
@@ -173,26 +196,25 @@ export default function App() {
             border-bottom: 2px solid #ddd; 
             overflow-y: auto !important;
           }
+          .sidebar-settings { height: 30vh !important; overflow-y: auto; flex-shrink: 0; }
+          .sidebar-input { height: 30vh !important; flex: none !important; }
+
+          /* 하단 40% 영역 (원고지) */
           .main-preview { 
             width: 100% !important; 
             height: 40vh !important; 
             flex-basis: 40vh !important; 
             padding: 10px; 
-            background-color: #cbd5e1;
-            /* 원고지가 상단에 딱 붙어서 보이도록 설정 */
-            display: flex !important;
-            flex-direction: column !important;
             align-items: flex-start !important; 
             justify-content: flex-start !important; 
             overflow: auto !important; 
-            flex: none !important; /* 높이 고정 유지 */
           }
-          .sidebar-input { height: 30vh !important; flex: none !important; }
         }
 
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; }
 
+        /* 인쇄 설정 보존 */
         @media print {
           @page { size: auto; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator { display: none !important; }
@@ -211,7 +233,7 @@ export default function App() {
             <div style={{ display: 'flex', gap: '8px' }}>{['#607d8b', '#ef4444', '#2d6a4f', '#000000'].map(c => (<button key={c} onClick={() => setLineColor(c)} style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white', backgroundColor: c }} />))}</div>
           </header>
 
-          <div style={{ display: 'flex', flex: 1, width: '100%', paddingTop: '50px' }}>
+          <div className="editor-body">
             <aside className="sidebar no-print">
               <div className="sidebar-settings">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
@@ -232,8 +254,12 @@ export default function App() {
               <textarea value={content} onChange={e => setContent(e.target.value.slice(0, 3000))} className="sidebar-input" style={{ fontFamily }} placeholder="내용을 입력하세요..." />
             </aside>
             <main ref={mainRef} className="main-preview">
-              {/* 원고지가 스케일링 되어도 상단 왼쪽을 기준으로 정렬되도록 감싸는 div 추가 */}
-              <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', display: 'inline-block' }}>
+              <div className="no-print" style={{ marginBottom: '8px', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', alignSelf: 'flex-start' }}>
+                <span style={{ fontSize: '10px', fontWeight: '900', color: '#6366f1' }}>ZOOM</span>
+                <select value={zoom} onChange={e => setZoom(parseFloat(e.target.value))} style={{ border: 'none', backgroundColor: 'transparent', fontSize: '12px', fontWeight: '900' }}>{[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map(v => <option key={v} value={v}>{Math.round(v * 100)}%</option>)}</select>
+                <button onClick={fitToScreen} style={{ border: 'none', background: '#6366f1', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '4px' }}>맞춤</button>
+              </div>
+              <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
                 <div className="manuscript-print-root">
                   {Array.from({ length: pageCount }).map((_, p) => (
                     <div key={p} className="page-unit">
