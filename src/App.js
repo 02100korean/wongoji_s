@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: 완벽했던 상태 그대로 보존] ---
+// --- [1. 스타일 및 디자인: 완벽 보존] ---
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: 문구 복구, 카드 1행 배치, 스크롤 완벽 해결] ---
+// --- [2. 홈 화면: 요청하신 카드 문구 완벽 복구] ---
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => {
@@ -41,24 +41,15 @@ const Home = ({ onNavigate }) => {
       <style>{`
         .home-root { width: 100%; height: 100vh; overflow-y: auto !important; background-color: #f8fafc; font-family: 'Noto Sans KR', sans-serif; color: #1e293b; -webkit-overflow-scrolling: touch; }
         .hero-section { height: 50vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 20px; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; position: relative; }
-        
-        /* 가로 모드에서 카드 4장을 무조건 한 행으로 배치 */
-        .cards-grid { 
-          max-width: 1300px; margin: 40px auto 100px; padding: 0 20px; 
-          display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; 
-        }
-        
-        /* 모바일(세로) 환경에서는 카드를 1열로 전환 */
+        .cards-grid { max-width: 1300px; margin: 40px auto 100px; padding: 0 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         @media (max-width: 1000px) { .cards-grid { grid-template-columns: 1fr; } }
-
         .card-item:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); }
         .scroll-indicator { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); cursor: pointer; animation: bounce 2s infinite; display: flex; flex-direction: column; align-items: center; }
-        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-10px); } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-8px); } }
       `}</style>
       
       <section className="hero-section">
         <h1 style={{ fontSize: '2.8rem', fontWeight: '900', marginBottom: '15px', lineHeight: 1.2 }}>Master Korean <br/> <span style={{ fontWeight: '400' }}>with</span> <span style={{ color: '#facc15' }}>02100 Korean</span></h1>
-        {/* 요청하신 안내문구 복구 */}
         <p style={{ fontSize: '1.1rem', opacity: 0.9, maxWidth: '700px', lineHeight: 1.6 }}>
           한국어를 원고지에 쓰면서 연습하고,<br/>한국어 필수 패턴을 내 것으로 만드세요.
         </p>
@@ -68,16 +59,40 @@ const Home = ({ onNavigate }) => {
       </section>
 
       <div className="cards-grid" ref={cardsRef}>
-        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}><WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3><p style={cardDescStyle}>정석 규칙이 적용된 쓰기 연습.</p><button style={cardButtonStyle}>시작하기</button></div>
-        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3><p style={cardDescStyle}>초급 필수 패턴 100가지.</p><button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button></a>
-        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}><div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3><p style={cardDescStyle}>생생한 패턴 학습 강의.</p><button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button></a>
-        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}><div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div><h3 style={cardTitleStyle}>TOPIK 1 단어장</h3><p style={cardDescStyle}>한 권으로 끝내는 필수 어휘.</p><button style={{...cardButtonStyle, width:'100%'}}>구입하기</button></a>
+        {/* 카드 1 문구 복구 */}
+        <div className="card-item" onClick={() => onNavigate('editor')} style={cardStyle}>
+          <WonjiIcon /><h3 style={cardTitleStyle}>원고지 연습장</h3>
+          <p style={cardDescStyle}>다양한 폰트로 원고지 쓰기를 연습하고 인쇄하세요.</p>
+          <button style={cardButtonStyle}>시작하기</button>
+        </div>
+        
+        {/* 카드 2 문구 복구 */}
+        <a href="https://buymeacoffee.com/02100korean/e/387205" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
+          <div style={{fontSize:'40px'}}>📚</div><h3 style={cardTitleStyle}>패턴 100 E-book</h3>
+          <p style={cardDescStyle}>한국어 초급 학습자에게 필수적인 한국어 문장 패턴 100가지를 담았습니다.</p>
+          <button style={{...cardButtonStyle, backgroundColor:'#10b981'}}>다운로드</button>
+        </a>
+        
+        {/* 카드 3 문구 복구 */}
+        <a href="https://www.youtube.com/playlist?list=PLdNKi3Jkq1kmbPOQuexdPMYDxvrkfnWha" target="_blank" rel="noreferrer" className="card-item" style={cardStyle}>
+          <div style={{fontSize:'40px'}}>📺</div><h3 style={cardTitleStyle}>패턴 100 영상</h3>
+          <p style={cardDescStyle}>전문 강사의 설명과 함께하는 생생한 패턴 학습. 지금 시청하세요.</p>
+          <button style={{...cardButtonStyle, backgroundColor:'#f59e0b'}}>시청하기</button>
+        </a>
+        
+        {/* 카드 4 문구 복구 */}
+        <a href="https://search.shopping.naver.com/book/catalog/57751554767" target="_blank" rel="noreferrer" className="card-item" style={{...cardStyle, border:'2.5px solid #6366f1'}}>
+          <div style={{backgroundColor:'#eff6ff', padding:'10px', borderRadius:'15px', marginBottom:'10px', fontSize:'11px', fontWeight:900}}>02100korean@gmail.com</div>
+          <h3 style={cardTitleStyle}>TOPIK 1 필수 단어장</h3>
+          <p style={cardDescStyle}>한 권으로 완성하는 TOPIK 1 단어! 연습 문제까지 포함된 완벽한 교재입니다.</p>
+          <button style={{...cardButtonStyle, width:'100%'}}>구입하기</button>
+        </a>
       </div>
     </div>
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 연습장 세로 모드 전환 완벽 해결] ---
+// --- [3. 메인 앱 컴포넌트: 모든 정밀 기능 유지] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -100,7 +115,6 @@ export default function App() {
     if (view === 'editor') { setTimeout(fitToScreen, 200); window.addEventListener('resize', fitToScreen); }
   }, [view, fitToScreen]);
 
-  // 원고지 가공 엔진 (절대 수정 없음: 81.7 등 숫자 결합 로직 완벽 보존)
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -140,7 +154,6 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // 원고지 렌더링 (절대 수정 없음: 좌표 75/65, 25/65, 85/40 완벽 보존)
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let baseSize = 22;
@@ -172,18 +185,12 @@ export default function App() {
     <div className="app-root-container">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&family=Hi+Melody&family=Poor+Story&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;700&family=Nanum+Barun+Pen:wght@400;700&display=swap');
-        
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
         .app-root-container { width: 100%; height: 100%; }
-        
-        /* 연습장 가로/세로 반응형 엔진 - 강제 고정 */
         .editor-container { display: flex; width: 100vw; height: 100vh; background-color: #e2e8f0; overflow: hidden; }
-        
-        /* 가로 모드 (Default) */
         .sidebar { width: 340px; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
         .main-preview { flex: 1; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
 
-        /* [세로 모드 강제 전환] 창 너비 900px 이하 혹은 모바일 세로 방향일 때 */
         @media (max-width: 900px), (orientation: portrait) {
           .editor-container { flex-direction: column !important; }
           .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none; border-bottom: 2px solid #ddd; overflow-y: auto !important; }
@@ -193,7 +200,6 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; }
 
-        /* [인쇄 설정: 20mm 여백 + 좌상단 정렬 보존] */
         @media print {
           @page { size: auto; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator { display: none !important; }
