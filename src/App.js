@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: 완벽한 레이아웃 및 4개 카드 복구] ---
+// --- [2. 홈 화면: 완벽한 레이아웃 및 문구] ---
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -39,8 +39,10 @@ const Home = ({ onNavigate }) => {
         .home-root { width: 100%; height: 100vh; overflow-y: auto !important; background-color: #f8fafc; font-family: 'Noto Sans KR', sans-serif; color: #1e293b; -webkit-overflow-scrolling: touch; }
         .hero-section { height: 50vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 20px; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; position: relative; }
         .cards-grid { max-width: 1300px; margin: 40px auto 100px; padding: 0 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        
         @media screen and (orientation: portrait) { .cards-grid { grid-template-columns: 1fr; } }
         @media screen and (orientation: landscape) and (max-width: 900px) { .cards-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; } .hero-section { height: 70vh; } }
+
         .card-item:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2); }
         .scroll-indicator { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); cursor: pointer; animation: bounce 2s infinite; display: flex; flex-direction: column; align-items: center; z-index: 10; }
         @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); } 40% { transform: translateX(-50%) translateY(-10px); } }
@@ -68,7 +70,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: 완벽한 엔진 및 인쇄 레이아웃 통합] ---
+// --- [3. 메인 앱 컴포넌트: 완벽한 엔진 및 반응형 시스템] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -94,7 +96,6 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType]);
 
-  // [원고지 로직: 사용자님의 정교한 엔진 그대로 보존]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -144,7 +145,6 @@ export default function App() {
   }, [lineColor, viewMode, fontFamily]);
 
   const gridVal = parseInt(gridType);
-  const rows = gridVal / 20;
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
   return (
@@ -164,49 +164,90 @@ export default function App() {
         }
         @media screen and (max-width: 600px) { .editor-body { flex-direction: column !important; } .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; } .main-preview { width: 100% !important; height: 50% !important; } }
 
-        /* [인쇄 설정: 요청 사항 100% 반영] */
-        @media print {
-          @page { size: ${gridType === '200' ? 'A4 landscape' : 'A4 portrait'}; margin: 0; }
-          .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
-          body, html { background: white !important; overflow: visible !important; height: auto !important; width: auto !important; }
-          .editor-container, .editor-body { display: block !important; width: 100% !important; }
-          .main-preview { display: block !important; padding: 0 !important; margin: 0 !important; background: white !important; width: 100% !important; overflow: visible !important; }
-          
-          /* 페이지 단위: 사방 20mm 여백 강제 및 중앙 정렬 */
-          .page-unit { 
-            height: 100vh !important; width: 100vw !important; 
-            display: flex !important; justify-content: center !important; align-items: center !important; 
-            padding: 20mm !important; box-sizing: border-box !important; 
-            page-break-after: always !important; break-after: page !important; 
-            overflow: hidden !important; position: relative !important; 
-          }
+        .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
+        .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-          /* 원고지 박스: 여백 제외 가용 영역에 맞춰 정중앙 스케일링 */
-          .page-box { 
-            box-shadow: none !important; margin: 0 !important; padding: 0 !important; width: 880px !important; height: auto !important; 
-            display: flex !important; flex-direction: column !important; justify-content: center !important; 
-            transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / ${gridType === '200' ? (viewMode === 'feedback' ? '880' : '600') : '1120'})) !important; 
-            transform-origin: center center !important; 
-          }
-        }
-      `}</style>
+        /* 1. 인쇄 전용 스타일 설정 */
+@media print {
+  /* 페이지 설정: 가로 모드 및 여백 초기화 */
+  @page {
+    size: A4 landscape;
+    margin: 0; /* 브라우저 기본 여백 제거 */
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* 홈 화면 및 기타 UI 요소 숨김 */
+  .no-print, header, footer, .sidebar, .controls {
+    display: none !important;
+  }
+
+  /* 2. 원고지 인쇄 컨테이너 (정중앙 배치 핵심) */
+  .print-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    page-break-after: always; /* 각 페이지 강제 분할 */
+    overflow: hidden;
+  }
+
+  /* 3. 원고지 래퍼: 최소 여백 20mm 보장 및 확대/축소 */
+  .wongoji-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 용지 크기(297x210)에서 최소 여백 상하좌우 20mm씩 제외한 영역 */
+    width: calc(100% - 40mm); 
+    height: calc(100% - 40mm);
+    box-sizing: border-box;
+  }
+
+  /* 원고지 실체: 비율 유지하며 꽉 차게 설정 */
+  .wongoji-content {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    margin: auto; /* 상하좌우 중앙 정렬 */
+  }
+
+  /* 4. 타입별 개별 비율 및 영역 설정 (요청 4번) */
+  /* 일반형 (200자/400자 공통) */
+  .type-normal { aspect-ratio: 1.414 / 1; } 
+  
+  /* 피드백형: 상하 여백 확보를 위해 높이 비율 조정 */
+  .type-feedback { 
+    aspect-ratio: 1.3 / 1; 
+    padding: 10px 0; /* 내부 침범 방지 */
+  }
+  
+  /* 격자형: 칸 중심의 비율 유지 */
+  .type-grid { aspect-ratio: 1.414 / 1; }
+}
+
+/* 스크린 화면에서는 인쇄 스타일이 보이지 않도록 설정 */
+@media screen {
+  .print-container {
+    display: block;
+  }
+}</style>
 
       {view === 'home' ? <Home onNavigate={setView} /> : (
         <div className="editor-container">
           <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, height: '50px', position: 'fixed', top: 0, left: 0, right: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <button onClick={() => setView('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>🏠</button>
-              <div style={{ fontWeight: '900', color: '#1e293b', fontSize: '14px' }}>원고지 연습장</div>
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {['#607d8b', '#ef4444', '#2d6a4f', '#000000'].map(c => (
-                <button key={c} onClick={() => setLineColor(c)} style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white', backgroundColor: c }} />
-              ))}
-            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}><button onClick={() => setView('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px' }}>🏠</button><div style={{ fontWeight: '900', color: '#1e293b', fontSize: '14px' }}>원고지 연습장</div></div>
+            <div style={{ display: 'flex', gap: '8px' }}>{['#607d8b', '#ef4444', '#2d6a4f', '#000000'].map(c => (<button key={c} onClick={() => setLineColor(c)} style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid white', backgroundColor: c }} />))}</div>
           </header>
           <div className="editor-body">
             <aside className="sidebar no-print">
-              <div className="sidebar-settings" style={{ padding: '10px', background: '#f8fafc', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div className="sidebar-settings">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                   <select value={gridType} onChange={e => setGridType(e.target.value)} style={selectStyle}><option value="200">200자 (가로)</option><option value="400">400자 (세로)</option></select>
                   <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={selectStyle}><option value="traditional">일반형</option><option value="feedback">피드백용</option><option value="grid">격자형</option></select>
@@ -239,7 +280,7 @@ export default function App() {
                           {p === 0 && studentName ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {studentName}</div>) : (<div style={{ height: '35px' }}></div>)}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
-                          {Array.from({ length: rows }).map((_, r) => (
+                          {Array.from({ length: gridVal/20 }).map((_, r) => (
                             <div key={r} style={{ display: 'flex', borderRight: viewMode !== 'grid' ? `1.2px solid ${lineColor}` : 'none' }}>
                               {Array.from({ length: 20 }).map((_, c) => renderCell(allCells[p * gridVal + r * 20 + c], `c-${p}-${r}-${c}`, c === 19))}
                             </div>
