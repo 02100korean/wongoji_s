@@ -94,7 +94,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.8/v.12.10 텍스트 처리 엔진 완벽 보존] [cite: 543-558]
+  // [v.12.8/v.12.10 텍스트 처리 엔진 완벽 보존] [cite: 437-451]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -138,7 +138,6 @@ export default function App() {
     let verticalShift = '0px';
     if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) verticalShift = '3.8px';
     else if (fontFamily === "'Poor Story', cursive") verticalShift = '1.9px';
-    // [borderBottom 오타 수정: lineStyle => lineColor 를 lineColor 로 변경] 
     const cellStyle = { width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`, borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGrid) ? `1.2px solid ${lineColor}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, position: 'relative' };
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
     const Punct = ({ char, x, y }) => <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: '22px', position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>;
@@ -185,15 +184,14 @@ export default function App() {
           .manuscript-print-root { display: block !important; width: 100% !important; height: auto !important; }
           .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
           
-          /* [인쇄 수치 교정: 6종 독립 케이스 완벽 반영]  */
+          /* [인쇄 수치 최종 복구 및 400자 피드백 전용 교정]  */
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
           .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 750)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
           .case-400-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1160)) !important; }
           
-          /* [요청 사항 반영: 400자 피드백형 인쇄 비율 정밀 교정]  */
-          /* 사진 기반 분석: 73% 배율 효과를 위해 분모를 가로 1450, 세로 2950으로 상향 조정하여 20행 전체 인입 */
-          .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1450, (100vh - 30mm) / 2950)) !important; }
+          /* [요청 사항 반영: 400자 피드백형 인쇄 비율만 73%로 수정] */
+          .case-400-feedback { padding: 15mm !important; transform: scale(0.73) !important; }
           
           .case-400-grid { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1050)) !important; }
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; height: auto !important; transform-origin: center center !important; }
