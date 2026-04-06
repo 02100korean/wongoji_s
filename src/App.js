@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 1345-1351]
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 1368-1374]
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 1352-1368]
+// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 1375-1391]
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.10 엔진 및 레이아웃 완벽 유지] ---
+// --- [3. 메인 앱 컴포넌트: v.12.10 엔진 및 레이아웃 완벽 유지 + PDF 저장 함수 추가] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -79,6 +79,16 @@ export default function App() {
   const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
   const [zoom, setZoom] = useState(1.0);
   const mainRef = useRef(null);
+
+  // PDF 라이브러리 자동 주입
+  useEffect(() => {
+    const s1 = document.createElement('script');
+    s1.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    document.head.appendChild(s1);
+    const s2 = document.createElement('script');
+    s2.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    document.head.appendChild(s2);
+  }, []);
 
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
@@ -94,7 +104,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.8/v.12.10 텍스트 처리 엔진 완벽 보존] [cite: 1373-1388]
+  // [v.12.8/v.12.10 텍스트 처리 엔진 완벽 보존] [cite: 1396-1411]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -159,6 +169,36 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
+  // --- [모바일/PC 공용 PDF 저장 로직] ---
+  const saveToPDF = async () => {
+    if (!window.html2canvas || !window.jspdf) {
+      alert("PDF 라이브러리를 로딩 중입니다. 1~2초 후 다시 클릭해 주세요.");
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const pages = document.querySelectorAll('.page-unit');
+    if (!pages.length) return;
+
+    const orientation = gridType === '200' ? 'l' : 'p';
+    const pdf = new jsPDF(orientation, 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+
+    for (let i = 0; i < pages.length; i++) {
+      const canvas = await window.html2canvas(pages[i], {
+        scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff'
+      });
+      const imgData = canvas.toDataURL('image/png');
+      if (i > 0) pdf.addPage(orientation, 'mm', 'a4');
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    }
+
+    const now = new Date();
+    const dateStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+    const timeStr = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
+    pdf.save(`wongoji_${dateStr}_${timeStr}.pdf`);
+  };
+
   return (
     <div className="app-root-container">
       <style>{`
@@ -184,15 +224,17 @@ export default function App() {
           .manuscript-print-root { display: block !important; width: 100% !important; height: auto !important; }
           .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
           
-          /* [인쇄 수치 최종 복구 및 400자 일반 전용 교정]  */
+          /* [인쇄 수치 최종 복구 및 400자 일반 전용 교정] [cite: 1441-1446] */
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
           .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 750)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
           
-          /* [요청 사항 반영: 400자 일반 원고지 인쇄 비율만 90%로 수정] [cite: 1424] */
+          /* [400자 일반: 90% 고정] [cite: 1447] */
           .case-400-traditional { padding: 20mm !important; transform: scale(0.9) !important; }
           
+          /* [400자 피드백: 73% 고정] [cite: 1448] */
           .case-400-feedback { padding: 15mm !important; transform: scale(0.73) !important; }
+          
           .case-400-grid { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1050)) !important; }
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; height: auto !important; transform-origin: center center !important; }
         }
@@ -220,7 +262,8 @@ export default function App() {
                   </select>
                   <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={selectStyle} />
                 </div>
-                <button onClick={() => window.print()} style={{ height: '34px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>인쇄 / PDF 저장</button>
+                {/* [버튼 클릭 시 PDF 저장 함수 실행] */}
+                <button onClick={saveToPDF} style={{ height: '34px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>인쇄 / PDF 저장</button>
               </div>
               <textarea value={content} onChange={e => setContent(e.target.value.slice(0, 3000))} className="sidebar-input" placeholder="내용을 입력하세요..." />
             </aside>
