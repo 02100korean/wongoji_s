@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 1586-1590]
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 737-743]
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 1594-1609]
+// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 744-760]
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.14 엔진 완벽 유지 + 기기별 맞춤 출력 로직] ---
+// --- [3. 메인 앱 컴포넌트: v.12.14 엔진 완벽 유지 + 기기별 맞춤 로직 및 팝업 추가] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -78,12 +78,11 @@ export default function App() {
   const [lineColor, setLineColor] = useState('#607d8b');
   const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
   const [zoom, setZoom] = useState(1.0);
+  const [isSaving, setIsSaving] = useState(false); // PDF 저장 팝업 제어 상태
   const mainRef = useRef(null);
-  
-  // 기기 접속 환경 감지 [cite: 1647]
+
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-  // PDF 라이브러리 자동 로드 (모바일 대응용) [cite: 1612]
   useEffect(() => {
     if (isMobile) {
       const s1 = document.createElement('script');
@@ -109,7 +108,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.14 텍스트 처리 엔진 완벽 보존] [cite: 1615-1629]
+  // [v.12.14 텍스트 엔진 완벽 보존] [cite: 766-780]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -148,7 +147,7 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [v.12.14 폰트 위치 보정 렌더러 완벽 보존] [cite: 1630-1639]
+  // [v.12.14 폰트 위치 보정 렌더러 완벽 보존] [cite: 781-790]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -157,7 +156,7 @@ export default function App() {
     const cellStyle = { width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`, borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGrid) ? `1.2px solid ${lineColor}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, position: 'relative' };
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
     const Punct = ({ char, x, y }) => <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: '22px', position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>;
-    if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
+    if (cellData.Ellipsis === 'ellipsis' || cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
     if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{zIndex:2, transform: `translateY(${verticalShift})` }}>{cellData.content}</span><Punct char={cellData.punct} x={85} y={40} /></div>;
     if (cellData.type === 'punct_quote_final') return <div key={key} style={cellStyle}><Punct char={cellData.punct} x={30} y={40} /><Punct char={cellData.quote} x={90} y={70} /></div>;
     if (cellData.type === 'pair') return (
@@ -175,31 +174,41 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [모바일 전용: 고품질 PDF 생성 및 통합 저장 로직] --- [cite: 1640-1646]
+  // --- [모바일 전용: 고품질 PDF 저장 및 팝업 알림 로직] --- [cite: 792-800]
   const saveToPDF = async () => {
     if (!window.html2canvas || !window.jspdf) {
       alert("PDF 엔진을 로딩 중입니다. 잠시 후 다시 클릭해 주세요."); return;
     }
-    const { jsPDF } = window.jspdf;
-    const pages = document.querySelectorAll('.page-unit');
-    const orientation = gridType === '200' ? 'l' : 'p';
-    const pdf = new jsPDF(orientation, 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
+    setIsSaving(true); // 팝업 노출 시작
+    try {
+      await document.fonts.ready; // 폰트 로드 대기
+      const { jsPDF } = window.jspdf;
+      const pages = document.querySelectorAll('.page-unit');
+      const orientation = gridType === '200' ? 'l' : 'p';
+      const pdf = new jsPDF(orientation, 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    for (let i = 0; i < pages.length; i++) {
-      const canvas = await window.html2canvas(pages[i], { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/png');
-      if (i > 0) pdf.addPage(orientation, 'mm', 'a4');
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      for (let i = 0; i < pages.length; i++) {
+        const canvas = await window.html2canvas(pages[i], { 
+          scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
+          windowWidth: 1200 // 모바일 뷰포트 영향을 받지 않도록 가상 너비 설정
+        });
+        const imgData = canvas.toDataURL('image/png');
+        if (i > 0) pdf.addPage(orientation, 'mm', 'a4');
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      }
+      const now = new Date();
+      const dateStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+      const timeStr = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
+      pdf.save(`wongoji_${dateStr}_${timeStr}.pdf`);
+    } catch (e) {
+      alert("저장 중 오류가 발생했습니다.");
+    } finally {
+      setIsSaving(false); // 팝업 닫기
     }
-    const now = new Date();
-    const dateStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
-    const timeStr = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
-    pdf.save(`wongoji_${dateStr}_${timeStr}.pdf`);
   };
 
-  // --- [기기별 통합 핸들러] --- [cite: 1647-1649]
   const handleAction = () => {
     if (isMobile) saveToPDF();
     else window.print(); // PC에서는 v.12.14의 검증된 인쇄 시스템 사용
@@ -222,7 +231,13 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [인쇄 설정: v.12.14 안정 버전 완벽 유지] */
+        /* [저장 중 팝업 스타일] */
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .loading-popup { background: white; padding: 30px; borderRadius: 20px; text-align: center; boxShadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* [인쇄 설정: v.12.14 안정 버전 완벽 보존] [cite: 812-831] */
         @media print {
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
@@ -230,8 +245,6 @@ export default function App() {
           .zoom-wrapper { transform: none !important; width: 100% !important; height: auto !important; display: block !important; }
           .manuscript-print-root { display: block !important; width: 100% !important; height: auto !important; }
           .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
-          
-          /* [인쇄 수치 교정: v.12.14 수치 그대로 복원] [cite: 1669-1678] */
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
           .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 750)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
@@ -241,6 +254,15 @@ export default function App() {
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; height: auto !important; transform-origin: center center !important; }
         }
       `}</style>
+
+      {isSaving && (
+        <div className="loading-overlay">
+          <div className="loading-popup">
+            <div className="spinner"></div>
+            <p style={{ fontWeight: 'bold', color: '#1e293b', margin: 0 }}>저장 중입니다.<br/>잠시만 기다려 주세요.</p>
+          </div>
+        </div>
+      )}
 
       {view === 'home' ? <Home onNavigate={setView} /> : (
         <div className="editor-container">
@@ -264,7 +286,6 @@ export default function App() {
                   </select>
                   <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={selectStyle} />
                 </div>
-                {/* [기기별 버튼 텍스트 및 핸들러 분리 적용] */}
                 <button onClick={handleAction} style={{ height: '34px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
                   {isMobile ? 'PDF로 저장' : '인쇄 / PDF 저장'}
                 </button>
