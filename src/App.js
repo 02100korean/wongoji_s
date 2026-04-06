@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.17 로직 완벽 유지 + 고도화된 모바일 PDF 엔진] ---
+// --- [3. 메인 앱 컴포넌트: v.12.17 핵심 엔진 + 오프스크린 PDF 캡처 기술] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -78,7 +78,7 @@ export default function App() {
   const [lineColor, setLineColor] = useState('#607d8b');
   const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
   const [zoom, setZoom] = useState(1.0);
-  const [isSaving, setIsSaving] = useState(false); // 모바일 저장 안내창 상태
+  const [isSaving, setIsSaving] = useState(false); // 저장 중 팝업 상태
   const mainRef = useRef(null);
   
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -175,14 +175,14 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 부분: 고해상도 가상 스테이지 캡처 및 앱 선택 로직] --- 
+  // --- [혁신적 해결책: 오프스크린 가상 무대 캡처 및 앱 선택 로직] --- 
   const saveToPDF = async () => {
     if (!window.html2canvas || !window.jspdf) {
       alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return;
     }
     setIsSaving(true);
     try {
-      await document.fonts.ready; // 폰트 로드 완벽 대기
+      await document.fonts.ready;
       const { jsPDF } = window.jspdf;
       const pages = document.querySelectorAll('.page-unit');
       const orientation = gridType === '200' ? 'l' : 'p';
@@ -191,22 +191,22 @@ export default function App() {
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
       for (let i = 0; i < pages.length; i++) {
+        // [기술의 핵심] 보이지 않는 가상 무대를 만들어 모바일의 좁은 화면 간섭을 차단
         const canvas = await window.html2canvas(pages[i], { 
-          scale: 4, // 초고화질 캡처
-          useCORS: true, 
-          backgroundColor: '#ffffff', 
-          logging: false,
-          windowWidth: 1200, // [가상 스테이지] 모바일의 좁은 너비 무력화
+          scale: 3, useCORS: true, backgroundColor: '#ffffff', logging: false,
+          windowWidth: 1250, // 캡처 시 가로 너비를 PC 환경으로 강제 고정
           onclone: (clonedDoc) => {
             const el = clonedDoc.querySelectorAll('.page-unit')[i];
             if (el) {
-                el.style.transform = 'none'; // 비율 왜곡 방지
-                const box = el.querySelector('.page-box');
-                if (box) { 
-                  box.style.transform = 'none'; 
-                  box.style.margin = '0'; 
-                  box.style.width = gridType === '200' ? '880px' : '880px'; // 규격 고정
-                }
+              el.style.transform = 'none'; // 줌 배율 간섭 해제
+              el.style.position = 'relative';
+              const box = el.querySelector('.page-box');
+              if (box) {
+                box.style.transform = 'none';
+                box.style.margin = '0 auto';
+                box.style.width = viewMode === 'feedback' ? (gridType === '200' ? '1010px' : '1050px') : '880px';
+                box.style.boxShadow = 'none';
+              }
             }
           }
         });
@@ -220,7 +220,6 @@ export default function App() {
       const timeStr = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
       const fileName = `wongoji_${dateStr}_${timeStr}.pdf`;
 
-      // [모바일 핵심]: 앱 선택창 호출하여 저장 후 복귀 가능하게 처리
       if (isMobile && navigator.share) {
         const pdfBlob = pdf.output('blob');
         const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
@@ -258,7 +257,7 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [안내 팝업 스타일: 모바일 전용] [cite: 720-725] */
+        /* [안내 팝업 스타일] [cite: 720-725] */
         .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .loading-popup { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
