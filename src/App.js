@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.17 엔진 완벽 유지 + 직접 드로잉 수정] ---
+// --- [3. 메인 앱 컴포넌트: v.12.17 엔진 및 로직 완벽 유지] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -103,7 +103,6 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.17 엔진: 글자 처리 로직 유지]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -142,7 +141,6 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [v.12.17 엔진: 폰트 보정 렌더러 유지]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -169,7 +167,7 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 간격 및 형태 오류 수정] ---
+  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 비율 및 피드백 박스 수정] ---
   const saveToPDF = async () => {
     if (!window.jspdf) { alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return; }
     setIsSaving(true);
@@ -192,7 +190,6 @@ export default function App() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         const cellS = 10 * scale; 
-        // [수정 1] 줄 간격(Gap) mm 단위 정밀 계산
         const gapMm = viewMode === 'feedback' ? 8 : (viewMode === 'traditional' ? 4 : 0);
         const gapS = gapMm * scale;
         
@@ -220,17 +217,16 @@ export default function App() {
         ctx.strokeStyle = lineColor;
 
         for (let r = 0; r < gridVal / 20; r++) {
-          const y = marginY + r * (cellS + gapS); // [수정 1 핵심] 줄 간격 적용
+          const y = marginY + r * (cellS + gapS);
           for (let c = 0; c < 20; c++) {
             const x = marginX + c * cellS;
             const cell = allCells[startIdx + r * 20 + c];
             
-            // [수정 2] 원고지 형태 조건부 드로잉 (일반/피드백 vs 격자)
             ctx.beginPath();
-            ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); // Top
-            ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); // Bottom
-            ctx.moveTo(x, y); ctx.lineTo(x, y + cellS); // Left
-            if (c === 19 || viewMode === 'grid') { ctx.moveTo(x + cellS, y); ctx.lineTo(x + cellS, y + cellS); } // Right
+            ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); 
+            ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); 
+            ctx.moveTo(x, y); ctx.lineTo(x, y + cellS); 
+            if (c === 19 || viewMode === 'grid') { ctx.moveTo(x + cellS, y); ctx.lineTo(x + cellS, y + cellS); } 
             ctx.stroke();
             
             if (cell && cell.type !== 'empty') {
@@ -261,11 +257,11 @@ export default function App() {
               }
             }
           }
-          // 피드백 박스 개별 드로잉
-          if (viewMode === 'feedback') {
-            const fbW = gridType === '200' ? 30 * scale : 40 * scale;
-            ctx.strokeRect(marginX + 20 * cellS + (3 * scale), y, fbW, cellS);
-          }
+        }
+        // [수정 3] 피드백 박스를 줄마다 그리지 않고 전체를 덮는 하나의 긴 직사각형으로 수정
+        if (viewMode === 'feedback') {
+          const fbW = gridType === '200' ? 30 * scale : 40 * scale;
+          ctx.strokeRect(marginX + 20 * cellS + (3 * scale), marginY, fbW, contentHeight);
         }
         return canvas.toDataURL('image/png', 1.0);
       };
@@ -273,7 +269,19 @@ export default function App() {
       for (let p = 0; p < pageCount; p++) {
         const imgData = drawManuscriptPage(p * gridVal, p);
         if (p > 0) pdf.addPage(orientation, 'mm', 'a4');
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+        
+        // [수정 1 & 2] 400자 전용 비율(90%, 73%) 적용 및 중앙 배치
+        let drawW = pdfWidth;
+        let drawH = pdfHeight;
+        if (gridType === '400') {
+            const ratio = viewMode === 'feedback' ? 0.73 : (viewMode === 'traditional' ? 0.9 : 1.0);
+            drawW = pdfWidth * ratio;
+            drawH = pdfHeight * ratio;
+        }
+        const posX = (pdfWidth - drawW) / 2;
+        const posY = (pdfHeight - drawH) / 2;
+        
+        pdf.addImage(imgData, 'PNG', posX, posY, drawW, drawH, undefined, 'FAST');
       }
       
       const now = new Date();
