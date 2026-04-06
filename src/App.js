@@ -184,14 +184,14 @@ export default function App() {
           .manuscript-print-root { display: block !important; width: 100% !important; height: auto !important; }
           .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
           
-          /* [인쇄 수치 교정: 6종 독립 스케일링 로직] */
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
           .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 750)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
           .case-400-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1160)) !important; }
           
-          /* 400자 피드백형 전용: 15mm 여백 보장 및 전체 영역(원고지+피드백박스) 인입 최적화 */
-          .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1250, (100vh - 30mm) / 2200)) !important; }
+          /* [요청 사항 반영: 400자 피드백형 인쇄 비율 정밀 교정] */
+          /* 20행 전체가 인입되도록 배율 분모를 1120/1750에서 1250/2150으로 대폭 조정 */
+          .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1250, (100vh - 30mm) / 2150)) !important; }
           
           .case-400-grid { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1050)) !important; }
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; height: auto !important; transform-origin: center center !important; }
