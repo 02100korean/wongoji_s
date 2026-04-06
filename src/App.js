@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 737-743]
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 642-646]
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 744-760]
+// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 650-664]
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.14 엔진 완벽 유지 + 기기별 맞춤 출력 로직] ---
+// --- [3. 메인 앱 컴포넌트: v.12.14 엔진 완벽 보존 + 모바일 앱 선택 저장 로직] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -78,7 +78,7 @@ export default function App() {
   const [lineColor, setLineColor] = useState('#607d8b');
   const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
   const [zoom, setZoom] = useState(1.0);
-  const [isSaving, setIsSaving] = useState(false); // 모바일 저장 팝업 상태
+  const [isSaving, setIsSaving] = useState(false); // 모바일 저장 팝업 상태 [cite: 668]
   const mainRef = useRef(null);
   
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -108,7 +108,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.14 텍스트 처리 엔진 완벽 보존] [cite: 766-780]
+  // [v.12.14 텍스트 처리 엔진 완벽 보존] [cite: 672-686]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -147,7 +147,7 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [v.12.14 폰트 위치 보정 렌더러 완벽 보존] [cite: 781-790]
+  // [v.12.14 폰트 위치 보정 렌더러 완벽 보존] [cite: 687-696]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -174,7 +174,7 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [모바일 전용: 고품질 가상 인쇄 및 팝업 알림 로직] --- [cite: 792-800]
+  // --- [수정된 부분: 모바일 앱 연동 PDF 저장 및 팝업 알림 로직] --- [cite: 698-707]
   const saveToPDF = async () => {
     if (!window.html2canvas || !window.jspdf) {
       alert("PDF 엔진을 로딩 중입니다. 잠시 후 다시 클릭해 주세요."); return;
@@ -192,26 +192,40 @@ export default function App() {
       for (let i = 0; i < pages.length; i++) {
         const canvas = await window.html2canvas(pages[i], { 
           scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
-          windowWidth: 1200 // 모바일 기기 종류와 상관없이 PC 뷰포트로 고정 캡처
+          windowWidth: 1200 // 모바일 뷰포트 영향을 받지 않도록 가상 너비 고정
         });
         const imgData = canvas.toDataURL('image/png');
         if (i > 0) pdf.addPage(orientation, 'mm', 'a4');
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       }
+      
       const now = new Date();
       const dateStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
       const timeStr = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
-      pdf.save(`wongoji_${dateStr}_${timeStr}.pdf`);
+      const fileName = `wongoji_${dateStr}_${timeStr}.pdf`; // 
+
+      // [모바일 대응]: 인터넷창 대신 공유/앱 선택 팝업 실행
+      if (isMobile && navigator.share && navigator.canShare) {
+        const pdfBlob = pdf.output('blob');
+        const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: '원고지 연습장 PDF' });
+        } else {
+          pdf.save(fileName);
+        }
+      } else {
+        pdf.save(fileName);
+      }
     } catch (e) {
       alert("저장 중 오류가 발생했습니다.");
     } finally {
-      setIsSaving(false); // 팝업 닫기
+      setIsSaving(false); // 팝업 닫기 [cite: 707]
     }
   };
 
   const handleAction = () => {
     if (isMobile) saveToPDF();
-    else window.print(); // PC에서는 v.12.14의 검증된 인쇄 시스템 사용
+    else window.print(); // PC에서는 v.12.14의 검증된 인쇄 시스템 사용 [cite: 709]
   };
 
   return (
@@ -231,13 +245,13 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [저장 중 팝업 스타일: 모바일 전용] */
+        /* [저장 중 팝업 스타일: 모바일 전용] [cite: 720-725] */
         .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .loading-popup { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* [인쇄 설정: v.12.14 안정 버전 완벽 보존] [cite: 812-831] */
+        /* [인쇄 설정: v.12.14 안정 버전 완벽 보존] [cite: 734-743] */
         @media print {
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
@@ -255,7 +269,7 @@ export default function App() {
         }
       `}</style>
 
-      {/* 모바일 저장 전용 안내 팝업 */}
+      {/* 모바일 저장 전용 안내 팝업 [cite: 745-746] */}
       {isSaving && (
         <div className="loading-overlay">
           <div className="loading-popup">
