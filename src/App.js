@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 633-637]
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 1586-1590]
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 640-656]
+// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 1594-1609]
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.14 엔진 완벽 유지 + 기기별 맞춤 출력 추가] ---
+// --- [3. 메인 앱 컴포넌트: v.12.14 엔진 완벽 유지 + 기기별 맞춤 출력 로직] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -79,16 +79,21 @@ export default function App() {
   const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
   const [zoom, setZoom] = useState(1.0);
   const mainRef = useRef(null);
+  
+  // 기기 접속 환경 감지 [cite: 1647]
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-  // PDF 라이브러리 자동 로드 (모바일 전용)
+  // PDF 라이브러리 자동 로드 (모바일 대응용) [cite: 1612]
   useEffect(() => {
-    const s1 = document.createElement('script');
-    s1.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-    document.head.appendChild(s1);
-    const s2 = document.createElement('script');
-    s2.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-    document.head.appendChild(s2);
-  }, []);
+    if (isMobile) {
+      const s1 = document.createElement('script');
+      s1.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+      document.head.appendChild(s1);
+      const s2 = document.createElement('script');
+      s2.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+      document.head.appendChild(s2);
+    }
+  }, [isMobile]);
 
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
@@ -104,7 +109,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.14 텍스트 처리 엔진 완벽 보존] [cite: 661-676]
+  // [v.12.14 텍스트 처리 엔진 완벽 보존] [cite: 1615-1629]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -143,6 +148,7 @@ export default function App() {
     return cells;
   }, [content]);
 
+  // [v.12.14 폰트 위치 보정 렌더러 완벽 보존] [cite: 1630-1639]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -169,10 +175,10 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [PDF 저장 및 기기별 대응 함수] ---
+  // --- [모바일 전용: 고품질 PDF 생성 및 통합 저장 로직] --- [cite: 1640-1646]
   const saveToPDF = async () => {
     if (!window.html2canvas || !window.jspdf) {
-      alert("PDF 라이브러리를 로딩 중입니다. 잠시 후 다시 클릭해 주세요."); return;
+      alert("PDF 엔진을 로딩 중입니다. 잠시 후 다시 클릭해 주세요."); return;
     }
     const { jsPDF } = window.jspdf;
     const pages = document.querySelectorAll('.page-unit');
@@ -193,13 +199,10 @@ export default function App() {
     pdf.save(`wongoji_${dateStr}_${timeStr}.pdf`);
   };
 
-  const handlePrintOrPDF = () => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      saveToPDF();
-    } else {
-      window.print(); // PC에서는 가장 안정적인 v.12.14 인쇄 로직 실행
-    }
+  // --- [기기별 통합 핸들러] --- [cite: 1647-1649]
+  const handleAction = () => {
+    if (isMobile) saveToPDF();
+    else window.print(); // PC에서는 v.12.14의 검증된 인쇄 시스템 사용
   };
 
   return (
@@ -219,7 +222,7 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [인쇄 설정: v.12.14 안정 버전 완벽 복구] */
+        /* [인쇄 설정: v.12.14 안정 버전 완벽 유지] */
         @media print {
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
@@ -228,7 +231,7 @@ export default function App() {
           .manuscript-print-root { display: block !important; width: 100% !important; height: auto !important; }
           .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
           
-          /* [인쇄 수치 교정: v.12.14 완벽 복원] */
+          /* [인쇄 수치 교정: v.12.14 수치 그대로 복원] [cite: 1669-1678] */
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
           .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 750)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
@@ -261,7 +264,10 @@ export default function App() {
                   </select>
                   <input type="text" value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="이름 입력" style={selectStyle} />
                 </div>
-                <button onClick={handlePrintOrPDF} style={{ height: '34px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>인쇄 / PDF 저장</button>
+                {/* [기기별 버튼 텍스트 및 핸들러 분리 적용] */}
+                <button onClick={handleAction} style={{ height: '34px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
+                  {isMobile ? 'PDF로 저장' : '인쇄 / PDF 저장'}
+                </button>
               </div>
               <textarea value={content} onChange={e => setContent(e.target.value.slice(0, 3000))} className="sidebar-input" placeholder="내용을 입력하세요..." />
             </aside>
