@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.17 엔진 및 레이아웃 완벽 유지] ---
+// --- [3. 메인 앱 컴포넌트: v.12.17 엔진 완벽 유지 + 직접 드로잉 PDF 엔진] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -78,21 +78,16 @@ export default function App() {
   const [lineColor, setLineColor] = useState('#607d8b');
   const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
   const [zoom, setZoom] = useState(1.0);
-  const [isSaving, setIsSaving] = useState(false); // 모바일 저장 팝업 상태
+  const [isSaving, setIsSaving] = useState(false); // 모바일 저장 안내창 상태
   const mainRef = useRef(null);
   
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   useEffect(() => {
-    if (isMobile) {
-      const s1 = document.createElement('script');
-      s1.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-      document.head.appendChild(s1);
-      const s2 = document.createElement('script');
-      s2.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-      document.head.appendChild(s2);
-    }
-  }, [isMobile]);
+    const s = document.createElement('script');
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+    document.head.appendChild(s);
+  }, []);
 
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
@@ -108,7 +103,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.17 텍스트 처리 엔진 완벽 보존] [cite: 250-264]
+  // [v.12.17 텍스트 엔진 완벽 보존] [cite: 250-264]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -147,7 +142,7 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [v.12.17 폰트 위치 보정 렌더러 완벽 보존] [cite: 265-274]
+  // [v.12.17 렌더러 완벽 보존] [cite: 265-274]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -174,44 +169,105 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 부분: 고해상도 가상 스테이지 렌더링 및 Share API 로직] --- 
+  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진] --- [cite: 275-285]
   const saveToPDF = async () => {
-    if (!window.html2canvas || !window.jspdf) {
+    if (!window.jspdf) {
       alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return;
     }
     setIsSaving(true);
     try {
       await document.fonts.ready;
       const { jsPDF } = window.jspdf;
-      const pages = document.querySelectorAll('.page-unit');
       const orientation = gridType === '200' ? 'l' : 'p';
       const pdf = new jsPDF(orientation, 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const drawManuscriptPage = (startIdx, pageNum) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        // 고해상도 규격 (A4 비율 유지)
+        canvas.width = orientation === 'l' ? 2970 : 2100;
+        canvas.height = orientation === 'l' ? 2100 : 2970;
+        const scale = canvas.width / (orientation === 'l' ? 297 : 210);
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const cellS = 10 * scale; 
+        const marginX = (canvas.width - (20 * cellS)) / 2;
+        const marginY = (canvas.height - ((gridVal/20) * cellS)) / 2;
 
-      for (let i = 0; i < pages.length; i++) {
-        // [핵심 기술] 가상 스테이지에서 PC 규격으로 렌더링 후 캡처
-        const canvas = await window.html2canvas(pages[i], { 
-          scale: 4, // 초고화질
-          useCORS: true, 
-          backgroundColor: '#ffffff', 
-          logging: false,
-          windowWidth: 1250, // 가로 너비 강제 고정 (DPI 붕괴 방지)
-          onclone: (clonedDoc) => {
-            const el = clonedDoc.querySelectorAll('.page-unit')[i];
-            if (el) {
-                el.style.transform = 'none';
-                const box = el.querySelector('.page-box');
-                if (box) { 
-                  box.style.transform = 'none'; 
-                  box.style.margin = '0'; 
-                  box.style.width = viewMode === 'feedback' ? (gridType === '200' ? '1010px' : '1050px') : '880px';
-                }
+        // [v.12.17 폰트 보정 수치 계산]
+        let vShift = 0;
+        if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) vShift = 3.8 * (scale / 3.78);
+        else if (fontFamily === "'Poor Story', cursive") vShift = 1.9 * (scale / 3.78);
+
+        // 이름 영역 (첫 페이지만)
+        if (pageNum === 0 && studentName) {
+            ctx.font = `bold ${5.5 * scale}px ${fontFamily.replace(/'/g, "")}`;
+            ctx.fillStyle = 'black';
+            ctx.textAlign = 'right';
+            ctx.fillText(`이름: ${studentName}`, canvas.width - marginX, marginY - (8 * scale));
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - marginX - (50 * scale), marginY - (5 * scale));
+            ctx.lineTo(canvas.width - marginX, marginY - (5 * scale));
+            ctx.stroke();
+        }
+
+        // 격자 및 글자 그리기
+        ctx.lineWidth = 0.3 * scale;
+        ctx.strokeStyle = lineColor;
+        for (let r = 0; r < gridVal / 20; r++) {
+          for (let c = 0; c < 20; c++) {
+            const x = marginX + c * cellS;
+            const y = marginY + r * cellS;
+            const cell = allCells[startIdx + r * 20 + c];
+            
+            // 칸 그리기
+            ctx.strokeRect(x, y, cellS, cellS);
+            
+            if (cell && cell.type !== 'empty') {
+              ctx.fillStyle = '#0f172a';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              const fontBase = `${6.5 * scale}px ${fontFamily.replace(/'/g, "")}`;
+              const punctFont = `${6.5 * scale}px 'Noto Sans KR'`;
+              
+              if (cell.type === 'default' || cell.type === 'quote_open' || cell.type === 'quote_close' || cell.type === 'punct_alone') {
+                ctx.font = (cell.type === 'default') ? fontBase : punctFont;
+                let charY = y + (cellS / 2) + vShift;
+                // 문장부호 위치 보정
+                let charX = x + (cellS / 2);
+                if (cell.type === 'punct_alone') { charX = x + (cellS * 0.3); charY = y + (cellS * 0.6); }
+                if (cell.type === 'quote_open') { charX = x + (cellS * 0.75); charY = y + (cellS * 0.35); }
+                if (cell.type === 'quote_close') { charX = x + (cellS * 0.25); charY = y + (cellS * 0.35); }
+                ctx.fillText(cell.content || "", charX, charY);
+              } else if (cell.type === 'pair') {
+                ctx.font = isSimplePunct(cell.content[0]) ? punctFont : fontBase;
+                ctx.fillText(cell.content[0], x + (cellS * 0.25), y + (cellS / 2) + (isSimplePunct(cell.content[0]) ? 0 : vShift));
+                ctx.font = isSimplePunct(cell.content[1]) ? punctFont : fontBase;
+                ctx.fillText(cell.content[1], x + (cellS * 0.75), y + (cellS / 2) + (isSimplePunct(cell.content[1]) ? 0 : vShift));
+              } else if (cell.type === 'combined_end') {
+                ctx.font = fontBase;
+                ctx.fillText(cell.content, x + (cellS / 2), y + (cellS / 2) + vShift);
+                ctx.font = punctFont;
+                ctx.fillText(cell.punct, x + (cellS * 0.85), y + (cellS * 0.6));
+              }
             }
           }
-        });
-        const imgData = canvas.toDataURL('image/png', 1.0);
-        if (i > 0) pdf.addPage(orientation, 'mm', 'a4');
+        }
+        // 피드백 영역
+        if (viewMode === 'feedback') {
+          const fbW = gridType === '200' ? 30 * scale : 40 * scale;
+          ctx.strokeRect(marginX + 20 * cellS + (3 * scale), marginY, fbW, (gridVal/20) * cellS);
+        }
+        return canvas.toDataURL('image/png', 1.0);
+      };
+
+      for (let p = 0; p < pageCount; p++) {
+        const imgData = drawManuscriptPage(p * gridVal, p);
+        if (p > 0) pdf.addPage(orientation, 'mm', 'a4');
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
       }
       
@@ -237,7 +293,7 @@ export default function App() {
 
   const handleAction = () => {
     if (isMobile) saveToPDF();
-    else window.print(); // PC에서는 v.12.17의 검증된 인쇄 시스템 사용 [cite: 286-287]
+    else window.print(); // PC는 v.12.17의 완벽한 시스템 인쇄 유지
   };
 
   return (
@@ -257,7 +313,7 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [저장 중 팝업 스타일: 모바일 전용] [cite: 297-303] */
+        /* [안내 팝업 스타일] [cite: 297-303] */
         .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .loading-popup { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
@@ -281,7 +337,6 @@ export default function App() {
         }
       `}</style>
 
-      {/* 모바일 저장 전용 안내 팝업 [cite: 323-324] */}
       {isSaving && (
         <div className="loading-overlay">
           <div className="loading-popup">
