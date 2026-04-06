@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] ---
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 220-226]
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12.8 완벽 보존] ---
+// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 227-242]
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -103,6 +103,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
+  // [v.12.17 텍스트 엔진 완벽 보존] [cite: 250-264]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -141,6 +142,7 @@ export default function App() {
     return cells;
   }, [content]);
 
+  // [v.12.17 렌더러 완벽 보존] [cite: 265-274]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -167,7 +169,7 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 400자 비율 및 우측 피드백 박스 수정] ---
+  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 400자 비율 및 우측 피드백 박스 수정] --- 
   const saveToPDF = async () => {
     if (!window.jspdf) { alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return; }
     setIsSaving(true);
@@ -182,31 +184,23 @@ export default function App() {
       const drawManuscriptPage = (startIdx, pageNum) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
-        // 400자 피드백용은 우측 박스(40mm) 포함을 위해 가상 너비를 250mm로 확장하여 드로잉
         const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 250 : (orientation === 'l' ? 297 : 210);
         const virtualHeight = (orientation === 'l' ? 210 : 297);
-        
-        canvas.width = virtualWidth * 10; // scale factor
+        canvas.width = virtualWidth * 10; 
         canvas.height = virtualHeight * 10;
         const scale = 10;
-        
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
         const cellS = 10 * scale; 
         const gapMm = viewMode === 'feedback' ? 8 : (viewMode === 'traditional' ? 4 : 0);
         const gapS = gapMm * scale;
-        
         const totalWonjiW = 20 * cellS;
         const contentHeight = (gridVal/20) * cellS + ((gridVal/20) - 1) * gapS;
         const marginX = (canvas.width - totalWonjiW - (viewMode === 'feedback' ? (gridType === '200' ? 33 : 43) * scale : 0)) / 2;
         const marginY = (canvas.height - contentHeight) / 2;
-
         let vShift = 0;
         if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) vShift = cellS * 0.1;
         else if (fontFamily === "'Poor Story', cursive") vShift = cellS * 0.05;
-
         if (pageNum === 0 && studentName) {
             ctx.font = `bold ${5.5 * scale}px ${fontFamily.replace(/'/g, "")}`;
             ctx.fillStyle = 'black';
@@ -218,30 +212,27 @@ export default function App() {
             ctx.lineWidth = 0.5 * scale;
             ctx.stroke();
         }
-
         ctx.lineWidth = 0.35 * scale;
         ctx.strokeStyle = lineColor;
-
         for (let r = 0; r < gridVal / 20; r++) {
           const y = marginY + r * (cellS + gapS);
           for (let c = 0; c < 20; c++) {
             const x = marginX + c * cellS;
             const cell = allCells[startIdx + r * 20 + c];
             
+            // [수정] 400자 피드백용의 원고지 최상단/최하단 라인 조건부 제거
+            const is400Feedback = (gridType === '400' && viewMode === 'feedback');
             ctx.beginPath();
-            ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); 
-            ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); 
+            if (!(is400Feedback && r === 0)) { ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); } 
+            if (!(is400Feedback && r === (gridVal / 20 - 1))) { ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); } 
             ctx.moveTo(x, y); ctx.lineTo(x, y + cellS); 
             if (c === 19 || viewMode === 'grid') { ctx.moveTo(x + cellS, y); ctx.lineTo(x + cellS, y + cellS); } 
             ctx.stroke();
             
             if (cell && cell.type !== 'empty') {
-              ctx.fillStyle = '#0f172a';
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
+              ctx.fillStyle = '#0f172a'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
               const fontBase = `${6.5 * scale}px ${fontFamily.replace(/'/g, "")}`;
               const punctFont = `${6.5 * scale}px 'Noto Sans KR'`;
-              
               if (cell.type === 'default' || cell.type === 'quote_open' || cell.type === 'quote_close' || cell.type === 'punct_alone') {
                 ctx.font = (cell.type === 'default') ? fontBase : punctFont;
                 let charY = y + (cellS / 2) + vShift;
@@ -256,51 +247,34 @@ export default function App() {
                 ctx.font = isSimplePunct(cell.content[1]) ? punctFont : fontBase;
                 ctx.fillText(cell.content[1], x + (cellS * 0.75), y + (cellS / 2) + (isSimplePunct(cell.content[1]) ? 0 : vShift));
               } else if (cell.type === 'combined_end') {
-                ctx.font = fontBase;
-                ctx.fillText(cell.content, x + (cellS / 2), y + (cellS / 2) + vShift);
-                ctx.font = punctFont;
-                ctx.fillText(cell.punct, x + (cellS * 0.85), y + (cellS * 0.6));
+                ctx.font = fontBase; ctx.fillText(cell.content, x + (cellS / 2), y + (cellS / 2) + vShift);
+                ctx.font = punctFont; ctx.fillText(cell.punct, x + (cellS * 0.85), y + (cellS * 0.6));
               }
             }
           }
         }
-        // [수정] 피드백 박스를 우측에 긴 단일 직사각형으로 드로잉 (200자 30mm, 400자 40mm)
+        // [수정] 우측 피드백 직사각형 닫기 (항상 4면을 그림)
         if (viewMode === 'feedback') {
           const fbW = (gridType === '200' ? 30 : 40) * scale;
           ctx.strokeRect(marginX + totalWonjiW + (3 * scale), marginY, fbW, contentHeight);
         }
         return canvas.toDataURL('image/png', 1.0);
       };
-
       for (let p = 0; p < pageCount; p++) {
         const imgData = drawManuscriptPage(p * gridVal, p);
         if (p > 0) pdf.addPage(orientation, 'mm', 'a4');
-        
-        let drawW = pdfWidth;
-        let drawH = pdfHeight;
-        
+        let drawW = pdfWidth; let drawH = pdfHeight;
         if (gridType === '400') {
-            if (viewMode === 'feedback') {
-                // 400자 피드백: 확장 캔버스(250mm)를 73% 축소 -> 약 182mm로 A4(210mm) 내에 안착
-                drawW = 250 * 0.73;
-                drawH = 297 * 0.73;
-            } else {
-                // 400자 일반: 90% 축소
-                const ratio = viewMode === 'traditional' ? 0.9 : 1.0;
-                drawW = pdfWidth * ratio;
-                drawH = pdfHeight * ratio;
-            }
+            if (viewMode === 'feedback') { drawW = 250 * 0.73; drawH = 297 * 0.73; } 
+            else { const ratio = viewMode === 'traditional' ? 0.9 : 1.0; drawW = pdfWidth * ratio; drawH = pdfHeight * ratio; }
         }
-        const posX = (pdfWidth - drawW) / 2;
-        const posY = (pdfHeight - drawH) / 2;
+        const posX = (pdfWidth - drawW) / 2; const posY = (pdfHeight - drawH) / 2;
         pdf.addImage(imgData, 'PNG', posX, posY, drawW, drawH, undefined, 'FAST');
       }
-      
       const now = new Date();
       const dateStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
       const timeStr = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
       const fileName = `wongoji_${dateStr}_${timeStr}.pdf`;
-
       if (isMobile && navigator.share) {
         const pdfBlob = pdf.output('blob');
         const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
@@ -332,7 +306,6 @@ export default function App() {
         .loading-popup { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         @media print {
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
@@ -349,7 +322,6 @@ export default function App() {
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; height: auto !important; transform-origin: center center !important; }
         }
       `}</style>
-
       {isSaving && (
         <div className="loading-overlay">
           <div className="loading-popup">
@@ -358,7 +330,6 @@ export default function App() {
           </div>
         </div>
       )}
-
       {view === 'home' ? <Home onNavigate={setView} /> : (
         <div className="editor-container">
           <header className="no-print" style={{ backgroundColor: 'white', borderBottom: '1px solid #ddd', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, height: '50px', position: 'fixed', top: 0, left: 0, right: 0 }}>
