@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 220-226]
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] ---
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 227-242]
+// --- [2. 홈 화면: v.12.8 완벽 보존] ---
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.17 엔진 완벽 유지 + 직접 드로잉 PDF 엔진] ---
+// --- [3. 메인 앱 컴포넌트: v.12.17 엔진 완벽 유지 + 직접 드로잉 수정] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -78,7 +78,7 @@ export default function App() {
   const [lineColor, setLineColor] = useState('#607d8b');
   const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
   const [zoom, setZoom] = useState(1.0);
-  const [isSaving, setIsSaving] = useState(false); // 모바일 저장 안내창 상태
+  const [isSaving, setIsSaving] = useState(false); 
   const mainRef = useRef(null);
   
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -103,7 +103,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.17 텍스트 엔진 완벽 보존] [cite: 250-264]
+  // [v.12.17 엔진: 글자 처리 로직 유지]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -142,7 +142,7 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [v.12.17 렌더러 완벽 보존] [cite: 265-274]
+  // [v.12.17 엔진: 폰트 보정 렌더러 유지]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -169,11 +169,9 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진] --- [cite: 275-285]
+  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 간격 및 형태 오류 수정] ---
   const saveToPDF = async () => {
-    if (!window.jspdf) {
-      alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return;
-    }
+    if (!window.jspdf) { alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return; }
     setIsSaving(true);
     try {
       await document.fonts.ready;
@@ -186,7 +184,6 @@ export default function App() {
       const drawManuscriptPage = (startIdx, pageNum) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        // 고해상도 규격 (A4 비율 유지)
         canvas.width = orientation === 'l' ? 2970 : 2100;
         canvas.height = orientation === 'l' ? 2100 : 2970;
         const scale = canvas.width / (orientation === 'l' ? 297 : 210);
@@ -195,37 +192,46 @@ export default function App() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         const cellS = 10 * scale; 
+        // [수정 1] 줄 간격(Gap) mm 단위 정밀 계산
+        const gapMm = viewMode === 'feedback' ? 8 : (viewMode === 'traditional' ? 4 : 0);
+        const gapS = gapMm * scale;
+        
+        const contentHeight = (gridVal/20) * cellS + ((gridVal/20) - 1) * gapS;
         const marginX = (canvas.width - (20 * cellS)) / 2;
-        const marginY = (canvas.height - ((gridVal/20) * cellS)) / 2;
+        const marginY = (canvas.height - contentHeight) / 2;
 
-        // [v.12.17 폰트 보정 수치 계산]
         let vShift = 0;
         if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) vShift = 3.8 * (scale / 3.78);
         else if (fontFamily === "'Poor Story', cursive") vShift = 1.9 * (scale / 3.78);
 
-        // 이름 영역 (첫 페이지만)
         if (pageNum === 0 && studentName) {
             ctx.font = `bold ${5.5 * scale}px ${fontFamily.replace(/'/g, "")}`;
             ctx.fillStyle = 'black';
             ctx.textAlign = 'right';
-            ctx.fillText(`이름: ${studentName}`, canvas.width - marginX, marginY - (8 * scale));
+            ctx.fillText(`이름: ${studentName}`, canvas.width - marginX, marginY - (10 * scale));
             ctx.beginPath();
-            ctx.moveTo(canvas.width - marginX - (50 * scale), marginY - (5 * scale));
-            ctx.lineTo(canvas.width - marginX, marginY - (5 * scale));
+            ctx.moveTo(canvas.width - marginX - (50 * scale), marginY - (7 * scale));
+            ctx.lineTo(canvas.width - marginX, marginY - (7 * scale));
+            ctx.lineWidth = 0.5 * scale;
             ctx.stroke();
         }
 
-        // 격자 및 글자 그리기
-        ctx.lineWidth = 0.3 * scale;
+        ctx.lineWidth = 0.35 * scale;
         ctx.strokeStyle = lineColor;
+
         for (let r = 0; r < gridVal / 20; r++) {
+          const y = marginY + r * (cellS + gapS); // [수정 1 핵심] 줄 간격 적용
           for (let c = 0; c < 20; c++) {
             const x = marginX + c * cellS;
-            const y = marginY + r * cellS;
             const cell = allCells[startIdx + r * 20 + c];
             
-            // 칸 그리기
-            ctx.strokeRect(x, y, cellS, cellS);
+            // [수정 2] 원고지 형태 조건부 드로잉 (일반/피드백 vs 격자)
+            ctx.beginPath();
+            ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); // Top
+            ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); // Bottom
+            ctx.moveTo(x, y); ctx.lineTo(x, y + cellS); // Left
+            if (c === 19 || viewMode === 'grid') { ctx.moveTo(x + cellS, y); ctx.lineTo(x + cellS, y + cellS); } // Right
+            ctx.stroke();
             
             if (cell && cell.type !== 'empty') {
               ctx.fillStyle = '#0f172a';
@@ -237,7 +243,6 @@ export default function App() {
               if (cell.type === 'default' || cell.type === 'quote_open' || cell.type === 'quote_close' || cell.type === 'punct_alone') {
                 ctx.font = (cell.type === 'default') ? fontBase : punctFont;
                 let charY = y + (cellS / 2) + vShift;
-                // 문장부호 위치 보정
                 let charX = x + (cellS / 2);
                 if (cell.type === 'punct_alone') { charX = x + (cellS * 0.3); charY = y + (cellS * 0.6); }
                 if (cell.type === 'quote_open') { charX = x + (cellS * 0.75); charY = y + (cellS * 0.35); }
@@ -256,11 +261,11 @@ export default function App() {
               }
             }
           }
-        }
-        // 피드백 영역
-        if (viewMode === 'feedback') {
-          const fbW = gridType === '200' ? 30 * scale : 40 * scale;
-          ctx.strokeRect(marginX + 20 * cellS + (3 * scale), marginY, fbW, (gridVal/20) * cellS);
+          // 피드백 박스 개별 드로잉
+          if (viewMode === 'feedback') {
+            const fbW = gridType === '200' ? 30 * scale : 40 * scale;
+            ctx.strokeRect(marginX + 20 * cellS + (3 * scale), y, fbW, cellS);
+          }
         }
         return canvas.toDataURL('image/png', 1.0);
       };
@@ -281,20 +286,11 @@ export default function App() {
         const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
         try { await navigator.share({ files: [file], title: '원고지 연습장' }); } 
         catch (e) { pdf.save(fileName); }
-      } else {
-        pdf.save(fileName);
-      }
-    } catch (e) {
-      alert("저장 중 오류 발생");
-    } finally {
-      setIsSaving(false);
-    }
+      } else { pdf.save(fileName); }
+    } catch (e) { alert("저장 중 오류 발생"); } finally { setIsSaving(false); }
   };
 
-  const handleAction = () => {
-    if (isMobile) saveToPDF();
-    else window.print(); // PC는 v.12.17의 완벽한 시스템 인쇄 유지
-  };
+  const handleAction = () => { if (isMobile) saveToPDF(); else window.print(); };
 
   return (
     <div className="app-root-container">
@@ -312,14 +308,11 @@ export default function App() {
         }
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
-
-        /* [안내 팝업 스타일] [cite: 297-303] */
         .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .loading-popup { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* [인쇄 설정: v.12.17 안정 버전 완벽 보존]  */
         @media print {
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
