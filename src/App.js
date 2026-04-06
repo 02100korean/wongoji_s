@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 407-413]
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 304-308]
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 414-430]
+// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 312-327]
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.8 엔진 보존 및 인쇄 6종 최종 정밀 교정] ---
+// --- [3. 메인 앱 컴포넌트: v.12.8 엔진 및 레이아웃 완벽 유지] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -94,7 +94,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.8 텍스트 엔진 완벽 보존] [cite: 435-449]
+  // [v.12.8 텍스트 처리 엔진 완벽 보존] [cite: 332-346]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -138,7 +138,7 @@ export default function App() {
     let verticalShift = '0px';
     if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) verticalShift = '3.8px';
     else if (fontFamily === "'Poor Story', cursive") verticalShift = '1.9px';
-    const cellStyle = { width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`, borderBottom: `1.2px solid ${lineStyle => lineColor}`, borderRight: (isLastCol || isGrid) ? `1.2px solid ${lineColor}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, position: 'relative' };
+    const cellStyle = { width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`, borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGrid) ? `1.2px solid ${lineColor}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, position: 'relative' };
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
     const Punct = ({ char, x, y }) => <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: '22px', position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>;
     if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
@@ -168,46 +168,34 @@ export default function App() {
         .editor-body { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); margin-top: 50px; flex-direction: row; }
         .sidebar { width: 40%; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
         .main-preview { width: 60%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
-
         @media screen and (orientation: portrait) {
           .editor-body { flex-direction: column !important; }
           .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none !important; border-bottom: 2px solid #ddd !important; }
           .main-preview { width: 100% !important; height: 50% !important; flex-basis: 50% !important; padding: 10px !important; }
         }
-        /* v.12.8 레이아웃 복구 */
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [완벽한 다중 페이지 인쇄 구조 유지 및 6종 독립 케이스 최적화] */
         @media print {
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
-          
           body, html, .app-root-container, .editor-container, .editor-body, .main-preview { 
             background: white !important; overflow: visible !important; height: auto !important; width: 100% !important; display: block !important; margin: 0 !important; padding: 0 !important;
           }
           .zoom-wrapper { transform: none !important; width: 100% !important; height: auto !important; display: block !important; }
           .manuscript-print-root { display: block !important; width: 100% !important; height: auto !important; }
-
           .page-unit { 
             height: 100vh !important; width: 100vw !important; display: flex !important; 
             justify-content: center !important; align-items: center !important; 
             box-sizing: border-box !important; page-break-after: always !important;
             break-after: page !important; position: relative !important; overflow: hidden !important;
           }
-          
-          /* [최종 수치 교정: 6종 독립 스케일링] */
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
-          /* 1. 200자 피드백형: 정중앙 보정 및 하단 여백 확보 (분모 920으로 상향) */
-          .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 920)) !important; }
+          .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 750)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
-          
-          /* 2. 400자 일반형: 비율 축소하여 잘림 완벽 방지 (분모 1420으로 상향) */
-          .case-400-traditional { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1420)) !important; }
-          /* 3. 400자 피드백형: 용지 안으로 완벽 인입 (분모 1950으로 상향) */
-          .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1050, (100vh - 30mm) / 1950)) !important; }
+          .case-400-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1160)) !important; }
+          .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1050, (100vh - 30mm) / 1450)) !important; }
           .case-400-grid { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1050)) !important; }
-          
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; height: auto !important; transform-origin: center center !important; }
         }
       `}</style>
@@ -253,7 +241,8 @@ export default function App() {
                           {p === 0 && studentName ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {studentName}</div>) : (<div style={{ height: '35px' }}></div>)}
                         </div>
                         <div style={{ display: 'flex' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : '15px' }}>
+                          {/* 격자형 여백(Gap) 로직 복구 반영 */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
                             {Array.from({ length: gridVal/20 }).map((_, r) => (
                               <div key={r} style={{ display: 'flex', borderRight: (viewMode !== 'grid' && viewMode !== 'feedback') ? `1.2px solid ${lineColor}` : 'none' }}>
                                 {Array.from({ length: 20 }).map((_, c) => renderCell(allCells[p * gridVal + r * 20 + c], `c-${p}-${r}-${c}`, c === 19))}
