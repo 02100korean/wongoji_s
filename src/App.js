@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 409-413]
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 1345-1351]
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 417-432]
+// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 1352-1368]
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -94,7 +94,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.8/v.12.10 텍스트 처리 엔진 완벽 보존] [cite: 437-451]
+  // [v.12.8/v.12.10 텍스트 처리 엔진 완벽 보존] [cite: 1373-1388]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -184,15 +184,15 @@ export default function App() {
           .manuscript-print-root { display: block !important; width: 100% !important; height: auto !important; }
           .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
           
-          /* [인쇄 수치 최종 복구 및 400자 피드백 전용 교정]  */
+          /* [인쇄 수치 최종 복구 및 400자 일반 전용 교정]  */
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
           .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 750)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
-          .case-400-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1160)) !important; }
           
-          /* [요청 사항 반영: 400자 피드백형 인쇄 비율만 73%로 수정] */
+          /* [요청 사항 반영: 400자 일반 원고지 인쇄 비율만 90%로 수정] [cite: 1424] */
+          .case-400-traditional { padding: 20mm !important; transform: scale(0.9) !important; }
+          
           .case-400-feedback { padding: 15mm !important; transform: scale(0.73) !important; }
-          
           .case-400-grid { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1050)) !important; }
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; height: auto !important; transform-origin: center center !important; }
         }
