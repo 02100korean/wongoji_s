@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 220-226]
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] ---
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 227-242]
+// --- [2. 홈 화면: v.12.8 완벽 보존] ---
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -103,7 +103,6 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.17 텍스트 엔진 완벽 보존] [cite: 250-264]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -142,7 +141,6 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [v.12.17 렌더러 완벽 보존] [cite: 265-274]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -169,7 +167,7 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 400자 비율 및 우측 피드백 박스 수정] --- 
+  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 잘림 현상 해결 및 400자 레이아웃 교정] ---
   const saveToPDF = async () => {
     if (!window.jspdf) { alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return; }
     setIsSaving(true);
@@ -184,47 +182,58 @@ export default function App() {
       const drawManuscriptPage = (startIdx, pageNum) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
+        
+        // [수정 1] 400자 피드백용 잘림 해결: 가상 캔버스 높이를 400mm로 확장하여 모든 줄 수용
         const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 250 : (orientation === 'l' ? 297 : 210);
-        const virtualHeight = (orientation === 'l' ? 210 : 297);
+        const virtualHeight = (gridType === '400' && viewMode === 'feedback') ? 400 : (orientation === 'l' ? 210 : 297);
+        
         canvas.width = virtualWidth * 10; 
         canvas.height = virtualHeight * 10;
         const scale = 10;
+        
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
         const cellS = 10 * scale; 
         const gapMm = viewMode === 'feedback' ? 8 : (viewMode === 'traditional' ? 4 : 0);
         const gapS = gapMm * scale;
         const totalWonjiW = 20 * cellS;
-        const contentHeight = (gridVal/20) * cellS + ((gridVal/20) - 1) * gapS;
+        const totalRows = gridVal / 20;
+        const contentHeight = totalRows * cellS + (totalRows - 1) * gapS;
+        
         const marginX = (canvas.width - totalWonjiW - (viewMode === 'feedback' ? (gridType === '200' ? 33 : 43) * scale : 0)) / 2;
         const marginY = (canvas.height - contentHeight) / 2;
+
         let vShift = 0;
         if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) vShift = cellS * 0.1;
         else if (fontFamily === "'Poor Story', cursive") vShift = cellS * 0.05;
+
         if (pageNum === 0 && studentName) {
             ctx.font = `bold ${5.5 * scale}px ${fontFamily.replace(/'/g, "")}`;
             ctx.fillStyle = 'black';
             ctx.textAlign = 'right';
-            ctx.fillText(`이름: ${studentName}`, marginX + totalWonjiW, marginY - (10 * scale));
+            ctx.fillText(`이름: ${studentName}`, marginX + totalWonjiW, marginY - (12 * scale));
             ctx.beginPath();
-            ctx.moveTo(marginX + totalWonjiW - (50 * scale), marginY - (7 * scale));
-            ctx.lineTo(marginX + totalWonjiW, marginY - (7 * scale));
+            ctx.moveTo(marginX + totalWonjiW - (50 * scale), marginY - (9 * scale));
+            ctx.lineTo(marginX + totalWonjiW, marginY - (9 * scale));
             ctx.lineWidth = 0.5 * scale;
             ctx.stroke();
         }
+
         ctx.lineWidth = 0.35 * scale;
         ctx.strokeStyle = lineColor;
-        for (let r = 0; r < gridVal / 20; r++) {
+
+        for (let r = 0; r < totalRows; r++) {
           const y = marginY + r * (cellS + gapS);
           for (let c = 0; c < 20; c++) {
             const x = marginX + c * cellS;
             const cell = allCells[startIdx + r * 20 + c];
-            
-            // [수정] 400자 피드백용의 원고지 최상단/최하단 라인 조건부 제거
             const is400Feedback = (gridType === '400' && viewMode === 'feedback');
+            
+            // [수정 2] 400자 피드백 전용: 최상단 상단선 및 최하단 하단선 정밀 제거
             ctx.beginPath();
             if (!(is400Feedback && r === 0)) { ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); } 
-            if (!(is400Feedback && r === (gridVal / 20 - 1))) { ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); } 
+            if (!(is400Feedback && r === (totalRows - 1))) { ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); } 
             ctx.moveTo(x, y); ctx.lineTo(x, y + cellS); 
             if (c === 19 || viewMode === 'grid') { ctx.moveTo(x + cellS, y); ctx.lineTo(x + cellS, y + cellS); } 
             ctx.stroke();
@@ -253,35 +262,56 @@ export default function App() {
             }
           }
         }
-        // [수정] 우측 피드백 직사각형 닫기 (항상 4면을 그림)
+        // [수정 3] 우측 피드백 긴 직사각형: 모든 면이 닫힌 단일 박스 드로잉
         if (viewMode === 'feedback') {
           const fbW = (gridType === '200' ? 30 : 40) * scale;
+          ctx.lineWidth = 0.35 * scale;
           ctx.strokeRect(marginX + totalWonjiW + (3 * scale), marginY, fbW, contentHeight);
         }
         return canvas.toDataURL('image/png', 1.0);
       };
+
       for (let p = 0; p < pageCount; p++) {
         const imgData = drawManuscriptPage(p * gridVal, p);
         if (p > 0) pdf.addPage(orientation, 'mm', 'a4');
-        let drawW = pdfWidth; let drawH = pdfHeight;
+        
+        let drawW = pdfWidth; 
+        let drawH = pdfHeight;
+        
         if (gridType === '400') {
-            if (viewMode === 'feedback') { drawW = 250 * 0.73; drawH = 297 * 0.73; } 
-            else { const ratio = viewMode === 'traditional' ? 0.9 : 1.0; drawW = pdfWidth * ratio; drawH = pdfHeight * ratio; }
+            if (viewMode === 'feedback') {
+                // [수정 1 핵심] 확장 캔버스(400mm)를 73% 축소 -> 약 292mm로 A4(297mm) 내에 안착
+                drawW = 250 * 0.73;
+                drawH = 400 * 0.73;
+            } else {
+                const ratio = viewMode === 'traditional' ? 0.9 : 1.0;
+                drawW = pdfWidth * ratio;
+                drawH = pdfHeight * ratio;
+            }
         }
-        const posX = (pdfWidth - drawW) / 2; const posY = (pdfHeight - drawH) / 2;
+        const posX = (pdfWidth - drawW) / 2;
+        const posY = (pdfHeight - drawH) / 2;
         pdf.addImage(imgData, 'PNG', posX, posY, drawW, drawH, undefined, 'FAST');
       }
+      
       const now = new Date();
       const dateStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
       const timeStr = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
       const fileName = `wongoji_${dateStr}_${timeStr}.pdf`;
+
       if (isMobile && navigator.share) {
         const pdfBlob = pdf.output('blob');
         const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
         try { await navigator.share({ files: [file], title: '원고지 연습장' }); } 
         catch (e) { pdf.save(fileName); }
-      } else { pdf.save(fileName); }
-    } catch (e) { alert("저장 중 오류 발생"); } finally { setIsSaving(false); }
+      } else {
+        pdf.save(fileName);
+      }
+    } catch (e) {
+      alert("저장 중 오류 발생");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAction = () => { if (isMobile) saveToPDF(); else window.print(); };
