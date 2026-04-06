@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 304-308]
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 409-413]
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 312-327]
+// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 417-432]
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.8 엔진 및 레이아웃 완벽 유지] ---
+// --- [3. 메인 앱 컴포넌트: v.12.10 엔진 및 레이아웃 완벽 유지] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -94,7 +94,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.8 텍스트 처리 엔진 완벽 보존] [cite: 332-346]
+  // [v.12.8/v.12.10 텍스트 처리 엔진 완벽 보존] [cite: 437-451]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -179,22 +179,20 @@ export default function App() {
         @media print {
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
-          body, html, .app-root-container, .editor-container, .editor-body, .main-preview { 
-            background: white !important; overflow: visible !important; height: auto !important; width: 100% !important; display: block !important; margin: 0 !important; padding: 0 !important;
-          }
+          body, html, .app-root-container, .editor-container, .editor-body, .main-preview { background: white !important; overflow: visible !important; height: auto !important; width: 100% !important; display: block !important; margin: 0 !important; padding: 0 !important; }
           .zoom-wrapper { transform: none !important; width: 100% !important; height: auto !important; display: block !important; }
           .manuscript-print-root { display: block !important; width: 100% !important; height: auto !important; }
-          .page-unit { 
-            height: 100vh !important; width: 100vw !important; display: flex !important; 
-            justify-content: center !important; align-items: center !important; 
-            box-sizing: border-box !important; page-break-after: always !important;
-            break-after: page !important; position: relative !important; overflow: hidden !important;
-          }
+          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
+          
+          /* [최종 수치 교정: 6종 독립 스케일링 로직] */
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
           .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 750)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
           .case-400-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1160)) !important; }
-          .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1050, (100vh - 30mm) / 1450)) !important; }
+          
+          /* 400자 피드백형 전용: 15mm 여백 보장 및 전체 영역 인입 최적화 (수정 반영) */
+          .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1120, (100vh - 30mm) / 1750)) !important; }
+          
           .case-400-grid { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1050)) !important; }
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; height: auto !important; transform-origin: center center !important; }
         }
@@ -241,7 +239,7 @@ export default function App() {
                           {p === 0 && studentName ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {studentName}</div>) : (<div style={{ height: '35px' }}></div>)}
                         </div>
                         <div style={{ display: 'flex' }}>
-                          {/* 격자형 여백(Gap) 로직 복구 반영 */}
+                          {/* 격자형 및 피드백형 여백 로직 보존 */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
                             {Array.from({ length: gridVal/20 }).map((_, r) => (
                               <div key={r} style={{ display: 'flex', borderRight: (viewMode !== 'grid' && viewMode !== 'feedback') ? `1.2px solid ${lineColor}` : 'none' }}>
