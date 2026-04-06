@@ -184,14 +184,14 @@ export default function App() {
           .manuscript-print-root { display: block !important; width: 100% !important; height: auto !important; }
           .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
           
-          /* [최종 수치 교정: 6종 독립 스케일링 로직] */
+          /* [인쇄 수치 교정: 6종 독립 스케일링 로직] */
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
           .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 750)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
           .case-400-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1160)) !important; }
           
-          /* 400자 피드백형 전용: 15mm 여백 보장 및 전체 영역 인입 최적화 (수정 반영) */
-          .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1120, (100vh - 30mm) / 1750)) !important; }
+          /* 400자 피드백형 전용: 15mm 여백 보장 및 전체 영역(원고지+피드백박스) 인입 최적화 */
+          .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1250, (100vh - 30mm) / 2200)) !important; }
           
           .case-400-grid { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1050)) !important; }
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; height: auto !important; transform-origin: center center !important; }
@@ -239,7 +239,6 @@ export default function App() {
                           {p === 0 && studentName ? (<div style={{ borderBottom: '2px solid black', padding: '0 25px 5px 25px', fontSize: '18px', fontWeight: 'bold', fontFamily, color: 'black' }}>이름: {studentName}</div>) : (<div style={{ height: '35px' }}></div>)}
                         </div>
                         <div style={{ display: 'flex' }}>
-                          {/* 격자형 및 피드백형 여백 로직 보존 */}
                           <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
                             {Array.from({ length: gridVal/20 }).map((_, r) => (
                               <div key={r} style={{ display: 'flex', borderRight: (viewMode !== 'grid' && viewMode !== 'feedback') ? `1.2px solid ${lineColor}` : 'none' }}>
