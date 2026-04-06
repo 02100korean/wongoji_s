@@ -94,7 +94,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12 텍스트 처리 엔진: 대문자 1칸, 닫는 따옴표 줄바꿈 완벽 보존] [cite: 327-342]
+  // [v.12 텍스트 처리 엔진: 완벽 보존] [cite: 327-342]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -178,19 +178,19 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [인쇄 설정: 6종 독립 케이스 완벽 반영 및 부모 레이아웃 해제] */
+        /* [인쇄 설정: 6종 독립 케이스 완벽 반영 및 부모 레이아웃 전면 개편] */
         @media print {
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
           
-          /* 1. 부모 높이 제한 전면 해제 (다중 페이지 인쇄 핵심) */
+          /* 1. 부모 레이아웃 해제 (다중 페이지 인쇄의 핵심) */
           body, html, .app-root-container, .editor-container, .editor-body, .main-preview { 
             background: white !important; overflow: visible !important; height: auto !important; width: 100% !important; display: block !important; margin: 0 !important; padding: 0 !important; 
           }
           .zoom-wrapper { transform: none !important; width: 100% !important; height: auto !important; display: block !important; }
           .manuscript-print-root { display: block !important; width: 100% !important; height: auto !important; }
 
-          /* 2. 각 종이 단위 설정 및 정중앙 배치 */
+          /* 2. 각 종이 단위 설정 및 정중앙 배치 강제 */
           .page-unit { 
             height: 100vh !important; width: 100vw !important; display: flex !important; 
             justify-content: center !important; align-items: center !important; 
@@ -198,12 +198,16 @@ export default function App() {
             break-after: page !important; position: relative !important; overflow: hidden !important;
           }
           
-          /* 3. 6종 독립 스케일링 로직 (상하 여백 균등 보정) */
+          /* 3. 수정 요청 사항 반영된 6종 독립 스케일링 로직 */
+          /* 200자 일반형: 상하 여백 정중앙 정밀 보정 */
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
-          .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 680)) !important; }
-          .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 630)) !important; }
+          /* 200자 피드백형: 10% 축소 및 중앙 정렬 (750분모) */
+          .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 750)) !important; }
+          /* 200자 격자형: 15% 확대 적용 (550분모) */
+          .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
           
-          .case-400-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1050)) !important; }
+          /* 400자 일반형: 10% 축소 적용 (좌우하 잘림 방지 - 1160분모) */
+          .case-400-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 1160)) !important; }
           .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1050, (100vh - 30mm) / 1450)) !important; }
           .case-400-grid { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1050)) !important; }
           
