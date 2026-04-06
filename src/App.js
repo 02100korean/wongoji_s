@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.14 엔진 완벽 보존 + 고도화된 모바일 전용 로직] ---
+// --- [3. 메인 앱 컴포넌트: v.12.17 로직 완벽 유지 + 고도화된 모바일 PDF 엔진] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -83,6 +83,7 @@ export default function App() {
   
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
+  // PDF 라이브러리 자동 주입
   useEffect(() => {
     if (isMobile) {
       const s1 = document.createElement('script');
@@ -108,7 +109,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.14 텍스트 엔진 완벽 보존] [cite: 672-686]
+  // [v.12.17 텍스트 엔진 완벽 보존] [cite: 672-686]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -147,7 +148,7 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [v.12.14 렌더러 완벽 보존] [cite: 687-696]
+  // [v.12.17 렌더러 완벽 보존] [cite: 687-696]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -174,14 +175,14 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 모바일 전용 PDF 저장 및 앱 선택 로직] --- [cite: 698-707]
+  // --- [수정된 부분: 고해상도 가상 스테이지 캡처 및 앱 선택 로직] --- 
   const saveToPDF = async () => {
     if (!window.html2canvas || !window.jspdf) {
       alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return;
     }
     setIsSaving(true);
     try {
-      await document.fonts.ready;
+      await document.fonts.ready; // 폰트 로드 완벽 대기
       const { jsPDF } = window.jspdf;
       const pages = document.querySelectorAll('.page-unit');
       const orientation = gridType === '200' ? 'l' : 'p';
@@ -191,14 +192,21 @@ export default function App() {
 
       for (let i = 0; i < pages.length; i++) {
         const canvas = await window.html2canvas(pages[i], { 
-          scale: 3, useCORS: true, backgroundColor: '#ffffff', logging: false,
-          windowWidth: 1200, // [가상 스테이지] 모바일의 좁은 너비 무시
+          scale: 4, // 초고화질 캡처
+          useCORS: true, 
+          backgroundColor: '#ffffff', 
+          logging: false,
+          windowWidth: 1200, // [가상 스테이지] 모바일의 좁은 너비 무력화
           onclone: (clonedDoc) => {
             const el = clonedDoc.querySelectorAll('.page-unit')[i];
             if (el) {
-                el.style.transform = 'none'; // [비율 보정] 화면 줌 값 초기화
+                el.style.transform = 'none'; // 비율 왜곡 방지
                 const box = el.querySelector('.page-box');
-                if (box) { box.style.transform = 'none'; box.style.margin = '0'; }
+                if (box) { 
+                  box.style.transform = 'none'; 
+                  box.style.margin = '0'; 
+                  box.style.width = gridType === '200' ? '880px' : '880px'; // 규격 고정
+                }
             }
           }
         });
@@ -212,7 +220,7 @@ export default function App() {
       const timeStr = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
       const fileName = `wongoji_${dateStr}_${timeStr}.pdf`;
 
-      // [모바일 핵심]: 앱 선택/공유 창을 통해 저장하여 원래 페이지로 복귀 가능하게 함 
+      // [모바일 핵심]: 앱 선택창 호출하여 저장 후 복귀 가능하게 처리
       if (isMobile && navigator.share) {
         const pdfBlob = pdf.output('blob');
         const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
@@ -230,7 +238,7 @@ export default function App() {
 
   const handleAction = () => {
     if (isMobile) saveToPDF();
-    else window.print(); // PC는 v.12.14 인쇄 로직 실행 [cite: 708-709]
+    else window.print(); // PC는 v.12.17의 검증된 인쇄 시스템 사용
   };
 
   return (
@@ -250,13 +258,13 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [안내 팝업 스타일] [cite: 720-725] */
+        /* [안내 팝업 스타일: 모바일 전용] [cite: 720-725] */
         .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .loading-popup { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* [PC 인쇄 설정: v.12.14 완벽 보존] [cite: 734-743] */
+        /* [PC 인쇄 설정: v.12.17 완벽 보존]  */
         @media print {
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
@@ -274,7 +282,7 @@ export default function App() {
         }
       `}</style>
 
-      {/* 모바일 저장 전용 안내 팝업 [cite: 745-746] */}
+      {/* 모바일 전용 저장 안내 팝업 [cite: 745-746] */}
       {isSaving && (
         <div className="loading-overlay">
           <div className="loading-popup">
