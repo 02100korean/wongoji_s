@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.17 엔진 및 로직 완벽 유지] ---
+// --- [3. 메인 앱 컴포넌트: v.12.17 핵심 엔진 및 로직 완벽 유지] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -167,7 +167,7 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 비율 및 피드백 박스 수정] ---
+  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 400자 비율 및 우측 피드백 박스 수정] ---
   const saveToPDF = async () => {
     if (!window.jspdf) { alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return; }
     setIsSaving(true);
@@ -182,9 +182,14 @@ export default function App() {
       const drawManuscriptPage = (startIdx, pageNum) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = orientation === 'l' ? 2970 : 2100;
-        canvas.height = orientation === 'l' ? 2100 : 2970;
-        const scale = canvas.width / (orientation === 'l' ? 297 : 210);
+        
+        // 400자 피드백용은 우측 박스(40mm) 포함을 위해 가상 너비를 250mm로 확장하여 드로잉
+        const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 250 : (orientation === 'l' ? 297 : 210);
+        const virtualHeight = (orientation === 'l' ? 210 : 297);
+        
+        canvas.width = virtualWidth * 10; // scale factor
+        canvas.height = virtualHeight * 10;
+        const scale = 10;
         
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -193,22 +198,23 @@ export default function App() {
         const gapMm = viewMode === 'feedback' ? 8 : (viewMode === 'traditional' ? 4 : 0);
         const gapS = gapMm * scale;
         
+        const totalWonjiW = 20 * cellS;
         const contentHeight = (gridVal/20) * cellS + ((gridVal/20) - 1) * gapS;
-        const marginX = (canvas.width - (20 * cellS)) / 2;
+        const marginX = (canvas.width - totalWonjiW - (viewMode === 'feedback' ? (gridType === '200' ? 33 : 43) * scale : 0)) / 2;
         const marginY = (canvas.height - contentHeight) / 2;
 
         let vShift = 0;
-        if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) vShift = 3.8 * (scale / 3.78);
-        else if (fontFamily === "'Poor Story', cursive") vShift = 1.9 * (scale / 3.78);
+        if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) vShift = cellS * 0.1;
+        else if (fontFamily === "'Poor Story', cursive") vShift = cellS * 0.05;
 
         if (pageNum === 0 && studentName) {
             ctx.font = `bold ${5.5 * scale}px ${fontFamily.replace(/'/g, "")}`;
             ctx.fillStyle = 'black';
             ctx.textAlign = 'right';
-            ctx.fillText(`이름: ${studentName}`, canvas.width - marginX, marginY - (10 * scale));
+            ctx.fillText(`이름: ${studentName}`, marginX + totalWonjiW, marginY - (10 * scale));
             ctx.beginPath();
-            ctx.moveTo(canvas.width - marginX - (50 * scale), marginY - (7 * scale));
-            ctx.lineTo(canvas.width - marginX, marginY - (7 * scale));
+            ctx.moveTo(marginX + totalWonjiW - (50 * scale), marginY - (7 * scale));
+            ctx.lineTo(marginX + totalWonjiW, marginY - (7 * scale));
             ctx.lineWidth = 0.5 * scale;
             ctx.stroke();
         }
@@ -258,10 +264,10 @@ export default function App() {
             }
           }
         }
-        // [수정 3] 피드백 박스를 줄마다 그리지 않고 전체를 덮는 하나의 긴 직사각형으로 수정
+        // [수정] 피드백 박스를 우측에 긴 단일 직사각형으로 드로잉 (200자 30mm, 400자 40mm)
         if (viewMode === 'feedback') {
-          const fbW = gridType === '200' ? 30 * scale : 40 * scale;
-          ctx.strokeRect(marginX + 20 * cellS + (3 * scale), marginY, fbW, contentHeight);
+          const fbW = (gridType === '200' ? 30 : 40) * scale;
+          ctx.strokeRect(marginX + totalWonjiW + (3 * scale), marginY, fbW, contentHeight);
         }
         return canvas.toDataURL('image/png', 1.0);
       };
@@ -270,17 +276,23 @@ export default function App() {
         const imgData = drawManuscriptPage(p * gridVal, p);
         if (p > 0) pdf.addPage(orientation, 'mm', 'a4');
         
-        // [수정 1 & 2] 400자 전용 비율(90%, 73%) 적용 및 중앙 배치
         let drawW = pdfWidth;
         let drawH = pdfHeight;
+        
         if (gridType === '400') {
-            const ratio = viewMode === 'feedback' ? 0.73 : (viewMode === 'traditional' ? 0.9 : 1.0);
-            drawW = pdfWidth * ratio;
-            drawH = pdfHeight * ratio;
+            if (viewMode === 'feedback') {
+                // 400자 피드백: 확장 캔버스(250mm)를 73% 축소 -> 약 182mm로 A4(210mm) 내에 안착
+                drawW = 250 * 0.73;
+                drawH = 297 * 0.73;
+            } else {
+                // 400자 일반: 90% 축소
+                const ratio = viewMode === 'traditional' ? 0.9 : 1.0;
+                drawW = pdfWidth * ratio;
+                drawH = pdfHeight * ratio;
+            }
         }
         const posX = (pdfWidth - drawW) / 2;
         const posY = (pdfHeight - drawH) / 2;
-        
         pdf.addImage(imgData, 'PNG', posX, posY, drawW, drawH, undefined, 'FAST');
       }
       
