@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.14 엔진 완벽 유지 + 기기별 맞춤 로직 및 팝업 추가] ---
+// --- [3. 메인 앱 컴포넌트: v.12.14 엔진 완벽 유지 + 기기별 맞춤 출력 로직] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -78,9 +78,9 @@ export default function App() {
   const [lineColor, setLineColor] = useState('#607d8b');
   const [fontFamily, setFontFamily] = useState("'Noto Serif KR', serif");
   const [zoom, setZoom] = useState(1.0);
-  const [isSaving, setIsSaving] = useState(false); // PDF 저장 팝업 제어 상태
+  const [isSaving, setIsSaving] = useState(false); // 모바일 저장 팝업 상태
   const mainRef = useRef(null);
-
+  
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   useEffect(() => {
@@ -108,7 +108,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.14 텍스트 엔진 완벽 보존] [cite: 766-780]
+  // [v.12.14 텍스트 처리 엔진 완벽 보존] [cite: 766-780]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -156,7 +156,7 @@ export default function App() {
     const cellStyle = { width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`, borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGrid) ? `1.2px solid ${lineColor}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, position: 'relative' };
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
     const Punct = ({ char, x, y }) => <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: '22px', position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>;
-    if (cellData.Ellipsis === 'ellipsis' || cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
+    if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
     if (cellData.type === 'combined_end') return <div key={key} style={cellStyle}><span style={{zIndex:2, transform: `translateY(${verticalShift})` }}>{cellData.content}</span><Punct char={cellData.punct} x={85} y={40} /></div>;
     if (cellData.type === 'punct_quote_final') return <div key={key} style={cellStyle}><Punct char={cellData.punct} x={30} y={40} /><Punct char={cellData.quote} x={90} y={70} /></div>;
     if (cellData.type === 'pair') return (
@@ -174,14 +174,14 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [모바일 전용: 고품질 PDF 저장 및 팝업 알림 로직] --- [cite: 792-800]
+  // --- [모바일 전용: 고품질 가상 인쇄 및 팝업 알림 로직] --- [cite: 792-800]
   const saveToPDF = async () => {
     if (!window.html2canvas || !window.jspdf) {
       alert("PDF 엔진을 로딩 중입니다. 잠시 후 다시 클릭해 주세요."); return;
     }
-    setIsSaving(true); // 팝업 노출 시작
+    setIsSaving(true); // "저장 중" 팝업 노출 시작
     try {
-      await document.fonts.ready; // 폰트 로드 대기
+      await document.fonts.ready; // 폰트 로드 완벽 대기
       const { jsPDF } = window.jspdf;
       const pages = document.querySelectorAll('.page-unit');
       const orientation = gridType === '200' ? 'l' : 'p';
@@ -192,7 +192,7 @@ export default function App() {
       for (let i = 0; i < pages.length; i++) {
         const canvas = await window.html2canvas(pages[i], { 
           scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false,
-          windowWidth: 1200 // 모바일 뷰포트 영향을 받지 않도록 가상 너비 설정
+          windowWidth: 1200 // 모바일 기기 종류와 상관없이 PC 뷰포트로 고정 캡처
         });
         const imgData = canvas.toDataURL('image/png');
         if (i > 0) pdf.addPage(orientation, 'mm', 'a4');
@@ -231,9 +231,9 @@ export default function App() {
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [저장 중 팝업 스타일] */
+        /* [저장 중 팝업 스타일: 모바일 전용] */
         .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .loading-popup { background: white; padding: 30px; borderRadius: 20px; text-align: center; boxShadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .loading-popup { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -255,6 +255,7 @@ export default function App() {
         }
       `}</style>
 
+      {/* 모바일 저장 전용 안내 팝업 */}
       {isSaving && (
         <div className="loading-overlay">
           <div className="loading-popup">
