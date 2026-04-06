@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12 완벽 보존] --- [cite: 407-413]
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 407-413]
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12 완벽 보존] --- [cite: 414-430]
+// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 414-430]
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12 엔진 보존 및 인쇄 6종 케이스 정밀 교정] ---
+// --- [3. 메인 앱 컴포넌트: v.12.8 엔진 보존 및 인쇄 6종 최종 정밀 교정] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -94,7 +94,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12 텍스트 처리 엔진 완벽 보존] [cite: 435-449]
+  // [v.12.8 텍스트 엔진 완벽 보존] [cite: 435-449]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -138,7 +138,7 @@ export default function App() {
     let verticalShift = '0px';
     if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) verticalShift = '3.8px';
     else if (fontFamily === "'Poor Story', cursive") verticalShift = '1.9px';
-    const cellStyle = { width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`, borderBottom: `1.2px solid ${lineColor}`, borderRight: (isLastCol || isGrid) ? `1.2px solid ${lineColor}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, position: 'relative' };
+    const cellStyle = { width: '38px', height: '38px', borderLeft: `1.2px solid ${lineColor}`, borderTop: `1.2px solid ${lineColor}`, borderBottom: `1.2px solid ${lineStyle => lineColor}`, borderRight: (isLastCol || isGrid) ? `1.2px solid ${lineColor}` : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', backgroundColor: 'white', boxSizing: 'border-box', fontFamily: fontFamily, position: 'relative' };
     if (!cellData || cellData.type === 'empty') return <div key={key} style={cellStyle}></div>;
     const Punct = ({ char, x, y }) => <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: '500', fontSize: '22px', position: 'absolute', left: `${x}%`, bottom: `${y}%`, transform: 'translate(-50%, 50%)' }}>{char}</span>;
     if (cellData.type === 'ellipsis') return <div key={key} style={cellStyle}><Punct char="." x={35} y={65} /><Punct char="." x={50} y={65} /><Punct char="." x={65} y={65} /></div>;
@@ -174,10 +174,11 @@ export default function App() {
           .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none !important; border-bottom: 2px solid #ddd !important; }
           .main-preview { width: 100% !important; height: 50% !important; flex-basis: 50% !important; padding: 10px !important; }
         }
-        .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flexDirection: column; gap: 6px; }
+        /* v.12.8 레이아웃 복구 */
+        .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
 
-        /* [인쇄 설정: 6종 독립 케이스 완벽 반영 및 요청 수치 적용] */
+        /* [완벽한 다중 페이지 인쇄 구조 유지 및 6종 독립 케이스 최적화] */
         @media print {
           @page { size: ${gridType === '200' ? 'landscape' : 'portrait'}; margin: 0; }
           .no-print, header, .sidebar, .scroll-indicator, .zoom-controls { display: none !important; }
@@ -195,20 +196,16 @@ export default function App() {
             break-after: page !important; position: relative !important; overflow: hidden !important;
           }
           
-          /* [요청 사항 반영: 6종 독립 스케일링] */
+          /* [최종 수치 교정: 6종 독립 스케일링] */
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
-          
-          /* 1. 200자 피드백: 정중앙 정밀 보정 및 하단 여백 확보 (분모 810으로 상향 조정) */
-          .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 810)) !important; }
-          
+          /* 1. 200자 피드백형: 정중앙 보정 및 하단 여백 확보 (분모 920으로 상향) */
+          .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 920)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
           
-          /* 2. 400자 일반: 비율 축소 및 사방 15mm 여백 보장 (분모 1250으로 상향 조정) */
-          .case-400-traditional { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1250)) !important; }
-          
-          /* 3. 400자 피드백: 용지 안으로 모두 인입 및 사방 15mm 여백 보장 (분모 1550으로 상향 조정) */
-          .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1050, (100vh - 30mm) / 1550)) !important; }
-          
+          /* 2. 400자 일반형: 비율 축소하여 잘림 완벽 방지 (분모 1420으로 상향) */
+          .case-400-traditional { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1420)) !important; }
+          /* 3. 400자 피드백형: 용지 안으로 완벽 인입 (분모 1950으로 상향) */
+          .case-400-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1050, (100vh - 30mm) / 1950)) !important; }
           .case-400-grid { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1050)) !important; }
           
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; height: auto !important; transform-origin: center center !important; }
