@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.17 핵심 엔진 및 로직 완벽 유지] ---
+// --- [3. 메인 앱 컴포넌트: v.12.17 핵심 엔진 및 반응형 레이아웃 복구] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -89,11 +89,9 @@ export default function App() {
     document.head.appendChild(s);
   }, []);
 
-  // 600자 선택 시 격자형으로 강제 고정
+  // 600자 선택 시 격자형으로 강제 고정 (독립 로직)
   useEffect(() => {
-    if (gridType === '600' && viewMode !== 'grid') {
-      setViewMode('grid');
-    }
+    if (gridType === '600' && viewMode !== 'grid') { setViewMode('grid'); }
   }, [gridType, viewMode]);
 
   const fitToScreen = useCallback(() => {
@@ -110,7 +108,6 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.17 텍스트 엔진 완벽 보존]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -149,7 +146,6 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [v.12.17 렌더러 완벽 보존]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -176,7 +172,6 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 마커 3px 및 95% 비율 적용] ---
   const saveToPDF = async () => {
     if (!window.jspdf) { alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return; }
     setIsSaving(true);
@@ -191,70 +186,48 @@ export default function App() {
       const drawManuscriptPage = (startIdx, pageNum) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        
         const isLongPage = (gridType === '400' && viewMode === 'feedback') || (gridType === '600');
         const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 260 : (orientation === 'l' ? 297 : 210);
         const virtualHeight = isLongPage ? 420 : (orientation === 'l' ? 210 : 297);
-        
-        canvas.width = virtualWidth * 10; 
-        canvas.height = virtualHeight * 10;
+        canvas.width = virtualWidth * 10; canvas.height = virtualHeight * 10;
         const scale = 10;
-        
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
         const cellS = 10 * scale; 
         const gapMm = viewMode === 'feedback' ? 8 : (viewMode === 'traditional' ? 4 : 0);
         const gapS = gapMm * scale;
         const totalWonjiW = 20 * cellS;
         const totalRows = gridVal / 20;
         const contentHeight = totalRows * cellS + (totalRows - 1) * gapS;
-        
         const marginX = (canvas.width - totalWonjiW - (viewMode === 'feedback' ? (gridType === '200' ? 33 : 53) * scale : 0)) / 2;
         const marginY = (canvas.height - contentHeight) / 2;
-
         let vShift = 0;
         if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) vShift = cellS * 0.1;
         else if (fontFamily === "'Poor Story', cursive") vShift = cellS * 0.05;
 
         if (pageNum === 0 && studentName) {
             ctx.font = `bold ${5.5 * scale}px ${fontFamily.replace(/'/g, "")}`;
-            ctx.fillStyle = 'black';
-            ctx.textAlign = 'right';
+            ctx.fillStyle = 'black'; ctx.textAlign = 'right';
             ctx.fillText(`이름: ${studentName}`, marginX + totalWonjiW, marginY - (8 * scale));
-            ctx.beginPath();
-            ctx.moveTo(marginX + totalWonjiW - (50 * scale), marginY - (5 * scale));
-            ctx.lineTo(marginX + totalWonjiW, marginY - (5 * scale));
-            ctx.lineWidth = 0.5 * scale;
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(marginX + totalWonjiW - (50 * scale), marginY - (5 * scale));
+            ctx.lineTo(marginX + totalWonjiW, marginY - (5 * scale)); ctx.lineWidth = 0.5 * scale; ctx.stroke();
         }
 
-        ctx.lineWidth = 0.35 * scale;
-        ctx.strokeStyle = lineColor;
-
+        ctx.lineWidth = 0.35 * scale; ctx.strokeStyle = lineColor;
         for (let r = 0; r < totalRows; r++) {
           const y = marginY + r * (cellS + gapS);
-          
-          // [수정 1] PDF용 5줄마다 글자 수 마커: 20번째 칸에서 3px(0.3 * scale) 우측에 표시
+          // [수정 사항: PDF 마커 위치 - 우측 끝에서 3px(0.3 * scale) 지점]
           if ((r + 1) % 5 === 0) {
-            ctx.font = `bold ${3 * scale}px 'Noto Sans KR'`;
-            ctx.fillStyle = '#94a3b8';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'bottom';
+            ctx.font = `bold ${3 * scale}px 'Noto Sans KR'`; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
             ctx.fillText(((r + 1) * 20).toString(), marginX + totalWonjiW + (0.3 * scale), y + cellS);
           }
-
           for (let c = 0; c < 20; c++) {
             const x = marginX + c * cellS;
             const cell = allCells[startIdx + r * 20 + c];
-            
-            ctx.beginPath();
-            ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); 
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); 
             ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); 
             ctx.moveTo(x, y); ctx.lineTo(x, y + cellS); 
             if (c === 19 || viewMode === 'grid') { ctx.moveTo(x + cellS, y); ctx.lineTo(x + cellS, y + cellS); } 
             ctx.stroke();
-            
             if (cell && cell.type !== 'empty') {
               ctx.fillStyle = '#0f172a'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
               const fontBase = `${6.5 * scale}px ${fontFamily.replace(/'/g, "")}`;
@@ -281,8 +254,7 @@ export default function App() {
         }
         if (viewMode === 'feedback') {
           const fbW = (gridType === '200' ? 30 : 50) * scale;
-          ctx.lineWidth = 0.35 * scale;
-          ctx.strokeRect(marginX + totalWonjiW + (3 * scale), marginY, fbW, contentHeight);
+          ctx.lineWidth = 0.35 * scale; ctx.strokeRect(marginX + totalWonjiW + (3 * scale), marginY, fbW, contentHeight);
         }
         return canvas.toDataURL('image/png', 1.0);
       };
@@ -290,43 +262,26 @@ export default function App() {
       for (let p = 0; p < pageCount; p++) {
         const imgData = drawManuscriptPage(p * gridVal, p);
         if (p > 0) pdf.addPage(orientation, 'mm', 'a4');
-        
         const isLongPage = (gridType === '400' && viewMode === 'feedback') || (gridType === '600');
         const virtualHeight = isLongPage ? 420 : (orientation === 'l' ? 210 : 297);
         const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 260 : (orientation === 'l' ? 297 : 210);
         
-        // [수정 2] 모바일 400자/600자 일반/격자형 비율을 95%(0.95)로 설정 (독립 로직)
+        // [수정 사항: 모바일 400자/600자 일반/격자형 비율 95% 설정]
         let fitRatio = Math.min(pdfWidth / virtualWidth, pdfHeight / virtualHeight);
         if ((gridType === '400' || gridType === '600') && viewMode !== 'feedback') {
             fitRatio = fitRatio * 0.95; 
         }
-
-        let drawW = virtualWidth * fitRatio;
-        let drawH = virtualHeight * fitRatio;
-
-        const posX = (pdfWidth - drawW) / 2;
-        const posY = (pdfHeight - drawH) / 2;
+        let drawW = virtualWidth * fitRatio; let drawH = virtualHeight * fitRatio;
+        const posX = (pdfWidth - drawW) / 2; const posY = (pdfHeight - drawH) / 2;
         pdf.addImage(imgData, 'PNG', posX, posY, drawW, drawH, undefined, 'FAST');
       }
-      
       const now = new Date();
-      const dateStr = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
-      const timeStr = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
-      const fileName = `wongoji_${dateStr}_${timeStr}.pdf`;
-
+      const fileName = `wongoji_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}.pdf`;
       if (isMobile && navigator.share) {
-        const pdfBlob = pdf.output('blob');
-        const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
-        try { await navigator.share({ files: [file], title: '원고지 연습장' }); } 
-        catch (e) { pdf.save(fileName); }
-      } else {
-        pdf.save(fileName);
-      }
-    } catch (e) {
-      alert("저장 중 오류 발생");
-    } finally {
-      setIsSaving(false);
-    }
+        const pdfBlob = pdf.output('blob'); const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+        try { await navigator.share({ files: [file], title: '원고지 연습장' }); } catch (e) { pdf.save(fileName); }
+      } else { pdf.save(fileName); }
+    } catch (e) { alert("저장 중 오류 발생"); } finally { setIsSaving(false); }
   };
 
   const handleAction = () => { if (isMobile) saveToPDF(); else window.print(); };
@@ -339,7 +294,7 @@ export default function App() {
         .editor-container { display: flex; width: 100vw; height: 100vh; background-color: #e2e8f0; overflow: hidden; }
         .editor-body { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); margin-top: 50px; flex-direction: row; }
         .sidebar { width: 40%; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
-        .main-preview { width: 60%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify(content: flex-start; }
+        .main-preview { width: 60%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
         @media screen and (orientation: portrait) {
           .editor-body { flex-direction: column !important; }
           .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none !important; border-bottom: 2px solid #ddd !important; }
@@ -347,7 +302,7 @@ export default function App() {
         }
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify(content: center; align-items: center; z-index: 9999; }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .loading-popup { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -357,7 +312,7 @@ export default function App() {
           body, html, .app-root-container, .editor-container, .editor-body, .main-preview { background: white !important; overflow: visible !important; height: auto !important; width: 100% !important; display: block !important; margin: 0 !important; padding: 0 !important; }
           .zoom-wrapper { transform: none !important; width: 100% !important; height: auto !important; display: block !important; }
           .manuscript-print-root { display: block !important; width: 100% !important; height: auto !important; }
-          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify(content: center !important; align-items: center !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
+          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
           .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 750)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
@@ -387,13 +342,10 @@ export default function App() {
               <div className="sidebar-settings">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                   <select value={gridType} onChange={e => setGridType(e.target.value)} style={selectStyle}>
-                    <option value="200">200자 (가로)</option>
-                    <option value="400">400자 (세로)</option>
-                    <option value="600">600자 (세로)</option>
+                    <option value="200">200자 (가로)</option><option value="400">400자 (세로)</option><option value="600">600자 (세로)</option>
                   </select>
                   <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={selectStyle}>
-                    {gridType !== '600' && <option value="traditional">일반형</option>}
-                    {gridType !== '600' && <option value="feedback">피드백용</option>}
+                    {gridType !== '600' && <><option value="traditional">일반형</option><option value="feedback">피드백용</option></>}
                     <option value="grid">격자형</option>
                   </select>
                 </div>
@@ -431,7 +383,7 @@ export default function App() {
                             {Array.from({ length: gridVal/20 }).map((_, r) => (
                               <div key={r} style={{ display: 'flex', position: 'relative', borderRight: (viewMode !== 'grid' && viewMode !== 'feedback') ? `1.2px solid ${lineColor}` : 'none' }}>
                                 {Array.from({ length: 20 }).map((_, c) => renderCell(allCells[p * gridVal + r * 20 + c], `c-${p}-${r}-${c}`, c === 19))}
-                                {/* [수정 1] 화면 미리보기용 5줄마다 글자 수 마커: 우측 끝에서 3px 밀착 배치 */}
+                                {/* [수정 사항: 화면 마커 위치 - 우측 끝에서 3px 밀착 배치] */}
                                 {(r + 1) % 5 === 0 && (
                                   <div style={{ position: 'absolute', left: 'calc(100% + 3px)', bottom: '0', fontSize: '10px', color: '#94a3b8', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                                     {(r + 1) * 20}
