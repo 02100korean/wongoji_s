@@ -89,7 +89,7 @@ export default function App() {
     document.head.appendChild(s);
   }, []);
 
-  // [수정 사항: 600자 선택 시 격자형으로 강제 고정]
+  // 600자 선택 시 격자형으로 강제 고정
   useEffect(() => {
     if (gridType === '600' && viewMode !== 'grid') {
       setViewMode('grid');
@@ -110,6 +110,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
+  // [v.12.17 텍스트 엔진 완벽 보존]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -148,6 +149,7 @@ export default function App() {
     return cells;
   }, [content]);
 
+  // [v.12.17 렌더러 완벽 보존]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -174,7 +176,7 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정 사항: 데이터 기반 직접 드로잉 엔진 - 5줄마다 글자 수 마커 추가] ---
+  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 마커 3px 및 95% 비율 적용] ---
   const saveToPDF = async () => {
     if (!window.jspdf) { alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return; }
     setIsSaving(true);
@@ -233,13 +235,13 @@ export default function App() {
         for (let r = 0; r < totalRows; r++) {
           const y = marginY + r * (cellS + gapS);
           
-          // [추가 사항: PDF용 5줄마다 글자 수 마커 드로잉]
+          // [수정 1] PDF용 5줄마다 글자 수 마커: 20번째 칸에서 3px(0.3 * scale) 우측에 표시
           if ((r + 1) % 5 === 0) {
             ctx.font = `bold ${3 * scale}px 'Noto Sans KR'`;
             ctx.fillStyle = '#94a3b8';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'bottom';
-            ctx.fillText(((r + 1) * 20).toString(), marginX + totalWonjiW + (2 * scale), y + cellS);
+            ctx.fillText(((r + 1) * 20).toString(), marginX + totalWonjiW + (0.3 * scale), y + cellS);
           }
 
           for (let c = 0; c < 20; c++) {
@@ -293,7 +295,12 @@ export default function App() {
         const virtualHeight = isLongPage ? 420 : (orientation === 'l' ? 210 : 297);
         const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 260 : (orientation === 'l' ? 297 : 210);
         
-        const fitRatio = Math.min(pdfWidth / virtualWidth, pdfHeight / virtualHeight);
+        // [수정 2] 모바일 400자/600자 일반/격자형 비율을 95%(0.95)로 설정 (독립 로직)
+        let fitRatio = Math.min(pdfWidth / virtualWidth, pdfHeight / virtualHeight);
+        if ((gridType === '400' || gridType === '600') && viewMode !== 'feedback') {
+            fitRatio = fitRatio * 0.95; 
+        }
+
         let drawW = virtualWidth * fitRatio;
         let drawH = virtualHeight * fitRatio;
 
@@ -332,7 +339,7 @@ export default function App() {
         .editor-container { display: flex; width: 100vw; height: 100vh; background-color: #e2e8f0; overflow: hidden; }
         .editor-body { display: flex; flex: 1; width: 100%; height: calc(100vh - 50px); margin-top: 50px; flex-direction: row; }
         .sidebar { width: 40%; height: 100%; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; z-index: 20; }
-        .main-preview { width: 60%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; }
+        .main-preview { width: 60%; height: 100%; overflow: auto; background-color: #cbd5e1; padding: 20px; display: flex; flex-direction: column; align-items: flex-start; justify(content: flex-start; }
         @media screen and (orientation: portrait) {
           .editor-body { flex-direction: column !important; }
           .sidebar { width: 100% !important; height: 50% !important; flex-basis: 50% !important; border-right: none !important; border-bottom: 2px solid #ddd !important; }
@@ -340,7 +347,7 @@ export default function App() {
         }
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify(content: center; align-items: center; z-index: 9999; }
         .loading-popup { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -424,9 +431,9 @@ export default function App() {
                             {Array.from({ length: gridVal/20 }).map((_, r) => (
                               <div key={r} style={{ display: 'flex', position: 'relative', borderRight: (viewMode !== 'grid' && viewMode !== 'feedback') ? `1.2px solid ${lineColor}` : 'none' }}>
                                 {Array.from({ length: 20 }).map((_, c) => renderCell(allCells[p * gridVal + r * 20 + c], `c-${p}-${r}-${c}`, c === 19))}
-                                {/* [추가 사항: 화면 미리보기용 5줄마다 글자 수 마커] */}
+                                {/* [수정 1] 화면 미리보기용 5줄마다 글자 수 마커: 우측 끝에서 3px 밀착 배치 */}
                                 {(r + 1) % 5 === 0 && (
-                                  <div style={{ position: 'absolute', right: '-45px', bottom: '0', fontSize: '10px', color: '#94a3b8', fontWeight: 'bold' }}>
+                                  <div style={{ position: 'absolute', left: 'calc(100% + 3px)', bottom: '0', fontSize: '10px', color: '#94a3b8', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                                     {(r + 1) * 20}
                                   </div>
                                 )}
