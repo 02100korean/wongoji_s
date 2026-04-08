@@ -169,7 +169,7 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 400자 잘림 및 여백 완벽 교정] --- 
+  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 400자 라인 복구 및 피드백 박스 50mm 확장] --- 
   const saveToPDF = async () => {
     if (!window.jspdf) { alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return; }
     setIsSaving(true);
@@ -185,8 +185,8 @@ export default function App() {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // [기술 해결 1] 400자 피드백용 가상 도화지 높이를 420mm로 확장하여 20줄 전체 수용
-        const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 250 : (orientation === 'l' ? 297 : 210);
+        // [수정 1] 400자 피드백 전용: 상하단 라인 보존 및 50mm 피드백 박스 수용을 위해 가상 너비 재설정
+        const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 260 : (orientation === 'l' ? 297 : 210);
         const virtualHeight = (gridType === '400' && viewMode === 'feedback') ? 420 : (orientation === 'l' ? 210 : 297);
         
         canvas.width = virtualWidth * 10; 
@@ -203,14 +203,14 @@ export default function App() {
         const totalRows = gridVal / 20;
         const contentHeight = totalRows * cellS + (totalRows - 1) * gapS;
         
-        const marginX = (canvas.width - totalWonjiW - (viewMode === 'feedback' ? (gridType === '200' ? 33 : 43) * scale : 0)) / 2;
+        // [수정 2] 50mm 피드백 박스(3mm gap + 50mm box = 53mm)를 고려한 marginX 계산
+        const marginX = (canvas.width - totalWonjiW - (viewMode === 'feedback' ? (gridType === '200' ? 33 : 53) * scale : 0)) / 2;
         const marginY = (canvas.height - contentHeight) / 2;
 
         let vShift = 0;
         if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) vShift = cellS * 0.1;
         else if (fontFamily === "'Poor Story', cursive") vShift = cellS * 0.05;
 
-        // [기술 해결 2] 상하단 여백 압축: 이름 영역을 원고지에 밀착시켜 중앙 집중도 향상
         if (pageNum === 0 && studentName) {
             ctx.font = `bold ${5.5 * scale}px ${fontFamily.replace(/'/g, "")}`;
             ctx.fillStyle = 'black';
@@ -231,11 +231,11 @@ export default function App() {
           for (let c = 0; c < 20; c++) {
             const x = marginX + c * cellS;
             const cell = allCells[startIdx + r * 20 + c];
-            const is400Feedback = (gridType === '400' && viewMode === 'feedback');
             
+            // [수정 3] 400자 피드백 전용 상하단 조건부 제거 로직 삭제 -> 모든 라인 드로잉 보장
             ctx.beginPath();
-            if (!(is400Feedback && r === 0)) { ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); } 
-            if (!(is400Feedback && r === (totalRows - 1))) { ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); } 
+            ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); 
+            ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); 
             ctx.moveTo(x, y); ctx.lineTo(x, y + cellS); 
             if (c === 19 || viewMode === 'grid') { ctx.moveTo(x + cellS, y); ctx.lineTo(x + cellS, y + cellS); } 
             ctx.stroke();
@@ -264,8 +264,9 @@ export default function App() {
             }
           }
         }
+        // [수정 4] 우측 피드백 긴 직사각형: 200자 30mm, 400자 50mm로 확장 및 닫힌 박스로 드로잉
         if (viewMode === 'feedback') {
-          const fbW = (gridType === '200' ? 30 : 40) * scale;
+          const fbW = (gridType === '200' ? 30 : 50) * scale;
           ctx.lineWidth = 0.35 * scale;
           ctx.strokeRect(marginX + totalWonjiW + (3 * scale), marginY, fbW, contentHeight);
         }
@@ -276,9 +277,9 @@ export default function App() {
         const imgData = drawManuscriptPage(p * gridVal, p);
         if (p > 0) pdf.addPage(orientation, 'mm', 'a4');
         
-        // [기술 해결 3] 가변 스케일링: 용지 높이(pdfHeight)에 맞춰 이미지를 최적으로 축소 삽입
+        // [수정 5] 가변 스케일링: 용지 높이(pdfHeight)에 맞춰 상하단 잘림 없이 이미지를 최적으로 삽입
         const virtualHeight = (gridType === '400' && viewMode === 'feedback') ? 420 : (orientation === 'l' ? 210 : 297);
-        const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 250 : (orientation === 'l' ? 297 : 210);
+        const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 260 : (orientation === 'l' ? 297 : 210);
         
         const fitRatio = Math.min(pdfWidth / virtualWidth, pdfHeight / virtualHeight);
         let drawW = virtualWidth * fitRatio;
@@ -327,7 +328,7 @@ export default function App() {
         }
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify(content: center; align-items: center; z-index: 9999; }
         .loading-popup { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
