@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] ---
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 1-8]
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12.8 완벽 보존] ---
+// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 9-25]
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.17 핵심 엔진 및 로직 완벽 유지] ---
+// --- [3. 메인 앱 컴포넌트: v.12.17 핵심 엔진 및 로직 완벽 유지] --- [cite: 25-56]
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -103,6 +103,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
+  // [v.12.17 텍스트 엔진 완벽 보존] [cite: 32-46]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -141,6 +142,7 @@ export default function App() {
     return cells;
   }, [content]);
 
+  // [v.12.17 렌더러 완벽 보존] [cite: 47-56]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -167,7 +169,7 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 잘림 현상 해결 및 400자 레이아웃 교정] ---
+  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 400자 잘림 및 여백 완벽 교정] --- 
   const saveToPDF = async () => {
     if (!window.jspdf) { alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return; }
     setIsSaving(true);
@@ -183,9 +185,9 @@ export default function App() {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // [수정 1] 400자 피드백용 잘림 해결: 가상 캔버스 높이를 400mm로 확장하여 모든 줄 수용
+        // [기술 해결 1] 400자 피드백용 가상 도화지 높이를 420mm로 확장하여 20줄 전체 수용
         const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 250 : (orientation === 'l' ? 297 : 210);
-        const virtualHeight = (gridType === '400' && viewMode === 'feedback') ? 400 : (orientation === 'l' ? 210 : 297);
+        const virtualHeight = (gridType === '400' && viewMode === 'feedback') ? 420 : (orientation === 'l' ? 210 : 297);
         
         canvas.width = virtualWidth * 10; 
         canvas.height = virtualHeight * 10;
@@ -208,14 +210,15 @@ export default function App() {
         if (["'Jua', sans-serif", "'Gamja Flower', cursive", "'Hi Melody', cursive", "'Nanum Pen Script', cursive"].includes(fontFamily)) vShift = cellS * 0.1;
         else if (fontFamily === "'Poor Story', cursive") vShift = cellS * 0.05;
 
+        // [기술 해결 2] 상하단 여백 압축: 이름 영역을 원고지에 밀착시켜 중앙 집중도 향상
         if (pageNum === 0 && studentName) {
             ctx.font = `bold ${5.5 * scale}px ${fontFamily.replace(/'/g, "")}`;
             ctx.fillStyle = 'black';
             ctx.textAlign = 'right';
-            ctx.fillText(`이름: ${studentName}`, marginX + totalWonjiW, marginY - (12 * scale));
+            ctx.fillText(`이름: ${studentName}`, marginX + totalWonjiW, marginY - (8 * scale));
             ctx.beginPath();
-            ctx.moveTo(marginX + totalWonjiW - (50 * scale), marginY - (9 * scale));
-            ctx.lineTo(marginX + totalWonjiW, marginY - (9 * scale));
+            ctx.moveTo(marginX + totalWonjiW - (50 * scale), marginY - (5 * scale));
+            ctx.lineTo(marginX + totalWonjiW, marginY - (5 * scale));
             ctx.lineWidth = 0.5 * scale;
             ctx.stroke();
         }
@@ -230,7 +233,6 @@ export default function App() {
             const cell = allCells[startIdx + r * 20 + c];
             const is400Feedback = (gridType === '400' && viewMode === 'feedback');
             
-            // [수정 2] 400자 피드백 전용: 최상단 상단선 및 최하단 하단선 정밀 제거
             ctx.beginPath();
             if (!(is400Feedback && r === 0)) { ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); } 
             if (!(is400Feedback && r === (totalRows - 1))) { ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); } 
@@ -262,7 +264,6 @@ export default function App() {
             }
           }
         }
-        // [수정 3] 우측 피드백 긴 직사각형: 모든 면이 닫힌 단일 박스 드로잉
         if (viewMode === 'feedback') {
           const fbW = (gridType === '200' ? 30 : 40) * scale;
           ctx.lineWidth = 0.35 * scale;
@@ -275,20 +276,14 @@ export default function App() {
         const imgData = drawManuscriptPage(p * gridVal, p);
         if (p > 0) pdf.addPage(orientation, 'mm', 'a4');
         
-        let drawW = pdfWidth; 
-        let drawH = pdfHeight;
+        // [기술 해결 3] 가변 스케일링: 용지 높이(pdfHeight)에 맞춰 이미지를 최적으로 축소 삽입
+        const virtualHeight = (gridType === '400' && viewMode === 'feedback') ? 420 : (orientation === 'l' ? 210 : 297);
+        const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 250 : (orientation === 'l' ? 297 : 210);
         
-        if (gridType === '400') {
-            if (viewMode === 'feedback') {
-                // [수정 1 핵심] 확장 캔버스(400mm)를 73% 축소 -> 약 292mm로 A4(297mm) 내에 안착
-                drawW = 250 * 0.73;
-                drawH = 400 * 0.73;
-            } else {
-                const ratio = viewMode === 'traditional' ? 0.9 : 1.0;
-                drawW = pdfWidth * ratio;
-                drawH = pdfHeight * ratio;
-            }
-        }
+        const fitRatio = Math.min(pdfWidth / virtualWidth, pdfHeight / virtualHeight);
+        let drawW = virtualWidth * fitRatio;
+        let drawH = virtualHeight * fitRatio;
+
         const posX = (pdfWidth - drawW) / 2;
         const posY = (pdfHeight - drawH) / 2;
         pdf.addImage(imgData, 'PNG', posX, posY, drawW, drawH, undefined, 'FAST');
