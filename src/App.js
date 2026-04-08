@@ -89,10 +89,16 @@ export default function App() {
     document.head.appendChild(s);
   }, []);
 
+  // [수정 사항: 600자 선택 시 격자형으로 강제 고정]
+  useEffect(() => {
+    if (gridType === '600' && viewMode !== 'grid') {
+      setViewMode('grid');
+    }
+  }, [gridType, viewMode]);
+
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
       const containerWidth = mainRef.current.clientWidth - 40;
-      // 600자 가로 너비는 400자와 동일하게 880px 베이스 사용
       const baseWidth = viewMode === 'feedback' ? (gridType === '200' ? 1010 : 1050) : 880; 
       const calculatedZoom = Math.floor((containerWidth / baseWidth) * 100) / 100;
       setZoom(Math.min(1.5, Math.max(0.3, calculatedZoom))); 
@@ -104,7 +110,6 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.17 텍스트 엔진 완벽 보존]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -143,7 +148,6 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [v.12.17 렌더러 완벽 보존]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -170,7 +174,7 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 600자 격자형 추가 및 최적화] ---
+  // --- [수정 사항: 데이터 기반 직접 드로잉 엔진 - 5줄마다 글자 수 마커 추가] ---
   const saveToPDF = async () => {
     if (!window.jspdf) { alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return; }
     setIsSaving(true);
@@ -186,7 +190,6 @@ export default function App() {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // [600자 대응] 600자 격자형은 30행이므로 가상 높이를 420mm로 충분히 설정
         const isLongPage = (gridType === '400' && viewMode === 'feedback') || (gridType === '600');
         const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 260 : (orientation === 'l' ? 297 : 210);
         const virtualHeight = isLongPage ? 420 : (orientation === 'l' ? 210 : 297);
@@ -229,14 +232,23 @@ export default function App() {
 
         for (let r = 0; r < totalRows; r++) {
           const y = marginY + r * (cellS + gapS);
+          
+          // [추가 사항: PDF용 5줄마다 글자 수 마커 드로잉]
+          if ((r + 1) % 5 === 0) {
+            ctx.font = `bold ${3 * scale}px 'Noto Sans KR'`;
+            ctx.fillStyle = '#94a3b8';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(((r + 1) * 20).toString(), marginX + totalWonjiW + (2 * scale), y + cellS);
+          }
+
           for (let c = 0; c < 20; c++) {
             const x = marginX + c * cellS;
             const cell = allCells[startIdx + r * 20 + c];
-            const is400Feedback = (gridType === '400' && viewMode === 'feedback');
             
             ctx.beginPath();
-            if (!(is400Feedback && r === 0)) { ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); } 
-            if (!(is400Feedback && r === (totalRows - 1))) { ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); } 
+            ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); 
+            ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); 
             ctx.moveTo(x, y); ctx.lineTo(x, y + cellS); 
             if (c === 19 || viewMode === 'grid') { ctx.moveTo(x + cellS, y); ctx.lineTo(x + cellS, y + cellS); } 
             ctx.stroke();
@@ -338,14 +350,13 @@ export default function App() {
           body, html, .app-root-container, .editor-container, .editor-body, .main-preview { background: white !important; overflow: visible !important; height: auto !important; width: 100% !important; display: block !important; margin: 0 !important; padding: 0 !important; }
           .zoom-wrapper { transform: none !important; width: 100% !important; height: auto !important; display: block !important; }
           .manuscript-print-root { display: block !important; width: 100% !important; height: auto !important; }
-          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify-content: center !important; align-items: center !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
+          .page-unit { height: 100vh !important; width: 100vw !important; display: flex !important; justify(content: center !important; align-items: center !important; box-sizing: border-box !important; page-break-after: always !important; break-after: page !important; position: relative !important; overflow: hidden !important; }
           .case-200-traditional { padding: 20mm !important; transform: scale(min((100vw - 40mm) / 880, (100vh - 40mm) / 630)) !important; }
           .case-200-feedback { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 1010, (100vh - 30mm) / 750)) !important; }
           .case-200-grid { padding: 25mm !important; transform: scale(min((100vw - 50mm) / 880, (100vh - 50mm) / 550)) !important; }
           .case-400-traditional { padding: 20mm !important; transform: scale(0.9) !important; }
           .case-400-feedback { padding: 15mm !important; transform: scale(0.73) !important; }
           .case-400-grid { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1050)) !important; }
-          /* [600자 격자형 인쇄 설정] 상하단 여백 확보를 위해 세밀한 스케일 적용 */
           .case-600-grid { padding: 10mm !important; transform: scale(min((100vw - 20mm) / 880, (100vh - 20mm) / 1250)) !important; }
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; height: auto !important; transform-origin: center center !important; }
         }
@@ -373,7 +384,11 @@ export default function App() {
                     <option value="400">400자 (세로)</option>
                     <option value="600">600자 (세로)</option>
                   </select>
-                  <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={selectStyle}><option value="traditional">일반형</option><option value="feedback">피드백용</option><option value="grid">격자형</option></select>
+                  <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={selectStyle}>
+                    {gridType !== '600' && <option value="traditional">일반형</option>}
+                    {gridType !== '600' && <option value="feedback">피드백용</option>}
+                    <option value="grid">격자형</option>
+                  </select>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                   <select value={fontFamily} onChange={e => setFontFamily(e.target.value)} style={selectStyle}>
@@ -407,8 +422,14 @@ export default function App() {
                         <div style={{ display: 'flex' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: viewMode === 'feedback' ? '30px' : viewMode === 'traditional' ? '15px' : '0px' }}>
                             {Array.from({ length: gridVal/20 }).map((_, r) => (
-                              <div key={r} style={{ display: 'flex', borderRight: (viewMode !== 'grid' && viewMode !== 'feedback') ? `1.2px solid ${lineColor}` : 'none' }}>
+                              <div key={r} style={{ display: 'flex', position: 'relative', borderRight: (viewMode !== 'grid' && viewMode !== 'feedback') ? `1.2px solid ${lineColor}` : 'none' }}>
                                 {Array.from({ length: 20 }).map((_, c) => renderCell(allCells[p * gridVal + r * 20 + c], `c-${p}-${r}-${c}`, c === 19))}
+                                {/* [추가 사항: 화면 미리보기용 5줄마다 글자 수 마커] */}
+                                {(r + 1) % 5 === 0 && (
+                                  <div style={{ position: 'absolute', right: '-45px', bottom: '0', fontSize: '10px', color: '#94a3b8', fontWeight: 'bold' }}>
+                                    {(r + 1) * 20}
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>
