@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
-// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] --- [cite: 1-8]
+// --- [1. 스타일 및 디자인: v.12.8 완벽 보존] ---
 const cardStyle = { 
   transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease', 
   cursor: 'pointer', background: 'white', borderRadius: '24px', padding: '25px 15px', 
@@ -29,7 +29,7 @@ const WonjiIcon = () => (
     </div>
 );
 
-// --- [2. 홈 화면: v.12.8 완벽 보존] --- [cite: 9-25]
+// --- [2. 홈 화면: v.12.8 완벽 보존] ---
 const Home = ({ onNavigate }) => {
   const cardsRef = useRef(null);
   const handleScroll = () => { cardsRef.current?.scrollIntoView({ behavior: 'smooth' }); };
@@ -68,7 +68,7 @@ const Home = ({ onNavigate }) => {
   );
 };
 
-// --- [3. 메인 앱 컴포넌트: v.12.17 핵심 엔진 및 로직 완벽 유지] --- [cite: 25-56]
+// --- [3. 메인 앱 컴포넌트: v.12.17 핵심 엔진 및 로직 완벽 유지] ---
 export default function App() {
   const [view, setView] = useState('home');
   const [content, setContent] = useState('');
@@ -92,6 +92,7 @@ export default function App() {
   const fitToScreen = useCallback(() => {
     if (mainRef.current) {
       const containerWidth = mainRef.current.clientWidth - 40;
+      // 600자 가로 너비는 400자와 동일하게 880px 베이스 사용
       const baseWidth = viewMode === 'feedback' ? (gridType === '200' ? 1010 : 1050) : 880; 
       const calculatedZoom = Math.floor((containerWidth / baseWidth) * 100) / 100;
       setZoom(Math.min(1.5, Math.max(0.3, calculatedZoom))); 
@@ -103,7 +104,7 @@ export default function App() {
     return () => window.removeEventListener('resize', fitToScreen);
   }, [view, fitToScreen, gridType, viewMode]);
 
-  // [v.12.17 텍스트 엔진 완벽 보존] [cite: 32-46]
+  // [v.12.17 텍스트 엔진 완벽 보존]
   const allCells = useMemo(() => {
     const cols = 20; const cells = [{ type: 'empty' }];
     let i = 0, sCount = 0, dCount = 0;
@@ -142,7 +143,7 @@ export default function App() {
     return cells;
   }, [content]);
 
-  // [v.12.17 렌더러 완벽 보존] [cite: 47-56]
+  // [v.12.17 렌더러 완벽 보존]
   const renderCell = useCallback((cellData, key, isLastCol) => {
     const isGrid = viewMode === 'grid';
     let verticalShift = '0px';
@@ -169,7 +170,7 @@ export default function App() {
   const gridVal = parseInt(gridType);
   const pageCount = Math.max(1, Math.ceil(allCells.length / gridVal));
 
-  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 400자 라인 복구 및 피드백 박스 50mm 확장] --- 
+  // --- [수정된 모바일 전용: 데이터 기반 직접 드로잉 엔진 - 600자 격자형 추가 및 최적화] ---
   const saveToPDF = async () => {
     if (!window.jspdf) { alert("PDF 엔진 로딩 중... 잠시 후 다시 눌러주세요."); return; }
     setIsSaving(true);
@@ -185,9 +186,10 @@ export default function App() {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // [수정 1] 400자 피드백 전용: 상하단 라인 보존 및 50mm 피드백 박스 수용을 위해 가상 너비 재설정
+        // [600자 대응] 600자 격자형은 30행이므로 가상 높이를 420mm로 충분히 설정
+        const isLongPage = (gridType === '400' && viewMode === 'feedback') || (gridType === '600');
         const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 260 : (orientation === 'l' ? 297 : 210);
-        const virtualHeight = (gridType === '400' && viewMode === 'feedback') ? 420 : (orientation === 'l' ? 210 : 297);
+        const virtualHeight = isLongPage ? 420 : (orientation === 'l' ? 210 : 297);
         
         canvas.width = virtualWidth * 10; 
         canvas.height = virtualHeight * 10;
@@ -203,7 +205,6 @@ export default function App() {
         const totalRows = gridVal / 20;
         const contentHeight = totalRows * cellS + (totalRows - 1) * gapS;
         
-        // [수정 2] 50mm 피드백 박스(3mm gap + 50mm box = 53mm)를 고려한 marginX 계산
         const marginX = (canvas.width - totalWonjiW - (viewMode === 'feedback' ? (gridType === '200' ? 33 : 53) * scale : 0)) / 2;
         const marginY = (canvas.height - contentHeight) / 2;
 
@@ -231,11 +232,11 @@ export default function App() {
           for (let c = 0; c < 20; c++) {
             const x = marginX + c * cellS;
             const cell = allCells[startIdx + r * 20 + c];
+            const is400Feedback = (gridType === '400' && viewMode === 'feedback');
             
-            // [수정 3] 400자 피드백 전용 상하단 조건부 제거 로직 삭제 -> 모든 라인 드로잉 보장
             ctx.beginPath();
-            ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); 
-            ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); 
+            if (!(is400Feedback && r === 0)) { ctx.moveTo(x, y); ctx.lineTo(x + cellS, y); } 
+            if (!(is400Feedback && r === (totalRows - 1))) { ctx.moveTo(x, y + cellS); ctx.lineTo(x + cellS, y + cellS); } 
             ctx.moveTo(x, y); ctx.lineTo(x, y + cellS); 
             if (c === 19 || viewMode === 'grid') { ctx.moveTo(x + cellS, y); ctx.lineTo(x + cellS, y + cellS); } 
             ctx.stroke();
@@ -264,7 +265,6 @@ export default function App() {
             }
           }
         }
-        // [수정 4] 우측 피드백 긴 직사각형: 200자 30mm, 400자 50mm로 확장 및 닫힌 박스로 드로잉
         if (viewMode === 'feedback') {
           const fbW = (gridType === '200' ? 30 : 50) * scale;
           ctx.lineWidth = 0.35 * scale;
@@ -277,8 +277,8 @@ export default function App() {
         const imgData = drawManuscriptPage(p * gridVal, p);
         if (p > 0) pdf.addPage(orientation, 'mm', 'a4');
         
-        // [수정 5] 가변 스케일링: 용지 높이(pdfHeight)에 맞춰 상하단 잘림 없이 이미지를 최적으로 삽입
-        const virtualHeight = (gridType === '400' && viewMode === 'feedback') ? 420 : (orientation === 'l' ? 210 : 297);
+        const isLongPage = (gridType === '400' && viewMode === 'feedback') || (gridType === '600');
+        const virtualHeight = isLongPage ? 420 : (orientation === 'l' ? 210 : 297);
         const virtualWidth = (gridType === '400' && viewMode === 'feedback') ? 260 : (orientation === 'l' ? 297 : 210);
         
         const fitRatio = Math.min(pdfWidth / virtualWidth, pdfHeight / virtualHeight);
@@ -328,7 +328,7 @@ export default function App() {
         }
         .sidebar-settings { padding: 10px; background: #f8fafc; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-input { flex: 1; padding: 15px; border: none; outline: none; resize: none; font-size: 15px; line-height: 1.6; width: 100%; box-sizing: border-box; background: white; }
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify(content: center; align-items: center; z-index: 9999; }
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .loading-popup { background: white; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #6366f1; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -345,6 +345,8 @@ export default function App() {
           .case-400-traditional { padding: 20mm !important; transform: scale(0.9) !important; }
           .case-400-feedback { padding: 15mm !important; transform: scale(0.73) !important; }
           .case-400-grid { padding: 15mm !important; transform: scale(min((100vw - 30mm) / 880, (100vh - 30mm) / 1050)) !important; }
+          /* [600자 격자형 인쇄 설정] 상하단 여백 확보를 위해 세밀한 스케일 적용 */
+          .case-600-grid { padding: 10mm !important; transform: scale(min((100vw - 20mm) / 880, (100vh - 20mm) / 1250)) !important; }
           .page-box { box-shadow: none !important; margin: 0 !important; padding: 40px 60px !important; height: auto !important; transform-origin: center center !important; }
         }
       `}</style>
@@ -366,7 +368,11 @@ export default function App() {
             <aside className="sidebar no-print">
               <div className="sidebar-settings">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                  <select value={gridType} onChange={e => setGridType(e.target.value)} style={selectStyle}><option value="200">200자 (가로)</option><option value="400">400자 (세로)</option></select>
+                  <select value={gridType} onChange={e => setGridType(e.target.value)} style={selectStyle}>
+                    <option value="200">200자 (가로)</option>
+                    <option value="400">400자 (세로)</option>
+                    <option value="600">600자 (세로)</option>
+                  </select>
                   <select value={viewMode} onChange={e => setViewMode(e.target.value)} style={selectStyle}><option value="traditional">일반형</option><option value="feedback">피드백용</option><option value="grid">격자형</option></select>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
